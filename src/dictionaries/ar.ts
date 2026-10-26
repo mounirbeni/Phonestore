@@ -54,6 +54,8 @@ export const ar: Dict = {
     categories: "الفئات",
     language: "اللغة",
     skip: "انتقل إلى المحتوى",
+    account: "الحساب",
+    brands: "العلامات التجارية",
   },
   announcement: {
     shipping: "توصيل مجاني ابتداءً من {amount}",
@@ -304,6 +306,22 @@ export const ar: Dict = {
       phone: "الهاتف",
       address: "العنوان",
     },
+  },
+  account: {
+    title: "حسابي",
+    text: "تابع طلباتك وارجع إلى مفضلتك وتواصل معنا.",
+    orders: "تتبّع طلبي",
+    ordersText: "برقم الطلب وبريدك الإلكتروني.",
+    wishlist: "مفضلتي",
+    wishlistText: "المنتجات التي أعجبتك.",
+    cart: "سلتي",
+    cartText: "أكمل مشترياتك.",
+    help: "المساعدة والتواصل",
+    helpText: "التوصيل والإرجاع وخدمة العملاء.",
+  },
+  brandsPage: {
+    title: "علاماتنا التجارية",
+    text: "أشهر العلامات التجارية، كلها مضمونة.",
   },
   errorPage: {
     title: "عذرًا، حدثت مشكلة",

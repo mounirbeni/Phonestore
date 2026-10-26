@@ -1,4 +1,4 @@
-import { Cable, Headphones, Laptop, Smartphone, Tablet, Watch, type LucideProps } from "lucide-react";
+import { Bike, Cable, Headphones, Laptop, Smartphone, Tablet, Tv, WashingMachine, Watch, type LucideProps } from "lucide-react";
 
 const icons = {
   phone: Smartphone,
@@ -7,6 +7,9 @@ const icons = {
   audio: Headphones,
   laptop: Laptop,
   accessory: Cable,
+  tv: Tv,
+  scooter: Bike,
+  home: WashingMachine,
 } as const;
 
 export function CategoryIcon({ name, ...props }: { name: string } & LucideProps) {

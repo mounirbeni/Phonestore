@@ -52,6 +52,8 @@ export const fr = {
     categories: "Catégories",
     language: "Langue",
     skip: "Aller au contenu",
+    account: "Compte",
+    brands: "Marques",
   },
   announcement: {
     shipping: "Livraison offerte dès {amount}",
@@ -302,6 +304,22 @@ export const fr = {
       phone: "Téléphone",
       address: "Adresse",
     },
+  },
+  account: {
+    title: "Mon compte",
+    text: "Suivez vos commandes, retrouvez vos favoris et contactez-nous.",
+    orders: "Suivre ma commande",
+    ordersText: "Avec votre numéro de commande et votre e-mail.",
+    wishlist: "Mes favoris",
+    wishlistText: "Les produits que vous avez aimés.",
+    cart: "Mon panier",
+    cartText: "Finalisez vos achats.",
+    help: "Aide & contact",
+    helpText: "Livraison, retours et service client.",
+  },
+  brandsPage: {
+    title: "Nos marques",
+    text: "Les plus grandes marques, toutes garanties.",
   },
   errorPage: {
     title: "Oups, un problème est survenu",

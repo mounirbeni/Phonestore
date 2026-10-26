@@ -8,7 +8,11 @@ export type ArtKind =
   | "charger"
   | "cable"
   | "case"
-  | "powerbank";
+  | "powerbank"
+  | "tv"
+  | "scooter"
+  | "appliance"
+  | "vacuum";
 
 /** Chooses a placeholder illustration for products that have no photo yet. */
 export function artKind(name: string, categoryIcon: string): ArtKind {
@@ -22,6 +26,12 @@ export function artKind(name: string, categoryIcon: string): ArtKind {
       return "watch";
     case "laptop":
       return "laptop";
+    case "tv":
+      return "tv";
+    case "scooter":
+      return "scooter";
+    case "home":
+      return /robot|aspirateur|vacuum/.test(n) ? "vacuum" : "appliance";
     case "audio":
       return /buds|airpods|écouteur|ecouteur|earbud/.test(n) ? "earbuds" : "headphones";
     default:

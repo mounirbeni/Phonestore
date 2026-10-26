@@ -6,7 +6,7 @@ import { Check, Trash2 } from "lucide-react";
 import { deleteCategory, saveCategory } from "@/app/actions/admin";
 
 type Cat = { id?: number; nameFr: string; nameAr: string; slug: string; icon: string; sort: number; products?: number };
-const ICONS: [string, string][] = [["phone", "هاتف"], ["tablet", "لوحي"], ["watch", "ساعة"], ["audio", "صوتيات"], ["laptop", "حاسوب"], ["accessory", "إكسسوار"]];
+const ICONS: [string, string][] = [["phone", "هاتف"], ["tablet", "لوحي"], ["watch", "ساعة"], ["audio", "صوتيات"], ["laptop", "حاسوب"], ["accessory", "إكسسوار"], ["scooter", "تنقل كهربائي"], ["tv", "تلفاز"], ["home", "أجهزة منزلية"]];
 
 function Row({ cat }: { cat: Cat }) {
   const router = useRouter();

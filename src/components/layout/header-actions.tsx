@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
-import { Heart, Languages, ShoppingBag } from "lucide-react";
+import { Heart, Languages, ShoppingBag, User } from "lucide-react";
 import { useCart, useI18n, useWishlist } from "@/components/providers";
 import { localePath, switchLocalePath, type Locale } from "@/lib/i18n";
 
@@ -57,6 +57,9 @@ export function HeaderActions() {
   return (
     <div className="flex items-center gap-1">
       <LocaleSwitch />
+      <Link href={localePath(locale, "/account")} className="btn btn-ghost relative !p-2.5 max-lg:hidden" aria-label={d.nav.account}>
+        <User className="h-5 w-5" aria-hidden="true" />
+      </Link>
       <Link href={localePath(locale, "/wishlist")} className="btn btn-ghost relative !p-2.5 max-lg:hidden" aria-label={d.nav.wishlist}>
         <Heart className="h-5 w-5" aria-hidden="true" />
         {cart.ready && <Badge n={wish.slugs.length} />}

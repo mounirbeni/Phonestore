@@ -170,6 +170,61 @@ export function ProductArt({ kind, color = "#1c1c1e", className }: Props) {
         </g>
       );
       break;
+    case "tv":
+      art = (
+        <g filter={`url(#f${id})`}>
+          <rect x="22" y="52" width="196" height="122" rx="9" fill={body} />
+          <rect x="27" y="57" width="186" height="112" rx="5" fill={screen} />
+          <path d="M27 150c40-26 70-8 110-24s56-10 76-26v69H27Z" fill="#000" opacity="0.28" />
+          <rect x="108" y="174" width="24" height="22" fill={lo} />
+          <rect x="74" y="194" width="92" height="9" rx="4.5" fill={body} />
+        </g>
+      );
+      break;
+    case "scooter":
+      art = (
+        <g filter={`url(#f${id})`}>
+          <path d="M176 186 150 60" stroke={lo} strokeWidth="9" strokeLinecap="round" fill="none" />
+          <path d="M176 186 150 60" stroke={hi} strokeWidth="3" strokeLinecap="round" fill="none" opacity="0.6" />
+          <rect x="132" y="48" width="46" height="9" rx="4.5" fill={body} />
+          <rect x="52" y="178" width="124" height="13" rx="6.5" fill={body} />
+          <rect x="52" y="178" width="124" height="13" rx="6.5" fill="none" stroke="#fff" strokeOpacity="0.3" />
+          <circle cx="66" cy="196" r="20" fill="#0b0d12" />
+          <circle cx="66" cy="196" r="9" fill={body} />
+          <circle cx="178" cy="196" r="20" fill="#0b0d12" />
+          <circle cx="178" cy="196" r="9" fill={body} />
+          <circle cx="178" cy="64" r="3.5" fill="#ff4d5e" />
+        </g>
+      );
+      break;
+    case "vacuum":
+      art = (
+        <g filter={`url(#f${id})`}>
+          <ellipse cx="120" cy="196" rx="76" ry="10" fill="#000" opacity="0.18" />
+          <circle cx="120" cy="130" r="76" fill={body} />
+          <circle cx="120" cy="130" r="76" fill="none" stroke="#fff" strokeOpacity="0.3" strokeWidth="2" />
+          <circle cx="120" cy="130" r="58" fill="none" stroke={lo} strokeOpacity="0.5" strokeWidth="2" />
+          <circle cx="120" cy="104" r="14" fill="#0b0d12" />
+          <circle cx="120" cy="104" r="6" fill={hi} opacity="0.7" />
+          <circle cx="120" cy="152" r="9" fill="#0b0d12" />
+          <rect x="94" y="176" width="52" height="6" rx="3" fill="#0b0d12" opacity="0.55" />
+        </g>
+      );
+      break;
+    case "appliance":
+      art = (
+        <g filter={`url(#f${id})`}>
+          <rect x="58" y="26" width="124" height="190" rx="16" fill={body} />
+          <rect x="58" y="26" width="124" height="190" rx="16" fill="none" stroke="#fff" strokeOpacity="0.3" />
+          <rect x="70" y="40" width="48" height="14" rx="5" fill="#0b0d12" opacity="0.75" />
+          <circle cx="146" cy="47" r="8" fill={lo} />
+          <circle cx="120" cy="136" r="48" fill={lo} opacity="0.55" />
+          <circle cx="120" cy="136" r="40" fill={screen} />
+          <circle cx="120" cy="136" r="40" fill="none" stroke="#fff" strokeOpacity="0.35" strokeWidth="3" />
+          <path d="M96 118c14-8 30-6 44 4" stroke="#fff" strokeOpacity="0.4" strokeWidth="4" strokeLinecap="round" fill="none" />
+        </g>
+      );
+      break;
     default:
       art = (
         <g filter={`url(#f${id})`}>

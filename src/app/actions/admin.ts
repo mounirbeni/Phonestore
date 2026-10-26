@@ -214,7 +214,7 @@ const categorySchema = z.object({
   nameFr: z.string().trim().min(1).max(60),
   nameAr: z.string().trim().min(1).max(60),
   slug: z.string().trim().max(60).default(""),
-  icon: z.enum(["phone", "tablet", "watch", "audio", "laptop", "accessory"]),
+  icon: z.enum(["phone", "tablet", "watch", "audio", "laptop", "accessory", "scooter", "tv", "home"]),
   sort: z.number().int().min(0).max(999),
 });
 

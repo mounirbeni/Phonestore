@@ -1,20 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
-import { ChevronRight, PackageSearch, Percent, Sparkles, X } from "lucide-react";
-import { CategoryIcon } from "@/components/ui/category-icon";
+import { useEffect, useState } from "react";
+import { ChevronRight, PackageSearch, User, X } from "lucide-react";
 import { LocaleSwitch } from "./header-actions";
 import { useI18n, useUi } from "@/components/providers";
-import { localePath, pick } from "@/lib/i18n";
+import { localePath } from "@/lib/i18n";
+import type { MenuItem } from "@/lib/menu";
+import { cn } from "@/lib/utils";
 import { Logo } from "./logo";
 
-type Cat = { slug: string; nameFr: string; nameAr: string; icon: string };
-
-/** Full menu sheet, opened from the "Menu" tab. */
-export function MobileMenu({ categories }: { categories: Cat[] }) {
+/** Side drawer opened from the "Menu" tab: top-level entries, expandable sub-lists, account. */
+export function MobileMenu({ menu }: { menu: MenuItem[] }) {
   const { locale, d } = useI18n();
   const { menuOpen: open, setMenuOpen } = useUi();
+  const [expanded, setExpanded] = useState<string | null>(null);
   const close = () => setMenuOpen(false);
 
   useEffect(() => {
@@ -30,47 +30,76 @@ export function MobileMenu({ categories }: { categories: Cat[] }) {
 
   if (!open) return null;
 
-  const row = "flex min-h-14 items-center gap-3.5 rounded-2xl px-3.5 text-[0.98rem] font-medium active:bg-mist hover:bg-mist";
+  const row = "flex min-h-[3.75rem] w-full items-center justify-between gap-3 border-b border-line px-1 text-start text-[1.05rem] font-medium transition active:bg-mist";
 
   return (
     <div className="fixed inset-0 z-[70] lg:hidden" role="dialog" aria-modal="true" aria-label={d.nav.menu}>
       <button type="button" className="absolute inset-0 bg-black/70 [animation:fade-in_0.2s]" onClick={close} aria-label={d.common.close} />
-      <aside className="absolute inset-x-0 bottom-0 flex max-h-[92dvh] flex-col rounded-t-[1.75rem] border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] shadow-pop [animation:sheet-up_0.3s_ease-out]">
-        <div className="mx-auto mt-2.5 h-1.5 w-10 shrink-0 rounded-full bg-line" aria-hidden="true" />
-        <div className="flex items-center justify-between px-5 pb-2 pt-3">
-          <Logo locale={locale} />
-          <button type="button" className="btn btn-ghost !h-11 !w-11 !p-0" onClick={close} aria-label={d.common.close}>
-            <X className="h-5 w-5" />
+      <aside className="absolute inset-y-0 start-0 flex w-[88vw] max-w-sm flex-col border-e border-line bg-surface pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] shadow-pop [--from:-100%] rtl:[--from:100%] [animation:slide-in_0.28s_ease-out]">
+        <div className="flex items-center justify-between px-5 pb-2 pt-4">
+          <button type="button" className="-ms-2 grid h-11 w-11 place-items-center rounded-full active:bg-mist" onClick={close} aria-label={d.common.close}>
+            <X className="h-6 w-6" />
           </button>
+          <Logo locale={locale} />
         </div>
-        <nav className="flex-1 overflow-y-auto overscroll-contain px-3 pb-3">
-          <p className="px-3.5 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-muted">{d.nav.categories}</p>
-          {categories.map((c) => (
-            <Link key={c.slug} href={localePath(locale, `/c/${c.slug}`)} onClick={close} className={row}>
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand">
-                <CategoryIcon name={c.icon} className="h-5 w-5" aria-hidden="true" />
-              </span>
-              <span className="flex-1">{pick(locale, c.nameFr, c.nameAr)}</span>
-              <ChevronRight className="h-4.5 w-4.5 text-muted rtl:rotate-180" aria-hidden="true" />
-            </Link>
-          ))}
-          <div className="my-3 border-t border-line" />
-          <Link href={localePath(locale, "/shop?deals=1")} onClick={close} className={`${row} text-hot`}>
-            <Percent className="h-5 w-5" aria-hidden="true" />
-            {d.nav.deals}
-          </Link>
-          <Link href={localePath(locale, "/shop?new=1&sort=new")} onClick={close} className={row}>
-            <Sparkles className="h-5 w-5 text-muted" aria-hidden="true" />
-            {d.nav.newArrivals}
-          </Link>
-          <Link href={localePath(locale, "/track")} onClick={close} className={row}>
-            <PackageSearch className="h-5 w-5 text-muted" aria-hidden="true" />
-            {d.nav.track}
-          </Link>
+
+        <nav className="flex-1 overflow-y-auto overscroll-contain px-5 pb-4" aria-label={d.nav.menu}>
+          <ul>
+            {menu.map((item) => {
+              const isOpen = expanded === item.id;
+              return (
+                <li key={item.id}>
+                  {item.children ? (
+                    <>
+                      <button
+                        type="button"
+                        className={cn(row, isOpen && "text-brand")}
+                        aria-expanded={isOpen}
+                        aria-controls={`sub-${item.id}`}
+                        onClick={() => setExpanded(isOpen ? null : item.id)}
+                      >
+                        {item.label}
+                        <ChevronRight className={cn("h-5 w-5 shrink-0 text-muted transition-transform rtl:rotate-180", isOpen && "rotate-90 text-brand rtl:rotate-90")} aria-hidden="true" />
+                      </button>
+                      {isOpen && (
+                        <ul id={`sub-${item.id}`} className="border-b border-line bg-mist/50 py-1 [animation:fade-in_0.2s]">
+                          {item.children.map((c, i) => (
+                            <li key={c.href + c.label}>
+                              <Link
+                                href={localePath(locale, c.href)}
+                                onClick={close}
+                                className={cn("flex min-h-12 items-center ps-5 pe-3 text-[0.98rem] active:bg-mist", i === 0 ? "font-semibold text-brand" : "text-fg-2")}
+                              >
+                                {c.label}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </>
+                  ) : (
+                    <Link href={localePath(locale, item.href)} onClick={close} className={cn(row, item.tone === "hot" && "text-hot")}>
+                      {item.label}
+                    </Link>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
         </nav>
-        <div className="flex items-center justify-between border-t border-line px-5 py-3">
-          <span className="text-sm text-muted">{d.nav.language}</span>
-          <LocaleSwitch />
+
+        <div className="space-y-1 border-t border-line px-5 py-3">
+          <Link href={localePath(locale, "/account")} onClick={close} className="flex min-h-12 items-center gap-3 text-sm font-semibold uppercase tracking-[0.18em]">
+            <User className="h-5 w-5" aria-hidden="true" />
+            {d.nav.account}
+          </Link>
+          <div className="flex items-center justify-between">
+            <Link href={localePath(locale, "/track")} onClick={close} className="flex min-h-11 items-center gap-2.5 text-sm text-fg-2">
+              <PackageSearch className="h-4.5 w-4.5" aria-hidden="true" />
+              {d.nav.track}
+            </Link>
+            <LocaleSwitch />
+          </div>
         </div>
       </aside>
     </div>

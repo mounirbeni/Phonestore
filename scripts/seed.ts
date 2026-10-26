@@ -17,13 +17,17 @@ type P = {
   variants: V[];
 };
 
+// `sort` follows the storefront menu order; array order only fixes the ids.
 const categories = [
-  { slug: "smartphones", nameFr: "Smartphones", nameAr: "الهواتف الذكية", icon: "phone" },
-  { slug: "tablettes", nameFr: "Tablettes", nameAr: "الأجهزة اللوحية", icon: "tablet" },
-  { slug: "montres-connectees", nameFr: "Montres connectées", nameAr: "الساعات الذكية", icon: "watch" },
-  { slug: "audio", nameFr: "Audio", nameAr: "الصوتيات", icon: "audio" },
-  { slug: "ordinateurs-portables", nameFr: "Ordinateurs portables", nameAr: "الحواسيب المحمولة", icon: "laptop" },
-  { slug: "accessoires", nameFr: "Accessoires", nameAr: "الإكسسوارات", icon: "accessory" },
+  { slug: "telephones", nameFr: "Téléphones", nameAr: "الهواتف", icon: "phone", sort: 1 },
+  { slug: "tablettes", nameFr: "Tablettes", nameAr: "الأجهزة اللوحية", icon: "tablet", sort: 4 },
+  { slug: "montres-connectees", nameFr: "Montres connectées", nameAr: "الساعات الذكية", icon: "watch", sort: 7 },
+  { slug: "audio", nameFr: "Audio", nameAr: "الصوتيات", icon: "audio", sort: 8 },
+  { slug: "laptops", nameFr: "Laptops", nameAr: "الحواسيب المحمولة", icon: "laptop", sort: 3 },
+  { slug: "accessoires", nameFr: "Accessoires", nameAr: "الإكسسوارات", icon: "accessory", sort: 2 },
+  { slug: "mobilite-electrique", nameFr: "Mobilité Électrique", nameAr: "التنقل الكهربائي", icon: "scooter", sort: 0 },
+  { slug: "televiseurs", nameFr: "Téléviseurs", nameAr: "أجهزة التلفاز", icon: "tv", sort: 5 },
+  { slug: "electromenagers", nameFr: "Électroménagers", nameAr: "الأجهزة المنزلية", icon: "home", sort: 6 },
 ];
 
 const c = {
@@ -42,7 +46,7 @@ const c = {
 
 const items: P[] = [
   {
-    slug: "iphone-16-pro", name: "Apple iPhone 16 Pro", brand: "Apple", cat: "smartphones", featured: true, isNew: true,
+    slug: "iphone-16-pro", name: "Apple iPhone 16 Pro", brand: "Apple", cat: "telephones", featured: true, isNew: true,
     fr: "Puce A18 Pro, écran Super Retina XDR 6,3\" 120 Hz, châssis en titane et système photo 48 Mpx.",
     ar: "معالج A18 Pro وشاشة Super Retina XDR مقاس 6.3 بوصة بتردد 120 هرتز وهيكل تيتانيوم ونظام تصوير 48 ميغابكسل.",
     specs: [["Écran", "الشاشة", "6,3\" OLED 120 Hz"], ["Processeur", "المعالج", "Apple A18 Pro"], ["Appareil photo", "الكاميرا", "48 Mpx + 48 Mpx + 12 Mpx"], ["Batterie", "البطارية", "Jusqu'à 27 h de vidéo"], ["5G", "5G", "Oui"]],
@@ -54,7 +58,7 @@ const items: P[] = [
     ],
   },
   {
-    slug: "iphone-16", name: "Apple iPhone 16", brand: "Apple", cat: "smartphones", featured: true,
+    slug: "iphone-16", name: "Apple iPhone 16", brand: "Apple", cat: "telephones", featured: true,
     fr: "Puce A18, bouton Action, Contrôle de l'appareil photo et écran Super Retina XDR 6,1\".",
     ar: "معالج A18 وزر الإجراءات وتحكّم بالكاميرا وشاشة Super Retina XDR مقاس 6.1 بوصة.",
     specs: [["Écran", "الشاشة", "6,1\" OLED 60 Hz"], ["Processeur", "المعالج", "Apple A18"], ["Appareil photo", "الكاميرا", "48 Mpx + 12 Mpx"], ["5G", "5G", "Oui"]],
@@ -65,7 +69,7 @@ const items: P[] = [
     ],
   },
   {
-    slug: "iphone-15", name: "Apple iPhone 15", brand: "Apple", cat: "smartphones",
+    slug: "iphone-15", name: "Apple iPhone 15", brand: "Apple", cat: "telephones",
     fr: "Dynamic Island, appareil photo principal 48 Mpx et connecteur USB-C. Un classique au prix malin.",
     ar: "جزيرة ديناميكية وكاميرا رئيسية 48 ميغابكسل ومنفذ USB-C. خيار مميز بسعر ذكي.",
     specs: [["Écran", "الشاشة", "6,1\" OLED 60 Hz"], ["Processeur", "المعالج", "Apple A16 Bionic"], ["Connectique", "المنفذ", "USB-C"]],
@@ -75,7 +79,7 @@ const items: P[] = [
     ],
   },
   {
-    slug: "samsung-galaxy-s25-ultra", name: "Samsung Galaxy S25 Ultra", brand: "Samsung", cat: "smartphones", featured: true, isNew: true,
+    slug: "samsung-galaxy-s25-ultra", name: "Samsung Galaxy S25 Ultra", brand: "Samsung", cat: "telephones", featured: true, isNew: true,
     fr: "Écran Dynamic AMOLED 6,9\", Snapdragon 8 Elite, S Pen intégré et capteur principal 200 Mpx.",
     ar: "شاشة Dynamic AMOLED مقاس 6.9 بوصة ومعالج Snapdragon 8 Elite وقلم S Pen مدمج ومستشعر رئيسي 200 ميغابكسل.",
     specs: [["Écran", "الشاشة", "6,9\" Dynamic AMOLED 2X 120 Hz"], ["Processeur", "المعالج", "Snapdragon 8 Elite"], ["Appareil photo", "الكاميرا", "200 Mpx + 50 Mpx + 10 Mpx + 50 Mpx"], ["Batterie", "البطارية", "5000 mAh"], ["S Pen", "قلم S Pen", "Inclus"]],
@@ -86,7 +90,7 @@ const items: P[] = [
     ],
   },
   {
-    slug: "samsung-galaxy-s25", name: "Samsung Galaxy S25", brand: "Samsung", cat: "smartphones", featured: true,
+    slug: "samsung-galaxy-s25", name: "Samsung Galaxy S25", brand: "Samsung", cat: "telephones", featured: true,
     fr: "Compact et puissant : Snapdragon 8 Elite, écran 6,2\" 120 Hz et fonctions Galaxy AI.",
     ar: "صغير وقوي: معالج Snapdragon 8 Elite وشاشة 6.2 بوصة بتردد 120 هرتز وميزات Galaxy AI.",
     specs: [["Écran", "الشاشة", "6,2\" Dynamic AMOLED 2X 120 Hz"], ["Processeur", "المعالج", "Snapdragon 8 Elite"], ["Batterie", "البطارية", "4000 mAh"]],
@@ -96,7 +100,7 @@ const items: P[] = [
     ],
   },
   {
-    slug: "samsung-galaxy-a56", name: "Samsung Galaxy A56 5G", brand: "Samsung", cat: "smartphones", isNew: true,
+    slug: "samsung-galaxy-a56", name: "Samsung Galaxy A56 5G", brand: "Samsung", cat: "telephones", isNew: true,
     fr: "Écran Super AMOLED 6,7\" 120 Hz, triple capteur 50 Mpx et 6 ans de mises à jour.",
     ar: "شاشة Super AMOLED مقاس 6.7 بوصة بتردد 120 هرتز وثلاث كاميرات بدقة 50 ميغابكسل وست سنوات من التحديثات.",
     specs: [["Écran", "الشاشة", "6,7\" Super AMOLED 120 Hz"], ["Batterie", "البطارية", "5000 mAh"], ["Mises à jour", "التحديثات", "6 ans"]],
@@ -106,7 +110,7 @@ const items: P[] = [
     ],
   },
   {
-    slug: "google-pixel-9", name: "Google Pixel 9", brand: "Google", cat: "smartphones", featured: true,
+    slug: "google-pixel-9", name: "Google Pixel 9", brand: "Google", cat: "telephones", featured: true,
     fr: "Tensor G4, appareil photo double 50 Mpx et fonctions IA Google, avec 7 ans de mises à jour.",
     ar: "معالج Tensor G4 وكاميرا مزدوجة 50 ميغابكسل وميزات ذكاء Google الاصطناعي مع 7 سنوات من التحديثات.",
     specs: [["Écran", "الشاشة", "6,3\" OLED 120 Hz"], ["Processeur", "المعالج", "Google Tensor G4"], ["Mises à jour", "التحديثات", "7 ans"]],
@@ -116,7 +120,7 @@ const items: P[] = [
     ],
   },
   {
-    slug: "xiaomi-14t", name: "Xiaomi 14T", brand: "Xiaomi", cat: "smartphones",
+    slug: "xiaomi-14t", name: "Xiaomi 14T", brand: "Xiaomi", cat: "telephones",
     fr: "Optiques Leica, écran AMOLED 144 Hz et charge rapide 67 W pour un excellent rapport qualité/prix.",
     ar: "عدسات Leica وشاشة AMOLED بتردد 144 هرتز وشحن سريع 67 واط بأفضل قيمة مقابل السعر.",
     specs: [["Écran", "الشاشة", "6,67\" AMOLED 144 Hz"], ["Charge", "الشحن", "67 W"], ["Appareil photo", "الكاميرا", "50 Mpx Leica"]],
@@ -126,7 +130,7 @@ const items: P[] = [
     ],
   },
   {
-    slug: "redmi-note-14-pro", name: "Xiaomi Redmi Note 14 Pro", brand: "Xiaomi", cat: "smartphones",
+    slug: "redmi-note-14-pro", name: "Xiaomi Redmi Note 14 Pro", brand: "Xiaomi", cat: "telephones",
     fr: "Écran AMOLED 6,67\" 120 Hz, capteur 200 Mpx et batterie 5110 mAh.",
     ar: "شاشة AMOLED مقاس 6.67 بوصة بتردد 120 هرتز ومستشعر 200 ميغابكسل وبطارية 5110 مللي أمبير.",
     specs: [["Écran", "الشاشة", "6,67\" AMOLED 120 Hz"], ["Appareil photo", "الكاميرا", "200 Mpx"], ["Batterie", "البطارية", "5110 mAh"]],
@@ -201,7 +205,7 @@ const items: P[] = [
     variants: [{ color: c.blue, price: 9900, compare: 14900, stock: 35 }, { color: c.black, price: 9900, compare: 14900, stock: 28 }],
   },
   {
-    slug: "macbook-air-m3-13", name: "Apple MacBook Air 13\" (M3)", brand: "Apple", cat: "ordinateurs-portables", featured: true,
+    slug: "macbook-air-m3-13", name: "Apple MacBook Air 13\" (M3)", brand: "Apple", cat: "laptops", featured: true,
     fr: "Ultra-fin, silencieux, puce M3 et jusqu'à 18 h d'autonomie. Écran Liquid Retina 13,6\".",
     ar: "نحيف جدًا وصامت بمعالج M3 واستقلالية تصل إلى 18 ساعة وشاشة Liquid Retina مقاس 13.6 بوصة.",
     specs: [["Écran", "الشاشة", "13,6\" Liquid Retina"], ["Processeur", "المعالج", "Apple M3"], ["Mémoire", "الذاكرة", "8 Go unifiée"], ["Autonomie", "الاستقلالية", "Jusqu'à 18 h"]],
@@ -238,6 +242,72 @@ const items: P[] = [
     specs: [["Capacité", "السعة", "20 000 mAh"], ["Puissance", "القدرة", "65 W"], ["Ports", "المنافذ", "2 × USB-C, 1 × USB-A"]],
     variants: [{ color: c.black, price: 7990, compare: 9990, stock: 22 }],
   },
+  // ---- Mobilité électrique ----
+  {
+    slug: "xiaomi-electric-scooter-4-pro", name: "Xiaomi Electric Scooter 4 Pro", brand: "Xiaomi", cat: "mobilite-electrique", featured: true, isNew: true,
+    fr: "Trottinette électrique pliable : jusqu'à 55 km d'autonomie, 25 km/h et freinage double pour la ville.",
+    ar: "سكوتر كهربائي قابل للطي: مدى يصل إلى 55 كم وسرعة 25 كم/س وفرامل مزدوجة للتنقل داخل المدينة.",
+    specs: [["Autonomie", "المدى", "Jusqu'à 55 km"], ["Vitesse max", "السرعة القصوى", "25 km/h"], ["Moteur", "المحرك", "350 W (pic 700 W)"], ["Pneus", "الإطارات", "10\" tubeless"]],
+    variants: [{ color: c.black, price: 64900, compare: 74900, stock: 12 }],
+  },
+  {
+    slug: "xiaomi-electric-scooter-4-lite", name: "Xiaomi Electric Scooter 4 Lite", brand: "Xiaomi", cat: "mobilite-electrique",
+    fr: "Légère et compacte, idéale pour les trajets quotidiens : 20 km d'autonomie et pliage rapide.",
+    ar: "خفيفة وصغيرة الحجم للتنقل اليومي: مدى 20 كم وطي سريع.",
+    specs: [["Autonomie", "المدى", "Jusqu'à 20 km"], ["Vitesse max", "السرعة القصوى", "25 km/h"], ["Poids", "الوزن", "Environ 13 kg"]],
+    variants: [{ color: c.black, price: 39900, compare: 44900, stock: 18 }, { color: c.white, price: 39900, compare: 44900, stock: 9 }],
+  },
+  {
+    slug: "ninebot-kickscooter-f2-pro", name: "Segway Ninebot KickScooter F2 Pro", brand: "Segway", cat: "mobilite-electrique",
+    fr: "Trottinette électrique robuste avec suspension avant et clignotants intégrés pour rouler en sécurité.",
+    ar: "سكوتر كهربائي متين بنظام تعليق أمامي وإشارات انعطاف مدمجة لقيادة آمنة.",
+    specs: [["Autonomie", "المدى", "Jusqu'à 55 km"], ["Vitesse max", "السرعة القصوى", "25 km/h"], ["Clignotants", "إشارات الانعطاف", "Intégrés"]],
+    variants: [{ color: c.gray, price: 59900, compare: 69900, stock: 7 }],
+  },
+  // ---- Téléviseurs ----
+  {
+    slug: "samsung-crystal-uhd-55", name: "Samsung Crystal UHD 4K 55\"", brand: "Samsung", cat: "televiseurs", featured: true,
+    fr: "Téléviseur 4K de 55 pouces avec processeur Crystal 4K et Smart TV pour tous vos services de streaming.",
+    ar: "تلفاز 4K مقاس 55 بوصة بمعالج Crystal 4K ونظام ذكي لجميع خدمات البث.",
+    specs: [["Diagonale", "الحجم", "55\" (138 cm)"], ["Résolution", "الدقة", "4K UHD 3840 × 2160"], ["Smart TV", "التلفاز الذكي", "Tizen"], ["HDMI", "HDMI", "3 ports"]],
+    variants: [{ color: c.black, price: 44900, compare: 54900, stock: 10 }],
+  },
+  {
+    slug: "lg-oled-evo-c4-55", name: "LG OLED evo C4 55\"", brand: "LG", cat: "televiseurs", featured: true, isNew: true,
+    fr: "Dalle OLED evo 4K 120 Hz, noirs parfaits et HDMI 2.1 : le choix des cinéphiles et des joueurs.",
+    ar: "شاشة OLED evo بدقة 4K وتردد 120 هرتز وأسود مثالي ومنافذ HDMI 2.1: خيار عشاق السينما والألعاب.",
+    specs: [["Diagonale", "الحجم", "55\" (139 cm)"], ["Dalle", "الشاشة", "OLED evo 4K 120 Hz"], ["Système", "النظام", "webOS"], ["HDMI 2.1", "HDMI 2.1", "4 ports"]],
+    variants: [{ color: c.black, price: 129900, compare: 149900, stock: 5 }],
+  },
+  {
+    slug: "sony-bravia-x85l-55", name: "Sony BRAVIA X85L 55\"", brand: "Sony", cat: "televiseurs",
+    fr: "LED 4K HDR avec Google TV, 120 Hz et technologie Triluminos Pro pour des couleurs éclatantes.",
+    ar: "شاشة LED بدقة 4K وHDR مع Google TV وتردد 120 هرتز وتقنية Triluminos Pro لألوان نابضة.",
+    specs: [["Diagonale", "الحجم", "55\" (139 cm)"], ["Résolution", "الدقة", "4K HDR"], ["Système", "النظام", "Google TV"]],
+    variants: [{ color: c.black, price: 89900, compare: 99900, stock: 6 }],
+  },
+  // ---- Électroménagers ----
+  {
+    slug: "dyson-v15-detect", name: "Dyson V15 Detect", brand: "Dyson", cat: "electromenagers", featured: true,
+    fr: "Aspirateur balai sans fil avec laser qui révèle la poussière invisible et jusqu'à 60 minutes d'autonomie.",
+    ar: "مكنسة لاسلكية بليزر يكشف الغبار غير المرئي ومدة تشغيل تصل إلى 60 دقيقة.",
+    specs: [["Autonomie", "مدة التشغيل", "Jusqu'à 60 min"], ["Détection", "الكشف", "Laser + capteur piézo"], ["Type", "النوع", "Aspirateur balai sans fil"]],
+    variants: [{ color: c.gray, price: 64900, compare: 74900, stock: 8 }],
+  },
+  {
+    slug: "philips-airfryer-3000", name: "Philips Airfryer Série 3000", brand: "Philips", cat: "electromenagers",
+    fr: "Friteuse sans huile 4,1 L pour des plats croustillants avec jusqu'à 90 % de matières grasses en moins.",
+    ar: "قلاية هوائية بسعة 4.1 لتر لوجبات مقرمشة بدهون أقل بنسبة تصل إلى 90٪.",
+    specs: [["Capacité", "السعة", "4,1 L"], ["Technologie", "التقنية", "Rapid Air"], ["Type", "النوع", "Friteuse sans huile"]],
+    variants: [{ color: c.black, price: 10900, compare: 14900, stock: 25 }],
+  },
+  {
+    slug: "xiaomi-robot-vacuum-s10", name: "Xiaomi Robot Vacuum S10", brand: "Xiaomi", cat: "electromenagers", isNew: true,
+    fr: "Robot aspirateur et laveur à navigation laser, 4000 Pa d'aspiration et pilotage depuis l'application.",
+    ar: "روبوت مكنسة وممسحة بملاحة ليزرية وقوة شفط 4000 باسكال وتحكم عبر التطبيق.",
+    specs: [["Aspiration", "قوة الشفط", "4000 Pa"], ["Navigation", "الملاحة", "Laser LDS"], ["Pilotage", "التحكم", "Application mobile"]],
+    variants: [{ color: c.white, price: 24900, compare: 32900, stock: 14 }],
+  },
 ];
 
 async function main() {
@@ -256,7 +326,7 @@ async function main() {
   await db.execute(sql`truncate table order_items, orders, variants, products, categories, coupons restart identity cascade`);
   const cats = await db
     .insert(s.categories)
-    .values(categories.map((x, i) => ({ ...x, sort: i })))
+    .values(categories)
     .returning();
   const catId = new Map(cats.map((x) => [x.slug, x.id]));
 
