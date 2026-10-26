@@ -77,6 +77,7 @@ export default async function ProductPage({ params }: Props) {
           images={product.images}
           art={art}
           isNew={product.isNew}
+          condition={product.condition}
           warrantyMonths={product.warrantyMonths}
           variants={variants.map((v) => ({
             id: v.id, sku: v.sku, colorFr: v.colorFr, colorAr: v.colorAr, colorHex: v.colorHex,

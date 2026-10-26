@@ -23,6 +23,7 @@ export function ProductCard({ p, locale, d, priority }: { p: CardProduct; locale
         />
         <div className="absolute start-3 top-3 flex flex-col items-start gap-1.5">
           {pct > 0 && <span className="chip bg-hot text-white" dir="ltr">-{pct}%</span>}
+          {p.condition === "used" && <span className="chip bg-warn-50 text-warn">{d.condition.used}</span>}
           {p.isNew && <span className="chip bg-ink text-white">{d.common.new}</span>}
         </div>
         {!p.inStock && (

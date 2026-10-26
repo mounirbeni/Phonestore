@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, SearchX } from "lucide-react";
+import { store } from "@/config/store";
 import { getCategories, getFacets, searchProducts, type ShopFilters, type SortKey } from "@/db/queries";
 import type { Dict } from "@/lib/dictionary";
 import { localePath, pick, type Locale } from "@/lib/i18n";
-import { fmt } from "@/lib/utils";
+import { cn, fmt } from "@/lib/utils";
 import { ProductGrid } from "./product-card";
 import { FilterPanel } from "./filter-panel";
 import { SortSelect } from "./sort-select";
@@ -27,7 +28,9 @@ export function parseParams(sp: RawParams) {
   const brands = (Array.isArray(brandRaw) ? brandRaw : brandRaw ? [brandRaw] : []).slice(0, 12);
   const sort = first(sp.sort) as SortKey | undefined;
   const page = Math.max(1, parseInt(first(sp.page) ?? "1", 10) || 1);
+  const etat = first(sp.etat);
   return {
+    condition: etat === "neuf" ? ("new" as const) : etat === "occasion" ? ("used" as const) : undefined,
     q: first(sp.q)?.trim().slice(0, 80) || undefined,
     brands,
     min: euroToCents(first(sp.min)),
@@ -64,12 +67,15 @@ type Props = {
 export async function ShopView({ locale, d, basePath, categorySlug, title, searchParams }: Props) {
   const f = parseParams(searchParams);
   const filters: ShopFilters = { ...f, category: categorySlug, perPage: 12 };
-  const [result, facets, categories] = await Promise.all([searchProducts(filters), getFacets(categorySlug), getCategories()]);
+  const [result, facets, categories] = await Promise.all([searchProducts(filters), getFacets(categorySlug, f.condition), getCategories()]);
 
   const activeCount = f.brands.length + (f.min != null ? 1 : 0) + (f.max != null ? 1 : 0) + (f.inStock ? 1 : 0) + (f.deals ? 1 : 0) + (f.isNew ? 1 : 0);
   const heading = f.q ? fmt(d.shop.resultsFor, { q: f.q }) : title;
   const countLabel = result.total === 1 ? d.shop.resultsOne : fmt(d.shop.results, { n: result.total });
   const hrefFor = (page: number) => `${basePath}${qs(searchParams, { page: page > 1 ? String(page) : undefined })}`;
+  const hasConditions = !!categorySlug && store.conditionCategories.includes(categorySlug);
+  const tabHref = (etat?: string) => `${basePath}${qs(searchParams, { etat, page: undefined, all: hasConditions ? "1" : undefined })}`;
+  const currentEtat = f.condition === "new" ? "neuf" : f.condition === "used" ? "occasion" : undefined;
   const Prev = locale === "ar" ? ChevronRight : ChevronLeft;
   const Next = locale === "ar" ? ChevronLeft : ChevronRight;
 
@@ -85,6 +91,25 @@ export async function ShopView({ locale, d, basePath, categorySlug, title, searc
         </div>
       </div>
 
+      {hasConditions && (
+        <div className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 scrollbar-none sm:mx-0 sm:px-0" role="tablist" aria-label={d.condition.chooseType}>
+          {([[undefined, d.condition.all], ["neuf", d.condition.new], ["occasion", d.condition.used]] as const).map(([v, label]) => {
+            const active = currentEtat === v;
+            return (
+              <Link
+                key={label}
+                href={tabHref(v)}
+                role="tab"
+                aria-selected={active}
+                className={cn("inline-flex min-h-11 shrink-0 items-center rounded-full border px-5 text-sm font-semibold transition", active ? "border-fg bg-fg text-bg" : "border-line text-fg-2 hover:border-fg")}
+              >
+                {label}
+              </Link>
+            );
+          })}
+        </div>
+      )}
+
       <div className="grid gap-5 lg:grid-cols-[16.5rem_1fr] lg:gap-8">
         <aside className="grid grid-cols-2 items-start gap-3 lg:block">
           <div className="lg:hidden">
@@ -93,6 +118,8 @@ export async function ShopView({ locale, d, basePath, categorySlug, title, searc
           <FilterPanel activeCount={activeCount}>
             <form action={basePath} method="get" className="space-y-6 rounded-3xl border border-line bg-surface p-5 max-lg:border-0 max-lg:bg-transparent max-lg:p-1">
               {f.q && <input type="hidden" name="q" value={f.q} />}
+              {currentEtat && <input type="hidden" name="etat" value={currentEtat} />}
+              {hasConditions && <input type="hidden" name="all" value="1" />}
               {f.sort !== "featured" && <input type="hidden" name="sort" value={f.sort} />}
 
               {!categorySlug && (

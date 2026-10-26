@@ -14,6 +14,8 @@ type P = {
   specs: [string, string, string][];
   featured?: boolean;
   isNew?: boolean;
+  condition?: "new" | "used";
+  warranty?: number;
   variants: V[];
 };
 
@@ -308,6 +310,49 @@ const items: P[] = [
     specs: [["Aspiration", "قوة الشفط", "4000 Pa"], ["Navigation", "الملاحة", "Laser LDS"], ["Pilotage", "التحكم", "Application mobile"]],
     variants: [{ color: c.white, price: 24900, compare: 32900, stock: 14 }],
   },
+  // ---- Téléphones d'occasion ----
+  {
+    slug: "iphone-13-occasion", name: "Apple iPhone 13 (Occasion)", brand: "Apple", cat: "telephones", condition: "used", warranty: 12,
+    fr: "iPhone 13 d'occasion testé et vérifié : très bon état, batterie contrôlée et garantie 12 mois.",
+    ar: "آيفون 13 مستعمل مفحوص ومراجع: حالة جيدة جدًا وبطارية مفحوصة وضمان 12 شهرًا.",
+    specs: [["État", "الحالة", "Très bon état"], ["Écran", "الشاشة", "6,1\" OLED"], ["Puce", "المعالج", "Apple A15 Bionic"], ["Batterie", "البطارية", "Santé supérieure à 85 %"]],
+    variants: [{ color: c.black, storage: "128 Go", price: 39900, stock: 6 }, { color: c.blue, storage: "128 Go", price: 41900, stock: 3 }],
+  },
+  {
+    slug: "iphone-12-occasion", name: "Apple iPhone 12 (Occasion)", brand: "Apple", cat: "telephones", condition: "used", warranty: 12,
+    fr: "iPhone 12 d'occasion, écran OLED et 5G : un excellent rapport qualité/prix, testé et garanti.",
+    ar: "آيفون 12 مستعمل بشاشة OLED و5G: قيمة ممتازة مقابل السعر، مفحوص ومضمون.",
+    specs: [["État", "الحالة", "Bon état"], ["Écran", "الشاشة", "6,1\" OLED"], ["Puce", "المعالج", "Apple A14 Bionic"], ["5G", "5G", "Oui"]],
+    variants: [{ color: c.black, storage: "64 Go", price: 27900, stock: 8 }, { color: c.white, storage: "128 Go", price: 31900, stock: 4 }],
+  },
+  {
+    slug: "samsung-galaxy-s22-occasion", name: "Samsung Galaxy S22 (Occasion)", brand: "Samsung", cat: "telephones", condition: "used", warranty: 12,
+    fr: "Galaxy S22 d'occasion : écran Dynamic AMOLED 120 Hz, très bon état, testé et garanti 12 mois.",
+    ar: "جالكسي S22 مستعمل: شاشة Dynamic AMOLED بتردد 120 هرتز وحالة جيدة جدًا، مفحوص وبضمان 12 شهرًا.",
+    specs: [["État", "الحالة", "Très bon état"], ["Écran", "الشاشة", "6,1\" Dynamic AMOLED 2X 120 Hz"], ["Processeur", "المعالج", "Snapdragon 8 Gen 1"]],
+    variants: [{ color: c.black, storage: "128 Go", price: 34900, stock: 5 }, { color: c.green, storage: "256 Go", price: 38900, stock: 2 }],
+  },
+  {
+    slug: "samsung-galaxy-s21-fe-occasion", name: "Samsung Galaxy S21 FE (Occasion)", brand: "Samsung", cat: "telephones", condition: "used", warranty: 12,
+    fr: "Galaxy S21 FE d'occasion avec grand écran 120 Hz et triple capteur photo, vérifié avant expédition.",
+    ar: "جالكسي S21 FE مستعمل بشاشة كبيرة 120 هرتز وثلاث كاميرات، مفحوص قبل الشحن.",
+    specs: [["État", "الحالة", "Bon état"], ["Écran", "الشاشة", "6,4\" AMOLED 120 Hz"], ["Batterie", "البطارية", "4500 mAh"]],
+    variants: [{ color: c.gray, storage: "128 Go", price: 22900, stock: 7 }],
+  },
+  {
+    slug: "google-pixel-7-occasion", name: "Google Pixel 7 (Occasion)", brand: "Google", cat: "telephones", condition: "used", warranty: 12,
+    fr: "Pixel 7 d'occasion : Tensor G2, excellent appareil photo et mises à jour Google, testé et garanti.",
+    ar: "بكسل 7 مستعمل: معالج Tensor G2 وكاميرا ممتازة وتحديثات Google، مفحوص ومضمون.",
+    specs: [["État", "الحالة", "Très bon état"], ["Processeur", "المعالج", "Google Tensor G2"], ["Écran", "الشاشة", "6,3\" OLED 90 Hz"]],
+    variants: [{ color: c.black, storage: "128 Go", price: 27900, stock: 4 }],
+  },
+  {
+    slug: "redmi-note-11-occasion", name: "Xiaomi Redmi Note 11 (Occasion)", brand: "Xiaomi", cat: "telephones", condition: "used", warranty: 12,
+    fr: "Redmi Note 11 d'occasion, écran AMOLED et charge rapide : l'essentiel à petit prix, testé et garanti.",
+    ar: "ريدمي نوت 11 مستعمل بشاشة AMOLED وشحن سريع: الأساسيات بسعر صغير، مفحوص ومضمون.",
+    specs: [["État", "الحالة", "Bon état"], ["Écran", "الشاشة", "6,43\" AMOLED 90 Hz"], ["Charge", "الشحن", "33 W"]],
+    variants: [{ color: c.gray, storage: "128 Go", price: 10900, stock: 10 }],
+  },
 ];
 
 async function main() {
@@ -346,6 +391,8 @@ async function main() {
         specs: p.specs.map(([fr, ar, value]) => ({ fr, ar, value })),
         featured: !!p.featured,
         isNew: !!p.isNew,
+        condition: p.condition ?? "new",
+        warrantyMonths: p.warranty ?? 24,
         createdAt: new Date(Date.now() - i * 36e5 * 6),
       })
       .returning();

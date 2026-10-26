@@ -42,6 +42,8 @@ export const products = pgTable(
     isNew: boolean("is_new").notNull().default(false),
     active: boolean("active").notNull().default(true),
     warrantyMonths: integer("warranty_months").notNull().default(24),
+    /** "new" (sealed, manufacturer warranty) or "used" (tested second-hand). */
+    condition: text("condition").$type<"new" | "used">().notNull().default("new"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => [index("products_category_idx").on(t.categoryId), index("products_active_idx").on(t.active)],

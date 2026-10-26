@@ -36,9 +36,10 @@ type Props = {
   variants: V[];
   warrantyMonths: number;
   isNew: boolean;
+  condition: "new" | "used";
 };
 
-export function ProductPurchase({ slug, name, brand, images, art, variants, warrantyMonths, isNew }: Props) {
+export function ProductPurchase({ slug, name, brand, images, art, variants, warrantyMonths, isNew, condition }: Props) {
   const { locale, d } = useI18n();
   const cart = useCart();
   const router = useRouter();
@@ -181,6 +182,7 @@ export function ProductPurchase({ slug, name, brand, images, art, variants, warr
           )}
           <div className="pointer-events-none absolute start-4 top-4 flex flex-col items-start gap-1.5">
             {pct > 0 && <span className="chip bg-hot text-white" dir="ltr">-{pct}%</span>}
+            {condition === "used" && <span className="chip bg-warn-50 text-warn">{d.condition.used}</span>}
             {isNew && <span className="chip bg-ink text-white">{d.common.new}</span>}
           </div>
         </div>
@@ -216,7 +218,10 @@ export function ProductPurchase({ slug, name, brand, images, art, variants, warr
           <p className="mt-1 text-sm font-medium text-hot">{fmt(d.common.save, { amount: formatPrice(selected.compareAtPrice - selected.price, locale) })}</p>
         )}
         <p className="mt-1 text-xs text-muted">{d.common.vatIncluded}</p>
-        <div className="mt-4">{stockLabel}</div>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          {stockLabel}
+          {condition === "used" && <span className="chip bg-warn-50 text-warn">{d.condition.used} · {d.condition.usedText}</span>}
+        </div>
 
         {colors.length > 1 && (
           <div className="mt-6 sm:mt-8">

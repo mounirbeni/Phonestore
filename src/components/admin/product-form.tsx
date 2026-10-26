@@ -34,6 +34,7 @@ export type ProductFormInitial = {
   isNew: boolean;
   active: boolean;
   warrantyMonths: number;
+  condition: "new" | "used";
   variants: VariantState[];
 };
 
@@ -114,6 +115,7 @@ export function ProductForm({ initial, categories }: { initial: ProductFormIniti
         isNew: f.isNew,
         active: f.active,
         warrantyMonths: f.warrantyMonths,
+        condition: f.condition,
         variants,
       });
       if (!r.ok) return setError(r.error);
@@ -147,6 +149,13 @@ export function ProductForm({ initial, categories }: { initial: ProductFormIniti
           <div>
             <label className="label" htmlFor="slug">رابط المنتج (اختياري)</label>
             <input id="slug" className="input" value={f.slug} onChange={(e) => set("slug", e.target.value)} dir="ltr" placeholder="يُولَّد تلقائيًا" />
+          </div>
+          <div>
+            <label className="label" htmlFor="condition">حالة المنتج</label>
+            <select id="condition" className="input" value={f.condition} onChange={(e) => set("condition", e.target.value as "new" | "used")}>
+              <option value="new">جديد</option>
+              <option value="used">مستعمل</option>
+            </select>
           </div>
           <div>
             <label className="label" htmlFor="warranty">الضمان (أشهر)</label>

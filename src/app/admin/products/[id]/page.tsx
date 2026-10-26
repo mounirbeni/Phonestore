@@ -20,7 +20,7 @@ export default async function EditProduct({ params }: Props) {
   if (id === "new") {
     initial = {
       name: "", slug: "", brand: "", categoryId: cats[0].id, shortFr: "", shortAr: "", descFr: "", descAr: "",
-      images: [], specsText: "", featured: false, isNew: true, active: true, warrantyMonths: 24,
+      images: [], specsText: "", featured: false, isNew: true, active: true, warrantyMonths: 24, condition: "new",
       variants: [{ sku: "", colorFr: "", colorAr: "", colorHex: "#1c1c1e", storage: "", price: "", compareAt: "", stock: "10" }],
     };
   } else {
@@ -33,7 +33,7 @@ export default async function EditProduct({ params }: Props) {
       id: p.id, name: p.name, slug: p.slug, brand: p.brand, categoryId: p.categoryId,
       shortFr: p.shortFr, shortAr: p.shortAr, descFr: p.descFr, descAr: p.descAr,
       images: p.images, specsText: p.specs.map((s) => `${s.fr} | ${s.ar} | ${s.value}`).join("\n"),
-      featured: p.featured, isNew: p.isNew, active: p.active, warrantyMonths: p.warrantyMonths,
+      featured: p.featured, isNew: p.isNew, active: p.active, warrantyMonths: p.warrantyMonths, condition: p.condition,
       variants: vs.map((v) => ({
         id: v.id, sku: v.sku, colorFr: v.colorFr, colorAr: v.colorAr, colorHex: v.colorHex, storage: v.storage,
         price: String(v.price / 100), compareAt: v.compareAtPrice ? String(v.compareAtPrice / 100) : "", stock: String(v.stock),

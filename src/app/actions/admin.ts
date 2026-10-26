@@ -99,6 +99,7 @@ const productSchema = z.object({
   isNew: z.boolean(),
   active: z.boolean(),
   warrantyMonths: z.number().int().min(0).max(120),
+  condition: z.enum(["new", "used"]).default("new"),
   variants: z.array(variantSchema).min(1).max(40),
 });
 
@@ -151,6 +152,7 @@ export async function saveProduct(input: ProductPayload): Promise<{ ok: true; id
         isNew: p.isNew,
         active: p.active,
         warrantyMonths: p.warrantyMonths,
+        condition: p.condition,
       };
       let productId = p.id;
       if (productId) {

@@ -15,6 +15,7 @@ export type CardProduct = {
   shortAr: string;
   images: string[];
   isNew: boolean;
+  condition: "new" | "used";
   minPrice: number;
   compareAt: number | null;
   inStock: boolean;
@@ -33,6 +34,7 @@ export type ShopFilters = {
   inStock?: boolean;
   deals?: boolean;
   isNew?: boolean;
+  condition?: "new" | "used";
   sort?: SortKey;
   page?: number;
   perPage?: number;
@@ -56,6 +58,7 @@ function buildWhere(f: ShopFilters): SQL {
   if (f.inStock) conds.push(HAS_STOCK);
   if (f.deals) conds.push(HAS_DEAL);
   if (f.isNew) conds.push(eq(products.isNew, true));
+  if (f.condition) conds.push(eq(products.condition, f.condition));
   return and(...conds) as SQL;
 }
 
@@ -107,6 +110,7 @@ async function toCards(rows: Row[]): Promise<CardProduct[]> {
       shortAr: p.shortAr,
       images: p.images,
       isNew: p.isNew,
+      condition: p.condition,
       minPrice: cheapest?.price ?? 0,
       compareAt: cheapest?.compareAtPrice && cheapest.compareAtPrice > cheapest.price ? cheapest.compareAtPrice : null,
       inStock: list.some((v) => v.stock > 0),
@@ -146,8 +150,8 @@ export async function getCategoryBySlug(slug: string) {
   return c ?? null;
 }
 
-export async function getFacets(categorySlug?: string) {
-  const scope = buildWhere({ category: categorySlug });
+export async function getFacets(categorySlug?: string, condition?: "new" | "used") {
+  const scope = buildWhere({ category: categorySlug, condition });
   const [brandRows, [range]] = await Promise.all([
     db
       .select({ brand: products.brand, n: count() })
@@ -161,6 +165,19 @@ export async function getFacets(categorySlug?: string) {
       .where(scope),
   ]);
   return { brands: brandRows, min: Number(range?.min ?? 0), max: Number(range?.max ?? 0) };
+}
+
+/** How many active products of each condition a category holds (drives the new/used chooser). */
+export async function getConditionCounts(categorySlug: string) {
+  const rows = await db
+    .select({ condition: products.condition, n: count() })
+    .from(products)
+    .innerJoin(categories, eq(products.categoryId, categories.id))
+    .where(and(eq(products.active, true), eq(categories.slug, categorySlug)))
+    .groupBy(products.condition);
+  const out = { new: 0, used: 0 };
+  for (const r of rows) out[r.condition] = r.n;
+  return out;
 }
 
 export async function getCategoryCounts() {

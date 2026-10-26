@@ -6,6 +6,8 @@ export const store = {
   freeShippingThreshold: 10000,
   /** Highest quantity of a single variant per order. */
   maxQtyPerLine: 10,
+  /** Categories that first ask "new or used?" and then the brand. */
+  conditionCategories: ["telephones"] as string[],
   shippingMethods: [
     { id: "standard", cents: 490, minDays: 2, maxDays: 4 },
     { id: "express", cents: 990, minDays: 1, maxDays: 2 },
