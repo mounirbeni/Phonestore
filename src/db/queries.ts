@@ -220,25 +220,6 @@ export async function getHomeData() {
   return { featured, deals, fresh, brands: brands.map((b) => b.brand) };
 }
 
-/** Brands per category (most products first) feeding the menu's sub-lists. */
-export async function getMenuBrands() {
-  const rows = await db
-    .select({ slug: categories.slug, brand: products.brand, n: count() })
-    .from(products)
-    .innerJoin(categories, eq(products.categoryId, categories.id))
-    .where(eq(products.active, true))
-    .groupBy(categories.slug, products.brand)
-    .orderBy(desc(count()), asc(products.brand));
-  const byCategory: Record<string, string[]> = {};
-  const totals = new Map<string, number>();
-  for (const r of rows) {
-    (byCategory[r.slug] ??= []).push(r.brand);
-    totals.set(r.brand, (totals.get(r.brand) ?? 0) + r.n);
-  }
-  const all = [...totals.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([b]) => b);
-  return { byCategory, all };
-}
-
 export async function getAllBrands() {
   return db
     .select({ brand: products.brand, n: count() })

@@ -43,7 +43,7 @@ export const fr = {
   nav: {
     home: "Accueil",
     shop: "Boutique",
-    deals: "Promotions",
+    deals: "Les Promos",
     newArrivals: "Nouveautés",
     track: "Suivre ma commande",
     wishlist: "Favoris",
