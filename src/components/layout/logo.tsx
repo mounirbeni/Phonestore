@@ -18,7 +18,7 @@ export function Logo({ locale, light, className }: { locale: Locale; light?: boo
           <path d="M13.2 2.5 5 13.2c-.4.5 0 1.3.7 1.3h4.6l-1 7c-.1.8.9 1.2 1.4.6L19 10.8c.4-.5 0-1.3-.7-1.3h-4.5l.9-6.2c.1-.8-.9-1.2-1.5-.8Z" />
         </svg>
       </span>
-      <span className={cn("text-[1.2rem] font-extrabold tracking-tight", light ? "text-white" : "text-ink")} dir="ltr">
+      <span className={cn("text-[1.2rem] font-extrabold tracking-tight", light ? "text-white" : "text-fg")} dir="ltr">
         {a}
         {b && <span className="text-brand">{b}</span>}
       </span>

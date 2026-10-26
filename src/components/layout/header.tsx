@@ -25,7 +25,7 @@ function SearchForm({ locale, d, className, id }: { locale: Locale; d: Dict; cla
           type="search"
           placeholder={d.common.searchPlaceholder}
           autoComplete="off"
-          className="w-full rounded-full border border-transparent bg-mist py-2.5 ps-10 pe-4 text-sm transition focus:border-brand focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand/10"
+          className="w-full rounded-full border border-transparent bg-mist py-2.5 ps-10 pe-4 text-sm transition focus:border-brand focus:bg-surface focus:outline-none focus:ring-4 focus:ring-brand/10"
         />
       </div>
     </form>
@@ -50,7 +50,7 @@ export function Header({ locale, d, categories }: { locale: Locale; d: Dict; cat
           ))}
         </div>
       </div>
-      <header className="sticky top-0 z-40 border-b border-line bg-white/85 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-line bg-surface/85 backdrop-blur-xl">
         <div className="container-x flex h-16 items-center gap-3 lg:gap-6">
           <MobileMenu categories={categories} />
           <Logo locale={locale} />
@@ -66,19 +66,19 @@ export function Header({ locale, d, categories }: { locale: Locale; d: Dict; cat
           <ul className="container-x flex h-11 items-center gap-1 text-sm font-medium">
             {categories.map((c) => (
               <li key={c.slug}>
-                <Link href={localePath(locale, `/c/${c.slug}`)} className="rounded-lg px-3 py-2 text-ink-2 transition hover:bg-mist hover:text-ink">
+                <Link href={localePath(locale, `/c/${c.slug}`)} className="rounded-lg px-3 py-2 text-fg-2 transition hover:bg-mist hover:text-fg">
                   {pick(locale, c.nameFr, c.nameAr)}
                 </Link>
               </li>
             ))}
             <li className="ms-auto flex items-center gap-1">
-              <Link href={localePath(locale, "/shop?new=1&sort=new")} className="rounded-lg px-3 py-2 text-ink-2 transition hover:bg-mist hover:text-ink">
+              <Link href={localePath(locale, "/shop?new=1&sort=new")} className="rounded-lg px-3 py-2 text-fg-2 transition hover:bg-mist hover:text-fg">
                 {d.nav.newArrivals}
               </Link>
               <Link href={localePath(locale, "/shop?deals=1")} className="rounded-lg px-3 py-2 font-semibold text-hot transition hover:bg-hot-50">
                 {d.nav.deals}
               </Link>
-              <Link href={localePath(locale, "/track")} className="rounded-lg px-3 py-2 text-ink-2 transition hover:bg-mist hover:text-ink">
+              <Link href={localePath(locale, "/track")} className="rounded-lg px-3 py-2 text-fg-2 transition hover:bg-mist hover:text-fg">
                 {d.nav.track}
               </Link>
             </li>

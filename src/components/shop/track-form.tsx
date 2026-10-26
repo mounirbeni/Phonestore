@@ -15,7 +15,7 @@ export function TrackForm() {
 
   return (
     <form
-      className="space-y-4 rounded-3xl border border-line bg-white p-6 sm:p-8"
+      className="space-y-4 rounded-3xl border border-line bg-surface p-6 sm:p-8"
       onSubmit={(e) => {
         e.preventDefault();
         const f = new FormData(e.currentTarget);

@@ -37,7 +37,7 @@ export function MobileMenu({ categories }: { categories: Cat[] }) {
       {open && (
         <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label={d.nav.menu}>
           <button type="button" className="absolute inset-0 bg-ink/50 [animation:fade-in_0.2s]" onClick={close} aria-label={d.common.close} />
-          <aside className="absolute inset-y-0 start-0 flex w-[min(22rem,88vw)] flex-col bg-white shadow-pop [--from:-100%] rtl:[--from:100%] [animation:slide-in_0.25s_ease-out]">
+          <aside className="absolute inset-y-0 start-0 flex w-[min(22rem,88vw)] flex-col bg-surface shadow-pop [--from:-100%] rtl:[--from:100%] [animation:slide-in_0.25s_ease-out]">
             <div className="flex items-center justify-between border-b border-line p-4">
               <Logo locale={locale} />
               <button type="button" className="btn btn-ghost !p-2" onClick={close} aria-label={d.common.close}>

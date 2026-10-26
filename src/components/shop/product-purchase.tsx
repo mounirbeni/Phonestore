@@ -117,7 +117,7 @@ export function ProductPurchase({ slug, name, brand, images, art, variants, warr
   const stockLabel = out ? (
     <span className="chip bg-hot-50 text-hot">{d.common.outOfStock}</span>
   ) : selected.stock <= 5 ? (
-    <span className="chip bg-[#fff7e6] text-[#b26a00]">{fmt(d.common.lowStock, { n: selected.stock })}</span>
+    <span className="chip bg-warn-50 text-warn">{fmt(d.common.lowStock, { n: selected.stock })}</span>
   ) : (
     <span className="chip bg-ok-50 text-ok">
       <Check className="h-3.5 w-3.5" aria-hidden="true" />
@@ -129,7 +129,7 @@ export function ProductPurchase({ slug, name, brand, images, art, variants, warr
     <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr] lg:gap-14">
       {/* Gallery */}
       <div className="lg:sticky lg:top-36 lg:self-start">
-        <div className="relative aspect-square overflow-hidden rounded-[2rem] bg-gradient-to-b from-mist to-white p-6 sm:p-10">
+        <div className="relative aspect-square overflow-hidden rounded-[2rem] bg-gradient-to-b from-mist to-surface p-6 sm:p-10">
           <ProductVisual image={images[imgIdx]} art={art} color={selected.colorHex} alt={name} eager className="transition duration-500" />
           <div className="absolute start-4 top-4 flex flex-col items-start gap-1.5">
             {pct > 0 && <span className="chip bg-hot text-white" dir="ltr">-{pct}%</span>}
@@ -145,7 +145,7 @@ export function ProductPurchase({ slug, name, brand, images, art, variants, warr
                   onClick={() => setImgIdx(i)}
                   aria-label={`${name} ${i + 1}`}
                   aria-current={i === imgIdx}
-                  className={cn("h-20 w-20 shrink-0 overflow-hidden rounded-2xl border-2 bg-mist p-1.5", i === imgIdx ? "border-ink" : "border-transparent hover:border-line")}
+                  className={cn("h-20 w-20 shrink-0 overflow-hidden rounded-2xl border-2 bg-mist p-1.5", i === imgIdx ? "border-fg" : "border-transparent hover:border-line")}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={src} alt="" className="h-full w-full object-contain" loading="lazy" />
@@ -188,11 +188,11 @@ export function ProductPurchase({ slug, name, brand, images, art, variants, warr
                       onClick={() => pickColor(c.colorHex)}
                       className={cn(
                         "relative grid h-11 w-11 place-items-center rounded-full border-2 transition",
-                        active ? "border-ink" : "border-transparent hover:border-line",
+                        active ? "border-fg" : "border-transparent hover:border-line",
                         empty && "opacity-45",
                       )}
                     >
-                      <span className="h-8 w-8 rounded-full ring-1 ring-inset ring-black/15" style={{ background: c.colorHex }} />
+                      <span className="h-8 w-8 rounded-full ring-1 ring-inset ring-fg/20" style={{ background: c.colorHex }} />
                       {empty && <span className="absolute h-px w-9 rotate-45 bg-ink/60" aria-hidden="true" />}
                     </button>
                   </li>
@@ -218,7 +218,7 @@ export function ProductPurchase({ slug, name, brand, images, art, variants, warr
                       onClick={() => pickStorage(s)}
                       className={cn(
                         "rounded-2xl border-2 px-4 py-2.5 text-sm font-semibold transition",
-                        active ? "border-ink bg-ink text-white" : "border-line hover:border-ink",
+                        active ? "border-fg bg-fg text-bg" : "border-line hover:border-fg",
                         empty && !active && "text-muted line-through",
                       )}
                     >
@@ -249,7 +249,7 @@ export function ProductPurchase({ slug, name, brand, images, art, variants, warr
           {fmt(d.product.sku, { sku: selected.sku })}
         </p>
 
-        <ul className="mt-8 space-y-3.5 rounded-3xl border border-line bg-white p-5 text-sm">
+        <ul className="mt-8 space-y-3.5 rounded-3xl border border-line bg-surface p-5 text-sm">
           <li className="flex items-center gap-3"><Banknote className="h-5 w-5 text-brand" aria-hidden="true" />{d.product.deliveryCod}</li>
           <li className="flex items-center gap-3"><Truck className="h-5 w-5 text-brand" aria-hidden="true" />{d.product.deliveryStandard}</li>
           <li className="flex items-center gap-3"><RotateCcw className="h-5 w-5 text-brand" aria-hidden="true" />{d.product.deliveryReturn}</li>
@@ -258,7 +258,7 @@ export function ProductPurchase({ slug, name, brand, images, art, variants, warr
       </div>
 
       {/* Mobile sticky bar */}
-      <div className="fixed inset-x-0 bottom-0 z-30 flex items-center gap-3 border-t border-line bg-white/95 p-3 backdrop-blur lg:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-30 flex items-center gap-3 border-t border-line bg-surface/95 p-3 backdrop-blur lg:hidden">
         <div className="min-w-0 flex-1">
           <p className="truncate text-xs text-muted">{name}</p>
           <p className="text-lg font-extrabold tabular-nums" dir="ltr" style={{ textAlign: locale === "ar" ? "right" : "left" }}>{formatPrice(selected.price * qty, locale)}</p>

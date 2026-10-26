@@ -16,7 +16,7 @@ export function Footer({ locale, d, categories }: { locale: Locale; d: Dict; cat
     { icon: RotateCcw, t: d.home.why[3].title },
   ];
   return (
-    <footer className="mt-24 bg-ink text-white">
+    <footer className="mt-24 border-t border-white/10 bg-ink text-white">
       <div className="border-b border-white/10">
         <ul className="container-x grid grid-cols-2 gap-4 py-6 lg:grid-cols-4">
           {perks.map(({ icon: Icon, t }) => (

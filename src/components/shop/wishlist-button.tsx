@@ -21,7 +21,7 @@ export function WishlistButton({ slug, className, withLabel }: { slug: string; c
       aria-label={label}
       title={label}
       className={cn(
-        "grid place-items-center rounded-full border border-line bg-white/90 text-ink-2 backdrop-blur transition hover:border-hot hover:text-hot",
+        "grid place-items-center rounded-full border border-line bg-surface/90 text-fg-2 backdrop-blur transition hover:border-hot hover:text-hot",
         withLabel ? "h-12 gap-2 px-4 grid-flow-col" : "h-9 w-9",
         on && "border-hot text-hot",
         className,

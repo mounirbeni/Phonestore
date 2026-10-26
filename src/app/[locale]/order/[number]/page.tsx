@@ -56,7 +56,7 @@ export default async function OrderPage({ params, searchParams }: Props) {
   return (
     <div className="container-x pb-10 pt-8 sm:pt-12">
       <div className="mx-auto max-w-3xl">
-        <div className="rounded-[2rem] bg-ink p-8 text-center text-white sm:p-12">
+        <div className="rounded-[2rem] bg-ink p-8 text-center text-white ring-1 ring-white/10 sm:p-12">
           <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-brand text-white">
             <Check className="h-8 w-8" strokeWidth={3} aria-hidden="true" />
           </span>
@@ -66,7 +66,7 @@ export default async function OrderPage({ params, searchParams }: Props) {
           <p className="text-sm text-white/60">{fmt(d.order.placedOn, { date })}</p>
         </div>
 
-        <section className="mt-6 rounded-3xl border border-line bg-white p-6 sm:p-8">
+        <section className="mt-6 rounded-3xl border border-line bg-surface p-6 sm:p-8">
           <h2 className="mb-6 flex items-center gap-3 text-lg font-bold">
             {d.order.status}
             <span className={cn("chip", order.status === "cancelled" ? "bg-hot-50 text-hot" : "bg-brand-50 text-brand")}>{d.order.statuses[order.status]}</span>
@@ -80,7 +80,7 @@ export default async function OrderPage({ params, searchParams }: Props) {
                     <span className={cn("grid h-11 w-11 place-items-center rounded-full transition", done ? "bg-ink text-white" : "bg-mist text-muted")}>
                       <s.icon className="h-5 w-5" aria-hidden="true" />
                     </span>
-                    <span className={cn("text-xs font-medium sm:text-sm", done ? "text-ink" : "text-muted")}>{s.label}</span>
+                    <span className={cn("text-xs font-medium sm:text-sm", done ? "text-fg" : "text-muted")}>{s.label}</span>
                   </li>
                 );
               })}
@@ -88,7 +88,7 @@ export default async function OrderPage({ params, searchParams }: Props) {
           )}
         </section>
 
-        <section className="mt-6 rounded-3xl border border-line bg-white p-6 sm:p-8">
+        <section className="mt-6 rounded-3xl border border-line bg-surface p-6 sm:p-8">
           <h2 className="mb-2 text-lg font-bold">{d.order.items}</h2>
           <ul className="divide-y divide-line">
             {items.map((i) => (
@@ -113,9 +113,9 @@ export default async function OrderPage({ params, searchParams }: Props) {
         </section>
 
         <div className="mt-6 grid gap-6 sm:grid-cols-2">
-          <section className="rounded-3xl border border-line bg-white p-6">
+          <section className="rounded-3xl border border-line bg-surface p-6">
             <h2 className="mb-3 text-base font-bold">{d.order.shippingTo}</h2>
-            <address className="text-sm not-italic leading-relaxed text-ink-2">
+            <address className="text-sm not-italic leading-relaxed text-fg-2">
               {order.firstName} {order.lastName}<br />
               {order.address}{order.address2 ? `, ${order.address2}` : ""}<br />
               {order.postalCode} {order.city}<br />
@@ -123,9 +123,9 @@ export default async function OrderPage({ params, searchParams }: Props) {
               <span dir="ltr">{order.phone}</span>
             </address>
           </section>
-          <section className="rounded-3xl border border-line bg-white p-6">
+          <section className="rounded-3xl border border-line bg-surface p-6">
             <h2 className="mb-3 text-base font-bold">{d.order.paymentMethod}</h2>
-            <p className="flex items-center gap-2.5 text-sm text-ink-2"><Banknote className="h-5 w-5 text-brand" aria-hidden="true" />{d.order.codShort}</p>
+            <p className="flex items-center gap-2.5 text-sm text-fg-2"><Banknote className="h-5 w-5 text-brand" aria-hidden="true" />{d.order.codShort}</p>
           </section>
         </div>
 

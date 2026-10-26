@@ -16,7 +16,7 @@ export function ShippingProgress({ subtotal }: { subtotal: number }) {
         <Truck className="h-4 w-4" aria-hidden="true" />
         {left > 0 ? fmt(d.cart.freeShippingLeft, { amount: formatPrice(left, locale) }) : d.cart.freeShippingReached}
       </p>
-      <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-white" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+      <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-surface" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
         <div className="h-full rounded-full bg-brand transition-[width] duration-500" style={{ width: `${pct}%` }} />
       </div>
     </div>

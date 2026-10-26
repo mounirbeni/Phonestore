@@ -63,11 +63,11 @@ export default async function ProductPage({ params }: Props) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <div className="container-x pb-24 pt-6 lg:pb-0 lg:pt-8">
         <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center gap-1.5 text-sm text-muted">
-          <Link href={localePath(locale)} className="hover:text-ink">{d.product.breadcrumbHome}</Link>
+          <Link href={localePath(locale)} className="hover:text-fg">{d.product.breadcrumbHome}</Link>
           <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden="true" />
-          <Link href={localePath(locale, `/c/${category.slug}`)} className="hover:text-ink">{pick(locale, category.nameFr, category.nameAr)}</Link>
+          <Link href={localePath(locale, `/c/${category.slug}`)} className="hover:text-fg">{pick(locale, category.nameFr, category.nameAr)}</Link>
           <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden="true" />
-          <span className="font-medium text-ink">{product.name}</span>
+          <span className="font-medium text-fg">{product.name}</span>
         </nav>
 
         <ProductPurchase
@@ -88,13 +88,13 @@ export default async function ProductPage({ params }: Props) {
           {description && (
             <section>
               <h2 className="text-xl font-extrabold tracking-tight">{d.product.description}</h2>
-              <p className="mt-4 whitespace-pre-line leading-relaxed text-ink-2">{description}</p>
+              <p className="mt-4 whitespace-pre-line leading-relaxed text-fg-2">{description}</p>
             </section>
           )}
           {specs.length > 0 && (
             <section>
               <h2 className="text-xl font-extrabold tracking-tight">{d.product.specs}</h2>
-              <dl className="mt-4 divide-y divide-line overflow-hidden rounded-3xl border border-line bg-white">
+              <dl className="mt-4 divide-y divide-line overflow-hidden rounded-3xl border border-line bg-surface">
                 {specs.map((s) => (
                   <div key={s.fr} className="grid grid-cols-[2fr_3fr] gap-4 px-5 py-3.5 text-sm odd:bg-mist/60">
                     <dt className="font-medium text-muted">{pick(locale, s.fr, s.ar)}</dt>

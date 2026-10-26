@@ -31,26 +31,26 @@ export default async function InfoPage({ params }: Props) {
           {page.sections.map((s) => (
             <section key={s.h}>
               <h2 className="text-lg font-bold">{s.h}</h2>
-              <p className="mt-2 leading-relaxed text-ink-2">{s.p}</p>
+              <p className="mt-2 leading-relaxed text-fg-2">{s.p}</p>
             </section>
           ))}
         </div>
         {slug === "contact" && (
           <ul className="mt-10 grid gap-4 sm:grid-cols-3">
-            <li className="rounded-3xl border border-line bg-white p-5">
+            <li className="rounded-3xl border border-line bg-surface p-5">
               <Mail className="h-6 w-6 text-brand" aria-hidden="true" />
               <p className="mt-3 text-sm font-semibold">{d.info.contact.email}</p>
-              <a href={`mailto:${store.contact.email}`} className="mt-1 block break-all text-sm text-ink-2 hover:underline" dir="ltr">{store.contact.email}</a>
+              <a href={`mailto:${store.contact.email}`} className="mt-1 block break-all text-sm text-fg-2 hover:underline" dir="ltr">{store.contact.email}</a>
             </li>
-            <li className="rounded-3xl border border-line bg-white p-5">
+            <li className="rounded-3xl border border-line bg-surface p-5">
               <Phone className="h-6 w-6 text-brand" aria-hidden="true" />
               <p className="mt-3 text-sm font-semibold">{d.info.contact.phone}</p>
-              <a href={`tel:${store.contact.phone.replace(/\s/g, "")}`} className="mt-1 block text-sm text-ink-2 hover:underline" dir="ltr">{store.contact.phone}</a>
+              <a href={`tel:${store.contact.phone.replace(/\s/g, "")}`} className="mt-1 block text-sm text-fg-2 hover:underline" dir="ltr">{store.contact.phone}</a>
             </li>
-            <li className="rounded-3xl border border-line bg-white p-5">
+            <li className="rounded-3xl border border-line bg-surface p-5">
               <MapPin className="h-6 w-6 text-brand" aria-hidden="true" />
               <p className="mt-3 text-sm font-semibold">{d.info.contact.address}</p>
-              <p className="mt-1 text-sm text-ink-2">{store.contact.address}</p>
+              <p className="mt-1 text-sm text-fg-2">{store.contact.address}</p>
             </li>
           </ul>
         )}

@@ -32,7 +32,7 @@ export function CartDrawer() {
   return (
     <div className="fixed inset-0 z-[60]" role="dialog" aria-modal="true" aria-label={d.cart.title}>
       <button type="button" className="absolute inset-0 bg-ink/50 [animation:fade-in_0.2s]" onClick={close} aria-label={d.common.close} />
-      <aside className="absolute inset-y-0 end-0 flex w-[min(26rem,100vw)] flex-col bg-white shadow-pop [--from:100%] rtl:[--from:-100%] [animation:slide-in_0.28s_ease-out]">
+      <aside className="absolute inset-y-0 end-0 flex w-[min(26rem,100vw)] flex-col bg-surface shadow-pop [--from:100%] rtl:[--from:-100%] [animation:slide-in_0.28s_ease-out]">
         <div className="flex items-center justify-between border-b border-line px-5 py-4">
           <h2 className="text-lg font-bold">
             {d.cart.title} <span className="text-sm font-medium text-muted">({cart.count})</span>
@@ -66,7 +66,7 @@ export function CartDrawer() {
                 ))}
               </ul>
             </div>
-            <div className="space-y-3 border-t border-line bg-white p-5">
+            <div className="space-y-3 border-t border-line bg-surface p-5">
               <div className="flex items-center justify-between text-base font-bold">
                 <span>{d.common.subtotal}</span>
                 <span dir="ltr" className="tabular-nums">{formatPrice(cart.subtotal, locale)}</span>

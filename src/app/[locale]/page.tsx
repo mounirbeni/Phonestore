@@ -78,7 +78,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             <li key={c.id}>
               <Link
                 href={localePath(locale, `/c/${c.slug}`)}
-                className="group flex h-full flex-col items-center gap-3 rounded-3xl border border-line bg-white p-5 text-center transition duration-300 hover:-translate-y-1 hover:border-brand hover:shadow-card"
+                className="group flex h-full flex-col items-center gap-3 rounded-3xl border border-line bg-surface p-5 text-center transition duration-300 hover:-translate-y-1 hover:border-brand hover:shadow-card"
               >
                 <span className="grid h-14 w-14 place-items-center rounded-2xl bg-brand-50 text-brand transition group-hover:bg-brand group-hover:text-white">
                   <CategoryIcon name={c.icon} className="h-7 w-7" aria-hidden="true" />
@@ -125,7 +125,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             <li key={b}>
               <Link
                 href={localePath(locale, `/shop?brand=${encodeURIComponent(b)}`)}
-                className="grid h-20 place-items-center rounded-2xl border border-line bg-white text-lg font-extrabold tracking-tight text-ink-2 transition hover:border-ink hover:text-ink"
+                className="grid h-20 place-items-center rounded-2xl border border-line bg-surface text-lg font-extrabold tracking-tight text-fg-2 transition hover:border-fg hover:text-fg"
                 dir="ltr"
               >
                 {b}
@@ -141,7 +141,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           {d.home.why.map((w, i) => {
             const Icon = why[i];
             return (
-              <li key={w.title} className="rounded-3xl border border-line bg-white p-6">
+              <li key={w.title} className="rounded-3xl border border-line bg-surface p-6">
                 <span className="grid h-12 w-12 place-items-center rounded-2xl bg-ink text-white">
                   <Icon className="h-6 w-6" aria-hidden="true" />
                 </span>
@@ -155,7 +155,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
       {/* FAQ */}
       <Section title={d.home.faqTitle}>
-        <div className="mx-auto max-w-3xl divide-y divide-line rounded-3xl border border-line bg-white">
+        <div className="mx-auto max-w-3xl divide-y divide-line rounded-3xl border border-line bg-surface">
           {d.home.faq.map((f) => (
             <details key={f.q} className="group px-6 py-5">
               <summary className="flex cursor-pointer items-center justify-between gap-4 font-semibold">

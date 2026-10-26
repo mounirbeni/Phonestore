@@ -24,8 +24,8 @@ export function ProductArt({ kind, color = "#1c1c1e", className }: Props) {
         <stop offset="1" stopColor="#ef2b3f" />
       </linearGradient>
       <radialGradient id={`g${id}`} cx="0.5" cy="0.5" r="0.5">
-        <stop offset="0" stopColor="#fff" stopOpacity="0.55" />
-        <stop offset="1" stopColor="#fff" stopOpacity="0" />
+        <stop offset="0" style={{ stopColor: "var(--art-glow, #fff)", stopOpacity: "var(--art-glow-op, 0.55)" }} />
+        <stop offset="1" style={{ stopColor: "var(--art-glow, #fff)", stopOpacity: 0 }} />
       </radialGradient>
       <filter id={`f${id}`} x="-20%" y="-20%" width="140%" height="150%">
         <feDropShadow dx="0" dy="10" stdDeviation="9" floodColor="#0b0d12" floodOpacity="0.22" />

@@ -20,7 +20,7 @@ export function AdminNav({ storeName }: { storeName: string }) {
     <>
       <aside className="hidden w-64 shrink-0 flex-col border-e border-line bg-white lg:flex">
         <div className="flex h-16 items-center gap-2.5 border-b border-line px-5 text-lg font-extrabold" dir="ltr">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-ink text-sm text-white">P</span>
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-ink text-sm text-white">E</span>
           {storeName}
         </div>
         <nav className="flex-1 space-y-1 p-3">

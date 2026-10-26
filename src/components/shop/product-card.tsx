@@ -11,8 +11,8 @@ export function ProductCard({ p, locale, d, priority }: { p: CardProduct; locale
   const pct = discountPercent(p.minPrice, p.compareAt);
   const color = p.colors[0]?.hex;
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-3xl border border-line bg-white transition duration-300 hover:-translate-y-1 hover:border-transparent hover:shadow-pop">
-      <Link href={localePath(locale, `/p/${p.slug}`)} className="relative block aspect-square bg-gradient-to-b from-mist to-white p-5" aria-label={p.name}>
+    <article className="group relative flex flex-col overflow-hidden rounded-3xl border border-line bg-surface transition duration-300 hover:-translate-y-1 hover:border-transparent hover:shadow-pop">
+      <Link href={localePath(locale, `/p/${p.slug}`)} className="relative block aspect-square bg-gradient-to-b from-mist to-surface p-5" aria-label={p.name}>
         <ProductVisual
           image={p.images[0]}
           art={p.art}
@@ -47,7 +47,7 @@ export function ProductCard({ p, locale, d, priority }: { p: CardProduct; locale
                 <li
                   key={c.hex}
                   title={pick(locale, c.fr, c.ar)}
-                  className="h-4 w-4 rounded-full border-2 border-white ring-1 ring-line"
+                  className="h-4 w-4 rounded-full border-2 border-surface ring-1 ring-line"
                   style={{ background: c.hex }}
                 />
               ))}

@@ -86,7 +86,7 @@ export async function ShopView({ locale, d, basePath, categorySlug, title, searc
       <div className="grid gap-8 lg:grid-cols-[16.5rem_1fr]">
         <aside>
           <FilterPanel activeCount={activeCount}>
-            <form action={basePath} method="get" className="space-y-6 rounded-3xl border border-line bg-white p-5">
+            <form action={basePath} method="get" className="space-y-6 rounded-3xl border border-line bg-surface p-5">
               {f.q && <input type="hidden" name="q" value={f.q} />}
               {f.sort !== "featured" && <input type="hidden" name="sort" value={f.sort} />}
 
@@ -96,7 +96,7 @@ export async function ShopView({ locale, d, basePath, categorySlug, title, searc
                   <ul className="space-y-1.5 text-sm">
                     {categories.map((c) => (
                       <li key={c.id}>
-                        <Link href={localePath(locale, `/c/${c.slug}`)} className="block rounded-lg px-2 py-1.5 text-ink-2 hover:bg-mist hover:text-ink">
+                        <Link href={localePath(locale, `/c/${c.slug}`)} className="block rounded-lg px-2 py-1.5 text-fg-2 hover:bg-mist hover:text-fg">
                           {pick(locale, c.nameFr, c.nameAr)}
                         </Link>
                       </li>

@@ -16,7 +16,7 @@ import { cn, fmt } from "@/lib/utils";
 
 function Section({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-3xl border border-line bg-white p-5 sm:p-7">
+    <section className="rounded-3xl border border-line bg-surface p-5 sm:p-7">
       <h2 className="mb-5 flex items-center gap-3 text-lg font-bold">
         <span className="grid h-7 w-7 place-items-center rounded-full bg-ink text-xs text-white">{n}</span>
         {title}
@@ -209,7 +209,7 @@ export function CheckoutForm() {
               const active = method === m.id;
               return (
                 <li key={m.id}>
-                  <label className={cn("flex cursor-pointer items-center gap-4 rounded-2xl border-2 p-4 transition", active ? "border-ink bg-mist/60" : "border-line hover:border-ink/40")}>
+                  <label className={cn("flex cursor-pointer items-center gap-4 rounded-2xl border-2 p-4 transition", active ? "border-fg bg-mist/60" : "border-line hover:border-fg/40")}>
                     <input type="radio" name="shippingMethod" value={m.id} checked={active} onChange={() => setMethod(m.id)} className="h-4.5 w-4.5 accent-ink" />
                     <span className="flex-1">
                       <span className="block font-semibold">{m.id === "express" ? d.checkout.express : d.checkout.standard}</span>
@@ -224,7 +224,7 @@ export function CheckoutForm() {
         </Section>
 
         <Section n={4} title={d.checkout.payment}>
-          <div className="flex items-start gap-4 rounded-2xl border-2 border-ink bg-mist/60 p-4">
+          <div className="flex items-start gap-4 rounded-2xl border-2 border-fg bg-mist/60 p-4">
             <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-ink text-white">
               <Banknote className="h-5.5 w-5.5" aria-hidden="true" />
             </span>
@@ -240,7 +240,7 @@ export function CheckoutForm() {
       </div>
 
       {/* Summary */}
-      <aside className="h-fit space-y-5 rounded-3xl border border-line bg-white p-5 sm:p-7 lg:sticky lg:top-36">
+      <aside className="h-fit space-y-5 rounded-3xl border border-line bg-surface p-5 sm:p-7 lg:sticky lg:top-36">
         <h2 className="text-lg font-bold">{d.checkout.summary}</h2>
         <ul className="max-h-72 divide-y divide-line overflow-y-auto">
           {cart.lines.map((l) => (

@@ -68,7 +68,7 @@ export function CartView() {
     <div className="grid gap-8 lg:grid-cols-[1fr_24rem]">
       <div>
         {notice && <p className="mb-4 rounded-2xl bg-[#fff7e6] px-4 py-3 text-sm font-medium text-[#8a5300]">{d.cart.stockChanged}</p>}
-        <ul className="divide-y divide-line rounded-3xl border border-line bg-white px-5">
+        <ul className="divide-y divide-line rounded-3xl border border-line bg-surface px-5">
           {cart.lines.map((l) => (
             <CartLineItem key={l.variantId} line={l} />
           ))}
@@ -77,7 +77,7 @@ export function CartView() {
           {d.common.continueShopping}
         </Link>
       </div>
-      <aside className="h-fit space-y-4 rounded-3xl border border-line bg-white p-6 lg:sticky lg:top-36">
+      <aside className="h-fit space-y-4 rounded-3xl border border-line bg-surface p-6 lg:sticky lg:top-36">
         <h2 className="text-lg font-bold">{d.cart.summary}</h2>
         <ShippingProgress subtotal={cart.subtotal} />
         <dl className="space-y-2.5 text-sm">
