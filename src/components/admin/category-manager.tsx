@@ -4,11 +4,12 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Trash2 } from "lucide-react";
 import { deleteCategory, saveCategory } from "@/app/actions/admin";
+import { CATEGORY_ICONS } from "@/lib/category-icons";
 
-type Cat = { id?: number; nameFr: string; nameAr: string; slug: string; icon: string; sort: number; products?: number };
-const ICONS: [string, string][] = [["phone", "هاتف"], ["tablet", "لوحي"], ["watch", "ساعة"], ["audio", "صوتيات"], ["laptop", "حاسوب"], ["accessory", "إكسسوار"], ["scooter", "تنقل كهربائي"], ["tv", "تلفاز"], ["home", "أجهزة منزلية"]];
+type Cat = { id?: number; nameFr: string; nameAr: string; slug: string; icon: string; sort: number; parentId: number | null; products?: number; children?: number };
+type Family = { id: number; nameAr: string };
 
-function Row({ cat }: { cat: Cat }) {
+function Row({ cat, families }: { cat: Cat; families: Family[] }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [c, setC] = useState(cat);
@@ -17,24 +18,31 @@ function Row({ cat }: { cat: Cat }) {
 
   function save() {
     start(async () => {
-      const r = await saveCategory({ id: c.id, nameFr: c.nameFr, nameAr: c.nameAr, slug: c.slug, icon: c.icon as "phone", sort: c.sort });
+      const r = await saveCategory({ id: c.id, nameFr: c.nameFr, nameAr: c.nameAr, slug: c.slug, icon: c.icon, sort: c.sort, parentId: c.parentId });
       if (r.ok) {
         setMsg({ ok: true, text: "تم الحفظ" });
-        if (isNew) setC({ nameFr: "", nameAr: "", slug: "", icon: "phone", sort: c.sort + 1 });
+        if (isNew) setC({ nameFr: "", nameAr: "", slug: "", icon: "phone", sort: c.sort + 1, parentId: c.parentId });
         router.refresh();
       } else setMsg({ ok: false, text: r.error ?? "خطأ" });
     });
   }
 
   return (
-    <li className="grid items-end gap-3 p-4 sm:grid-cols-[1fr_1fr_1fr_9rem_5rem_auto]">
+    <li className={`grid items-end gap-3 p-4 sm:grid-cols-[1fr_1fr_1fr_10rem_10rem_5rem_auto] ${cat.parentId ? "bg-mist/40 sm:ps-10" : ""}`}>
       <div><label className="label">الاسم (فرنسية)</label><input className="input !py-2" dir="ltr" value={c.nameFr} onChange={(e) => setC({ ...c, nameFr: e.target.value })} /></div>
       <div><label className="label">الاسم (عربية)</label><input className="input !py-2" value={c.nameAr} onChange={(e) => setC({ ...c, nameAr: e.target.value })} /></div>
       <div><label className="label">الرابط</label><input className="input !py-2" dir="ltr" value={c.slug} placeholder="تلقائي" onChange={(e) => setC({ ...c, slug: e.target.value })} /></div>
       <div>
         <label className="label">الأيقونة</label>
         <select className="input !py-2" value={c.icon} onChange={(e) => setC({ ...c, icon: e.target.value })}>
-          {ICONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+          {CATEGORY_ICONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+        </select>
+      </div>
+      <div>
+        <label className="label">تابعة لـ</label>
+        <select className="input !py-2" value={c.parentId ?? ""} onChange={(e) => setC({ ...c, parentId: e.target.value ? Number(e.target.value) : null })}>
+          <option value="">— فئة رئيسية —</option>
+          {families.filter((f) => f.id !== c.id).map((f) => <option key={f.id} value={f.id}>{f.nameAr}</option>)}
         </select>
       </div>
       <div><label className="label">الترتيب</label><input type="number" className="input !py-2" dir="ltr" value={c.sort} onChange={(e) => setC({ ...c, sort: Number(e.target.value) || 0 })} /></div>
@@ -59,22 +67,30 @@ function Row({ cat }: { cat: Cat }) {
           </button>
         )}
       </div>
-      {msg && <p role="status" className={`sm:col-span-6 text-sm font-medium ${msg.ok ? "text-ok" : "text-hot"}`}>{msg.text}</p>}
-      {!isNew && <p className="sm:col-span-6 -mt-1 text-xs text-muted">{cat.products ?? 0} منتج</p>}
+      {msg && <p role="status" className={`sm:col-span-7 text-sm font-medium ${msg.ok ? "text-ok" : "text-hot"}`}>{msg.text}</p>}
+      {!isNew && <p className="sm:col-span-7 -mt-1 text-xs text-muted">{cat.children ? `${cat.children} فئة فرعية` : `${cat.products ?? 0} منتج`}</p>}
     </li>
   );
 }
 
 export function CategoryManager({ cats }: { cats: Cat[] }) {
+  const tops = cats.filter((c) => c.parentId == null);
+  // Families that already hold products directly can't take sub-categories, so they aren't offered as parents.
+  const families = tops.filter((c) => !c.products || c.children).map((c) => ({ id: c.id!, nameAr: c.nameAr }));
+  const ordered = tops.flatMap((t) => [t, ...cats.filter((c) => c.parentId === t.id)]);
   return (
     <div className="space-y-6">
+      <p className="rounded-xl bg-white p-4 text-sm leading-relaxed text-muted">
+        التصنيف على مستويين: <b className="text-fg">فئة رئيسية</b> (مثل «الأجهزة المنزلية») ثم <b className="text-fg">فئات فرعية دقيقة</b> (مثل «الثلاجات»).
+        تُضاف المنتجات إلى الفئة الفرعية فقط، فلا تظهر في أي فئة غير ما يخصّها. الفئات الفارغة تُخفى تلقائيًا من المتجر.
+      </p>
       <ul className="divide-y divide-line rounded-2xl border border-line bg-white">
-        {cats.map((c) => <Row key={c.id} cat={c} />)}
+        {ordered.map((c) => <Row key={c.id} cat={c} families={families} />)}
       </ul>
       <div>
         <h2 className="mb-2 font-bold">فئة جديدة</h2>
         <ul className="rounded-2xl border border-line bg-white">
-          <Row cat={{ nameFr: "", nameAr: "", slug: "", icon: "phone", sort: cats.length }} />
+          <Row cat={{ nameFr: "", nameAr: "", slug: "", icon: "phone", sort: cats.length, parentId: null }} families={families} />
         </ul>
       </div>
     </div>

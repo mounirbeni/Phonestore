@@ -53,6 +53,7 @@ export const fr = {
     language: "Langue",
     skip: "Aller au contenu",
     account: "Compte",
+    more: "Plus",
     brands: "Marques",
   },
   announcement: {
@@ -128,6 +129,8 @@ export const fr = {
     previous: "Précédent",
     next: "Suivant",
     page: "Page {page} sur {pages}",
+    all: "Tout",
+    subcategories: "Sous-catégories",
     dealsTitle: "Promotions",
     newTitle: "Nouveautés",
   },

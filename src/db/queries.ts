@@ -4,6 +4,8 @@ import { db } from "./index";
 import { categories, products, variants, type Category, type Product, type Variant } from "./schema";
 import { artKind, type ArtKind } from "@/lib/art";
 
+export type { Category };
+
 export type CardProduct = {
   id: number;
   slug: string;
@@ -45,9 +47,13 @@ const HAS_STOCK = sql`exists (select 1 from variants v where v.product_id = prod
 const HAS_DEAL = sql`exists (select 1 from variants v where v.product_id = products.id and v.compare_at_price > v.price)`;
 const MAX_DISCOUNT = sql`(select coalesce(max((v.compare_at_price - v.price) * 100.0 / v.compare_at_price), 0) from variants v where v.product_id = products.id and v.compare_at_price > v.price)`;
 
+/** A category page covers the category itself and, for a family, every sub-category under it. */
+const inCategory = (slug: string) =>
+  sql`products.category_id in (select id from categories where slug = ${slug} or parent_id = (select id from categories where slug = ${slug}))`;
+
 function buildWhere(f: ShopFilters): SQL {
   const conds: (SQL | undefined)[] = [eq(products.active, true)];
-  if (f.category) conds.push(sql`products.category_id = (select id from categories where slug = ${f.category})`);
+  if (f.category) conds.push(inCategory(f.category));
   if (f.q) {
     const like = `%${f.q.replace(/[%_\\]/g, "\\$&")}%`;
     conds.push(or(ilike(products.name, like), ilike(products.brand, like), ilike(products.shortFr, like), ilike(products.shortAr, like)));
@@ -145,6 +151,47 @@ export async function getCategories(): Promise<Category[]> {
   return db.select().from(categories).orderBy(asc(categories.sort), asc(categories.id));
 }
 
+export type CategoryWithCount = Category & { count: number };
+export type CategoryNode = CategoryWithCount & { children: CategoryWithCount[] };
+
+/** Active products per category id, leaf rows only (products never sit on a family). */
+async function productCounts() {
+  const rows = await db
+    .select({ id: products.categoryId, n: count() })
+    .from(products)
+    .where(eq(products.active, true))
+    .groupBy(products.categoryId);
+  return new Map(rows.map((r) => [r.id, r.n]));
+}
+
+/** The storefront taxonomy: families with their sub-categories, empty ones left out. */
+export async function getCategoryTree(): Promise<CategoryNode[]> {
+  const [all, counts] = await Promise.all([getCategories(), productCounts()]);
+  const own = (c: Category): CategoryWithCount => ({ ...c, count: counts.get(c.id) ?? 0 });
+  return all
+    .filter((c) => c.parentId == null)
+    .map((top) => {
+      const children = all.filter((c) => c.parentId === top.id).map(own).filter((c) => c.count > 0);
+      return { ...own(top), count: (counts.get(top.id) ?? 0) + children.reduce((n, c) => n + c.count, 0), children };
+    })
+    .filter((top) => top.count > 0);
+}
+
+/** A category with the family it belongs to: its parent, the sub-categories to browse and its siblings. */
+export async function getCategoryContext(slug: string) {
+  const [all, counts] = await Promise.all([getCategories(), productCounts()]);
+  const category = all.find((c) => c.slug === slug);
+  if (!category) return null;
+  const own = (c: Category): CategoryWithCount => ({ ...c, count: counts.get(c.id) ?? 0 });
+  const visible = (list: Category[]) => list.map(own).filter((c) => c.count > 0);
+  const parent = category.parentId == null ? null : (all.find((c) => c.id === category.parentId) ?? null);
+  const children = visible(all.filter((c) => c.parentId === category.id));
+  const siblings = parent ? visible(all.filter((c) => c.parentId === parent.id)) : [];
+  return { category, parent, children, siblings };
+}
+
+export type CategoryContext = NonNullable<Awaited<ReturnType<typeof getCategoryContext>>>;
+
 export async function getCategoryBySlug(slug: string) {
   const [c] = await db.select().from(categories).where(eq(categories.slug, slug)).limit(1);
   return c ?? null;
@@ -172,21 +219,11 @@ export async function getConditionCounts(categorySlug: string) {
   const rows = await db
     .select({ condition: products.condition, n: count() })
     .from(products)
-    .innerJoin(categories, eq(products.categoryId, categories.id))
-    .where(and(eq(products.active, true), eq(categories.slug, categorySlug)))
+    .where(and(eq(products.active, true), inCategory(categorySlug)))
     .groupBy(products.condition);
   const out = { new: 0, used: 0 };
   for (const r of rows) out[r.condition] = r.n;
   return out;
-}
-
-export async function getCategoryCounts() {
-  const rows = await db
-    .select({ id: categories.id, n: count(products.id) })
-    .from(categories)
-    .leftJoin(products, and(eq(products.categoryId, categories.id), eq(products.active, true)))
-    .groupBy(categories.id);
-  return new Map(rows.map((r) => [r.id, r.n]));
 }
 
 export async function getProductDetail(slug: string) {
@@ -197,18 +234,25 @@ export async function getProductDetail(slug: string) {
     .where(and(eq(products.slug, slug), eq(products.active, true)))
     .limit(1);
   if (!row) return null;
-  const vs = await db
-    .select()
-    .from(variants)
-    .where(eq(variants.productId, row.p.id))
-    .orderBy(asc(variants.sort), asc(variants.id));
-  return { product: row.p, category: row.c, variants: vs, art: artKind(row.p.name, row.c.icon) };
+  const [vs, parent] = await Promise.all([
+    db.select().from(variants).where(eq(variants.productId, row.p.id)).orderBy(asc(variants.sort), asc(variants.id)),
+    row.c.parentId == null ? null : getCategoryById(row.c.parentId),
+  ]);
+  return { product: row.p, category: row.c, parent, variants: vs, art: artKind(row.p.name, row.c.icon) };
 }
 
+async function getCategoryById(id: number) {
+  const [c] = await db.select().from(categories).where(eq(categories.id, id)).limit(1);
+  return c ?? null;
+}
+
+/** Same sub-category first; if it is thin, completed with the rest of the same family. */
 export async function getRelated(productId: number, categoryId: number, limit = 4) {
+  const [{ parentId } = { parentId: null }] = await db.select({ parentId: categories.parentId }).from(categories).where(eq(categories.id, categoryId)).limit(1);
+  const family = parentId == null ? sql`products.category_id = ${categoryId}` : sql`products.category_id in (select id from categories where parent_id = ${parentId})`;
   const rows = await baseSelect()
-    .where(and(eq(products.active, true), eq(products.categoryId, categoryId), sql`${products.id} <> ${productId}`))
-    .orderBy(desc(products.featured), desc(products.createdAt))
+    .where(and(eq(products.active, true), family, sql`${products.id} <> ${productId}`))
+    .orderBy(sql`(products.category_id = ${categoryId}) desc`, desc(products.featured), desc(products.createdAt))
     .limit(limit);
   return toCards(rows);
 }
@@ -247,11 +291,11 @@ export async function getAllBrands() {
 }
 
 export async function getSitemapEntries() {
-  const [ps, cs] = await Promise.all([
+  const [ps, tree] = await Promise.all([
     db.select({ slug: products.slug, at: products.createdAt }).from(products).where(eq(products.active, true)),
-    db.select({ slug: categories.slug }).from(categories),
+    getCategoryTree(),
   ]);
-  return { products: ps, categories: cs };
+  return { products: ps, categories: tree.flatMap((t) => [{ slug: t.slug }, ...t.children.map((c) => ({ slug: c.slug }))]) };
 }
 
 /** Variant rows (with minimal product info) used to re-price the client cart. */

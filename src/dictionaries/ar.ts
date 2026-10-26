@@ -55,6 +55,7 @@ export const ar: Dict = {
     language: "اللغة",
     skip: "انتقل إلى المحتوى",
     account: "الحساب",
+    more: "المزيد",
     brands: "العلامات التجارية",
   },
   announcement: {
@@ -130,6 +131,8 @@ export const ar: Dict = {
     previous: "السابق",
     next: "التالي",
     page: "الصفحة {page} من {pages}",
+    all: "الكل",
+    subcategories: "الأقسام الفرعية",
     dealsTitle: "العروض",
     newTitle: "وصل حديثًا",
   },

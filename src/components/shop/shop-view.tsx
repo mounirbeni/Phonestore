@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, SearchX } from "lucide-react";
 import { store } from "@/config/store";
-import { getCategories, getFacets, searchProducts, type ShopFilters, type SortKey } from "@/db/queries";
+import { getCategoryTree, getFacets, searchProducts, type CategoryContext, type ShopFilters, type SortKey } from "@/db/queries";
 import type { Dict } from "@/lib/dictionary";
 import { localePath, pick, type Locale } from "@/lib/i18n";
 import { cn, fmt } from "@/lib/utils";
 import { ProductGrid } from "./product-card";
 import { FilterPanel } from "./filter-panel";
 import { SortSelect } from "./sort-select";
+import { CategoryCrumbs, SiblingChips, SubCategoryTiles } from "./category-nav";
 
 export type RawParams = Record<string, string | string[] | undefined>;
 
@@ -62,12 +63,14 @@ type Props = {
   categorySlug?: string;
   title: string;
   searchParams: RawParams;
+  /** Where the category sits in the taxonomy (parent, sub-categories, siblings). */
+  context?: CategoryContext;
 };
 
-export async function ShopView({ locale, d, basePath, categorySlug, title, searchParams }: Props) {
+export async function ShopView({ locale, d, basePath, categorySlug, title, searchParams, context }: Props) {
   const f = parseParams(searchParams);
   const filters: ShopFilters = { ...f, category: categorySlug, perPage: 12 };
-  const [result, facets, categories] = await Promise.all([searchProducts(filters), getFacets(categorySlug, f.condition), getCategories()]);
+  const [result, facets, categories] = await Promise.all([searchProducts(filters), getFacets(categorySlug, f.condition), getCategoryTree()]);
 
   const activeCount = f.brands.length + (f.min != null ? 1 : 0) + (f.max != null ? 1 : 0) + (f.inStock ? 1 : 0) + (f.deals ? 1 : 0) + (f.isNew ? 1 : 0);
   const heading = f.q ? fmt(d.shop.resultsFor, { q: f.q }) : title;
@@ -81,6 +84,7 @@ export async function ShopView({ locale, d, basePath, categorySlug, title, searc
 
   return (
     <div className="container-x pb-10 pt-5 sm:pt-12">
+      {context && <CategoryCrumbs locale={locale} d={d} parent={context.parent} category={context.category} />}
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3 sm:mb-8">
         <div className="min-w-0">
           <h1 className="text-[1.65rem] font-extrabold leading-tight tracking-tight sm:text-4xl">{heading}</h1>
@@ -90,6 +94,11 @@ export async function ShopView({ locale, d, basePath, categorySlug, title, searc
           <SortSelect value={f.sort} />
         </div>
       </div>
+
+      {context && context.children.length > 0 && !f.q && <SubCategoryTiles locale={locale} d={d} items={context.children} />}
+      {context?.parent && context.siblings.length > 1 && (
+        <SiblingChips locale={locale} d={d} parent={context.parent} siblings={context.siblings} currentId={context.category.id} />
+      )}
 
       {hasConditions && (
         <div className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 scrollbar-none sm:mx-0 sm:px-0" role="tablist" aria-label={d.condition.chooseType}>

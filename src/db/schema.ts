@@ -1,4 +1,5 @@
 import {
+  type AnyPgColumn,
   boolean,
   index,
   integer,
@@ -20,6 +21,8 @@ export const categories = pgTable("categories", {
   nameAr: text("name_ar").notNull(),
   icon: text("icon").notNull().default("phone"),
   sort: integer("sort").notNull().default(0),
+  /** Two-level taxonomy: a sub-category points at its top-level parent. Products live in leaves. */
+  parentId: integer("parent_id").references((): AnyPgColumn => categories.id, { onDelete: "restrict" }),
 });
 
 export const products = pgTable(

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { store } from "@/config/store";
-import { getCategoryBySlug, getConditionCounts, getFacets } from "@/db/queries";
+import { getCategoryContext, getConditionCounts, getFacets } from "@/db/queries";
 import { getDictionary } from "@/lib/dictionary";
 import { isLocale, localePath, pick } from "@/lib/i18n";
 import { ShopView, type RawParams } from "@/components/shop/shop-view";
@@ -15,7 +15,7 @@ const LISTING_KEYS = ["brand", "q", "min", "max", "stock", "deals", "new", "sort
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   if (!isLocale(locale)) return {};
-  const cat = await getCategoryBySlug(slug);
+  const cat = (await getCategoryContext(slug))?.category;
   if (!cat) return {};
   const sp = await searchParams;
   return {
@@ -28,8 +28,9 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 export default async function CategoryPage({ params, searchParams }: Props) {
   const { locale, slug } = await params;
   if (!isLocale(locale)) notFound();
-  const cat = await getCategoryBySlug(slug);
-  if (!cat) notFound();
+  const context = await getCategoryContext(slug);
+  if (!context) notFound();
+  const cat = context.category;
   const d = getDictionary(locale);
   const sp = await searchParams;
   const basePath = localePath(locale, `/c/${slug}`);
@@ -49,5 +50,5 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   }
 
   const heading = etat ? `${name} · ${etat === "neuf" ? d.condition.new : d.condition.used}` : name;
-  return <ShopView locale={locale} d={d} basePath={basePath} categorySlug={slug} title={heading} searchParams={sp} />;
+  return <ShopView locale={locale} d={d} basePath={basePath} categorySlug={slug} title={heading} searchParams={sp} context={context} />;
 }

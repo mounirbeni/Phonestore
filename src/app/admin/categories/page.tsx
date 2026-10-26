@@ -15,7 +15,12 @@ export default async function CategoriesPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-5">
       <h1 className="text-2xl font-extrabold">الفئات</h1>
-      <CategoryManager cats={rows.map(({ c, n }) => ({ id: c.id, nameFr: c.nameFr, nameAr: c.nameAr, slug: c.slug, icon: c.icon, sort: c.sort, products: n }))} />
+      <CategoryManager
+        cats={rows.map(({ c, n }) => ({
+          id: c.id, nameFr: c.nameFr, nameAr: c.nameAr, slug: c.slug, icon: c.icon, sort: c.sort, parentId: c.parentId,
+          products: n, children: rows.filter((r) => r.c.parentId === c.id).length,
+        }))}
+      />
     </div>
   );
 }

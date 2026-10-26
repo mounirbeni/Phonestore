@@ -8,8 +8,13 @@ import { fmt } from "@/lib/utils";
 import { Logo } from "./logo";
 import { HeaderActions } from "./header-actions";
 import { MobileSearch } from "./mobile-search";
+import { NavMore } from "./nav-more";
 
 type Cat = { slug: string; nameFr: string; nameAr: string; icon: string };
+
+/** Families shown in the bar at lg / xl; the rest live under "Plus" so nothing is cut off. */
+const INLINE_LG = 6;
+const INLINE_XL = 8;
 
 function SearchForm({ locale, d, className, id }: { locale: Locale; d: Dict; className?: string; id: string }) {
   return (
@@ -59,14 +64,25 @@ export function Header({ locale, d, categories }: { locale: Locale; d: Dict; cat
           </div>
         </div>
         <nav className="hidden border-t border-line lg:block" aria-label={d.nav.categories}>
-          <ul className="container-x flex h-11 items-center gap-0 overflow-x-auto whitespace-nowrap text-[0.8125rem] font-medium scrollbar-none">
-            {categories.map((c) => (
-              <li key={c.slug}>
+          <ul className="container-x flex h-11 items-center gap-0 whitespace-nowrap text-[0.8125rem] font-medium">
+            {categories.map((c, i) => (
+              <li key={c.slug} className={i >= INLINE_XL ? "hidden" : i >= INLINE_LG ? "hidden xl:block" : undefined}>
                 <Link href={localePath(locale, `/c/${c.slug}`)} className="rounded-lg px-2 py-2 text-fg-2 transition hover:bg-mist hover:text-fg">
                   {pick(locale, c.nameFr, c.nameAr)}
                 </Link>
               </li>
             ))}
+            {categories.length > INLINE_LG && (
+              <NavMore
+                label={d.nav.more}
+                className={categories.length <= INLINE_XL ? "xl:hidden" : undefined}
+                items={categories.slice(INLINE_LG).map((c, i) => ({
+                  href: localePath(locale, `/c/${c.slug}`),
+                  label: pick(locale, c.nameFr, c.nameAr),
+                  className: i + INLINE_LG < INLINE_XL ? "xl:hidden" : undefined,
+                }))}
+              />
+            )}
             <li>
               <Link href={localePath(locale, "/brands")} className="rounded-lg px-2 py-2 text-fg-2 transition hover:bg-mist hover:text-fg">
                 {d.nav.brands}

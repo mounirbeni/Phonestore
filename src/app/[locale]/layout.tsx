@@ -4,7 +4,7 @@ import "@fontsource-variable/inter";
 import "@fontsource-variable/noto-sans-arabic";
 import "../globals.css";
 import { store } from "@/config/store";
-import { getCategories } from "@/db/queries";
+import { getCategoryTree } from "@/db/queries";
 import { getDictionary } from "@/lib/dictionary";
 import { dirOf, isLocale, locales } from "@/lib/i18n";
 import { Providers } from "@/components/providers";
@@ -43,7 +43,7 @@ export default async function LocaleLayout({ children, params }: { children: Rea
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const d = getDictionary(locale);
-  const categories = await getCategories().catch(() => []);
+  const categories = await getCategoryTree().catch(() => []);
   const cats = categories.map(({ slug, nameFr, nameAr, icon }) => ({ slug, nameFr, nameAr, icon }));
 
   return (

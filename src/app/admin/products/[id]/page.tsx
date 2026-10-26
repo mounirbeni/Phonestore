@@ -13,7 +13,17 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function EditProduct({ params }: Props) {
   const { id } = await params;
-  const cats = await db.select({ id: categories.id, nameAr: categories.nameAr }).from(categories).orderBy(asc(categories.sort), asc(categories.id));
+  const all = await db.select().from(categories).orderBy(asc(categories.sort), asc(categories.id));
+  // Only the most precise categories can hold products; sub-categories are grouped under their family.
+  const hasKids = new Set(all.map((c) => c.parentId).filter((x): x is number => x != null));
+  const groups = all
+    .filter((c) => c.parentId == null)
+    .map((top) => ({
+      label: hasKids.has(top.id) ? top.nameAr : null,
+      items: (hasKids.has(top.id) ? all.filter((c) => c.parentId === top.id) : [top]).map((c) => ({ id: c.id, nameAr: c.nameAr })),
+    }))
+    .filter((g) => g.items.length > 0);
+  const cats = groups.flatMap((g) => g.items);
   if (!cats.length) return <p className="rounded-2xl bg-white p-8 text-center">أنشئ فئة أولًا من صفحة «الفئات».</p>;
 
   let initial: ProductFormInitial;
@@ -44,7 +54,7 @@ export default async function EditProduct({ params }: Props) {
   return (
     <div className="mx-auto max-w-4xl space-y-5">
       <h1 className="text-2xl font-extrabold">{id === "new" ? "منتج جديد" : "تعديل المنتج"}</h1>
-      <ProductForm initial={initial} categories={cats} />
+      <ProductForm initial={initial} categories={groups} />
     </div>
   );
 }

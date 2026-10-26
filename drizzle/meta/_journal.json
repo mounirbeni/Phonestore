@@ -15,6 +15,13 @@
       "when": 1793013397725,
       "tag": "0001_worried_captain_marvel",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793014119524,
+      "tag": "0002_last_zarek",
+      "breakpoints": true
     }
   ]
 }

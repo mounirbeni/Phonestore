@@ -40,7 +40,7 @@ export type ProductFormInitial = {
 
 const blankVariant = (): VariantState => ({ sku: "", colorFr: "", colorAr: "", colorHex: "#1c1c1e", storage: "", price: "", compareAt: "", stock: "0" });
 
-export function ProductForm({ initial, categories }: { initial: ProductFormInitial; categories: { id: number; nameAr: string }[] }) {
+export function ProductForm({ initial, categories }: { initial: ProductFormInitial; categories: { label: string | null; items: { id: number; nameAr: string }[] }[] }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [f, setF] = useState(initial);
@@ -143,7 +143,13 @@ export function ProductForm({ initial, categories }: { initial: ProductFormIniti
           <div>
             <label className="label" htmlFor="cat">الفئة</label>
             <select id="cat" className="input" value={f.categoryId} onChange={(e) => set("categoryId", Number(e.target.value))}>
-              {categories.map((c) => <option key={c.id} value={c.id}>{c.nameAr}</option>)}
+              {categories.map((g) =>
+                g.label ? (
+                  <optgroup key={g.label} label={g.label}>{g.items.map((c) => <option key={c.id} value={c.id}>{c.nameAr}</option>)}</optgroup>
+                ) : (
+                  g.items.map((c) => <option key={c.id} value={c.id}>{c.nameAr}</option>)
+                ),
+              )}
             </select>
           </div>
           <div>

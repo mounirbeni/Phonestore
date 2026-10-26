@@ -32,7 +32,7 @@ export default async function ProductPage({ params }: Props) {
   if (!isLocale(locale)) notFound();
   const data = await getProductDetail(slug);
   if (!data) notFound();
-  const { product, category, variants, art } = data;
+  const { product, category, parent, variants, art } = data;
   const d = getDictionary(locale);
   const related = await getRelated(product.id, product.categoryId);
   const description = pick(locale, product.descFr, product.descAr);
@@ -65,6 +65,12 @@ export default async function ProductPage({ params }: Props) {
         <nav aria-label="Breadcrumb" className="mb-6 hidden flex-wrap items-center gap-1.5 text-sm text-muted lg:flex">
           <Link href={localePath(locale)} className="hover:text-fg">{d.product.breadcrumbHome}</Link>
           <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden="true" />
+          {parent && (
+            <>
+              <Link href={localePath(locale, `/c/${parent.slug}`)} className="hover:text-fg">{pick(locale, parent.nameFr, parent.nameAr)}</Link>
+              <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden="true" />
+            </>
+          )}
           <Link href={localePath(locale, `/c/${category.slug}`)} className="hover:text-fg">{pick(locale, category.nameFr, category.nameAr)}</Link>
           <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden="true" />
           <span className="font-medium text-fg">{product.name}</span>

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, Banknote, BadgeCheck, ChevronDown, RotateCcw, Truck } from "lucide-react";
 import { store } from "@/config/store";
-import { getCategories, getCategoryCounts, getHomeData } from "@/db/queries";
+import { getCategoryTree, getHomeData } from "@/db/queries";
 import { getDictionary } from "@/lib/dictionary";
 import { isLocale, localePath, pick } from "@/lib/i18n";
 import { formatPrice } from "@/lib/money";
@@ -16,7 +16,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const d = getDictionary(locale);
-  const [{ featured, deals, fresh, brands }, categories, counts] = await Promise.all([getHomeData(), getCategories(), getCategoryCounts()]);
+  const [{ featured, deals, fresh, brands }, categories] = await Promise.all([getHomeData(), getCategoryTree()]);
   const why = [Banknote, BadgeCheck, Truck, RotateCcw];
 
   const jsonLd = {
@@ -84,7 +84,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                   <CategoryIcon name={c.icon} className="h-7 w-7" aria-hidden="true" />
                 </span>
                 <span className="text-sm font-semibold">{pick(locale, c.nameFr, c.nameAr)}</span>
-                <span className="text-xs text-muted">{fmt(counts.get(c.id) === 1 ? d.shop.resultsOne : d.shop.results, { n: counts.get(c.id) ?? 0 })}</span>
+                <span className="text-xs text-muted">{fmt(c.count === 1 ? d.shop.resultsOne : d.shop.results, { n: c.count })}</span>
               </Link>
             </li>
           ))}

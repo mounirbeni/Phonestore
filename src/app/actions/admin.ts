@@ -7,6 +7,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { categories, coupons, ORDER_STATUSES, orderItems, orders, products, variants, type OrderStatus, type Spec } from "@/db/schema";
 import { checkPassword, createSession, destroySession, requireAdmin } from "@/lib/auth";
+import { CATEGORY_ICONS } from "@/lib/category-icons";
 import { slugify } from "@/lib/utils";
 
 const refresh = () => revalidatePath("/admin", "layout");
@@ -123,6 +124,12 @@ export async function saveProduct(input: ProductPayload): Promise<{ ok: true; id
   }
   const p = parsed.data;
 
+  // Products belong to the most precise category, never to a family that has sub-categories.
+  const [cat] = await db.select({ id: categories.id }).from(categories).where(eq(categories.id, p.categoryId)).limit(1);
+  if (!cat) return { ok: false, error: "الفئة غير موجودة" };
+  const [{ kids }] = await db.select({ kids: count() }).from(categories).where(eq(categories.parentId, p.categoryId));
+  if (kids > 0) return { ok: false, error: "اختر فئة فرعية دقيقة، وليس الفئة الرئيسية" };
+
   const base = slugify(p.slug || p.name) || "produit";
   let slug = base;
   for (let n = 2; ; n++) {
@@ -216,8 +223,9 @@ const categorySchema = z.object({
   nameFr: z.string().trim().min(1).max(60),
   nameAr: z.string().trim().min(1).max(60),
   slug: z.string().trim().max(60).default(""),
-  icon: z.enum(["phone", "tablet", "watch", "audio", "laptop", "accessory", "scooter", "tv", "home"]),
+  icon: z.enum(CATEGORY_ICONS.map(([k]) => k) as [string, ...string[]]),
   sort: z.number().int().min(0).max(999),
+  parentId: z.number().int().positive().nullable().optional(),
 });
 
 export async function saveCategory(input: z.input<typeof categorySchema>): Promise<{ ok: boolean; error?: string }> {
@@ -227,9 +235,23 @@ export async function saveCategory(input: z.input<typeof categorySchema>): Promi
   const c = parsed.data;
   const slug = slugify(c.slug || c.nameFr);
   if (!slug) return { ok: false, error: "معرّف الرابط غير صالح" };
+  const parentId = c.parentId ?? null;
+  if (parentId != null) {
+    if (parentId === c.id) return { ok: false, error: "لا يمكن أن تكون الفئة تابعة لنفسها" };
+    const [parent] = await db.select().from(categories).where(eq(categories.id, parentId)).limit(1);
+    if (!parent) return { ok: false, error: "الفئة الرئيسية غير موجودة" };
+    if (parent.parentId != null) return { ok: false, error: "المستوى الثاني هو الأخير: اختر فئة رئيسية" };
+    const [{ held }] = await db.select({ held: count() }).from(products).where(eq(products.categoryId, parentId));
+    if (held > 0) return { ok: false, error: "هذه الفئة تحتوي منتجات مباشرة: انقلها إلى فئة فرعية أولًا" };
+    if (c.id) {
+      const [{ kids }] = await db.select({ kids: count() }).from(categories).where(eq(categories.parentId, c.id));
+      if (kids > 0) return { ok: false, error: "هذه الفئة لها فئات فرعية، لا يمكن جعلها فرعية" };
+    }
+  }
+  const values = { nameFr: c.nameFr, nameAr: c.nameAr, slug, icon: c.icon, sort: c.sort, parentId };
   try {
-    if (c.id) await db.update(categories).set({ nameFr: c.nameFr, nameAr: c.nameAr, slug, icon: c.icon, sort: c.sort }).where(eq(categories.id, c.id));
-    else await db.insert(categories).values({ nameFr: c.nameFr, nameAr: c.nameAr, slug, icon: c.icon, sort: c.sort });
+    if (c.id) await db.update(categories).set(values).where(eq(categories.id, c.id));
+    else await db.insert(categories).values(values);
   } catch {
     return { ok: false, error: "معرّف الرابط مستخدم مسبقًا" };
   }
@@ -241,6 +263,8 @@ export async function deleteCategory(id: number): Promise<{ ok: boolean; error?:
   await requireAdmin();
   const [{ n }] = await db.select({ n: count() }).from(products).where(eq(products.categoryId, id));
   if (n > 0) return { ok: false, error: "لا يمكن حذف فئة تحتوي على منتجات" };
+  const [{ kids }] = await db.select({ kids: count() }).from(categories).where(eq(categories.parentId, id));
+  if (kids > 0) return { ok: false, error: "لا يمكن حذف فئة لها فئات فرعية" };
   await db.delete(categories).where(eq(categories.id, id));
   refresh();
   return { ok: true };
