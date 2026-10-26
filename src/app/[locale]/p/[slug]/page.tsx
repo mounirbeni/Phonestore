@@ -84,6 +84,7 @@ export default async function ProductPage({ params }: Props) {
           art={art}
           isNew={product.isNew}
           condition={product.condition}
+          conditionNote={pick(locale, product.conditionNoteFr, product.conditionNoteAr)}
           warrantyMonths={product.warrantyMonths}
           optionLabel={pick(locale, product.optionLabelFr, product.optionLabelAr)}
           variants={variants.map((v) => ({

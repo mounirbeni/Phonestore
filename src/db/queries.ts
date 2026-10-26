@@ -18,6 +18,7 @@ export type CardProduct = {
   images: string[];
   isNew: boolean;
   condition: "new" | "used";
+  conditionNote: { fr: string; ar: string };
   minPrice: number;
   compareAt: number | null;
   inStock: boolean;
@@ -117,6 +118,7 @@ async function toCards(rows: Row[]): Promise<CardProduct[]> {
       images: p.images,
       isNew: p.isNew,
       condition: p.condition,
+      conditionNote: { fr: p.conditionNoteFr, ar: p.conditionNoteAr },
       minPrice: cheapest?.price ?? 0,
       compareAt: cheapest?.compareAtPrice && cheapest.compareAtPrice > cheapest.price ? cheapest.compareAtPrice : null,
       inStock: list.some((v) => v.stock > 0),

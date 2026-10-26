@@ -3,7 +3,7 @@ export const fr = {
   meta: {
     homeTitle: "Smartphones, tablettes et high-tech au meilleur prix",
     homeDescription:
-      "Smartphones, tablettes, montres connectées, audio et accessoires neufs et garantis. Livraison rapide partout au Maroc et paiement à la livraison.",
+      "Smartphones, tablettes, montres connectées, audio et accessoires, neufs et d'occasion, garantis. Livraison rapide partout au Maroc et paiement à la livraison.",
   },
   common: {
     addToCart: "Ajouter au panier",
@@ -64,7 +64,7 @@ export const fr = {
   home: {
     kicker: "Nouvelle génération",
     title: "Le meilleur de la high-tech, livré chez vous.",
-    text: "Smartphones, tablettes, audio et accessoires 100 % neufs et garantis. Vous payez uniquement à la réception de votre colis.",
+    text: "Smartphones, tablettes, électroménager, audio et accessoires, neufs ou d'occasion : l'état de chaque produit est indiqué clairement. Vous payez uniquement à la réception de votre colis.",
     ctaPrimary: "Découvrir la boutique",
     ctaSecondary: "Voir les promotions",
     shopByCategory: "Explorer par catégorie",
@@ -75,7 +75,7 @@ export const fr = {
     whyTitle: "Pourquoi nous choisir",
     why: [
       { title: "Paiement à la livraison", text: "Aucun paiement en ligne : vous réglez à la réception, en toute sérénité." },
-      { title: "Produits 100 % neufs", text: "Appareils neufs, scellés, avec facture et garantie constructeur." },
+      { title: "État indiqué sur chaque produit", text: "Neuf, comme neuf, boîte ouverte ou occasion : l'état est affiché clairement sur chaque fiche produit." },
       { title: "Livraison rapide", text: "Expédition sous 24 h ouvrées et suivi de votre commande." },
       { title: "Retours sous 14 jours", text: "Un doute ? Retournez votre achat simplement sous 14 jours." },
     ],
@@ -87,7 +87,7 @@ export const fr = {
       },
       {
         q: "Les produits sont-ils garantis ?",
-        a: "Oui. Tous nos produits sont neufs et bénéficient de la garantie légale de conformité de 2 ans ainsi que de la garantie constructeur.",
+        a: "Oui. Les produits neufs bénéficient de la garantie légale de conformité de 2 ans ainsi que de la garantie constructeur ; les produits d'occasion sont garantis 12 mois. L'état de chaque produit est indiqué sur sa fiche.",
       },
       {
         q: "Quels sont les délais de livraison ?",
@@ -240,7 +240,7 @@ export const fr = {
     emptyHint: "Appuyez sur le cœur d'un produit pour le retrouver ici.",
   },
   footer: {
-    about: "Votre boutique high-tech de confiance : produits neufs, prix justes, livraison rapide et paiement à la réception.",
+    about: "Votre boutique high-tech de confiance : produits neufs et d'occasion (état toujours indiqué), prix justes, livraison rapide et paiement à la réception.",
     shop: "Boutique",
     help: "Aide",
     legal: "Informations légales",
@@ -294,7 +294,7 @@ export const fr = {
     about: {
       title: "À propos",
       sections: [
-        { h: "Notre mission", p: "Rendre la technologie accessible : des smartphones, tablettes, objets connectés et accessoires neufs, au juste prix, avec un service humain et réactif." },
+        { h: "Notre mission", p: "Rendre la technologie accessible : des smartphones, tablettes, électroménager, objets connectés et accessoires, neufs ou d'occasion avec l'état toujours indiqué, au juste prix, avec un service humain et réactif." },
         { h: "Nos engagements", p: "Produits authentiques et garantis, livraison soignée, paiement à la réception et service client joignable par téléphone et e-mail." },
       ],
     },

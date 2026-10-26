@@ -3,6 +3,7 @@ import type { CardProduct } from "@/db/queries";
 import type { Dict } from "@/lib/dictionary";
 import { localePath, pick, type Locale } from "@/lib/i18n";
 import { discountPercent } from "@/lib/money";
+import { cn } from "@/lib/utils";
 import { ProductVisual } from "@/components/ui/product-visual";
 import { Price } from "@/components/ui/price";
 import { WishlistButton } from "./wishlist-button";
@@ -23,7 +24,9 @@ export function ProductCard({ p, locale, d, priority }: { p: CardProduct; locale
         />
         <div className="absolute start-3 top-3 flex flex-col items-start gap-1.5">
           {pct > 0 && <span className="chip bg-hot text-white" dir="ltr">-{pct}%</span>}
-          {p.condition === "used" && <span className="chip bg-warn-50 text-warn">{d.condition.used}</span>}
+          <span className={cn("chip", p.condition === "used" ? "bg-warn-50 text-warn" : "bg-ok-50 text-ok")}>
+            {p.condition === "used" ? pick(locale, p.conditionNote.fr, p.conditionNote.ar) || d.condition.used : d.condition.new}
+          </span>
           {p.isNew && <span className="chip bg-ink text-white">{d.common.new}</span>}
         </div>
         {!p.inStock && (

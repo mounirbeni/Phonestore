@@ -12,6 +12,8 @@ type Item = {
   brand: string;
   cat: string;
   condition: "new" | "used";
+  noteFr: string;
+  noteAr: string;
   specs: { fr: string; ar: string; value: string }[];
   createdAt: string;
   desc: string[];
@@ -70,6 +72,8 @@ async function main() {
         descFr: text,
         specs: p.specs,
         condition: p.condition,
+        conditionNoteFr: p.noteFr,
+        conditionNoteAr: p.noteAr,
         warrantyMonths: p.condition === "used" ? 12 : 24,
         optionLabelFr: p.optionLabelFr,
         optionLabelAr: p.optionLabelAr,
