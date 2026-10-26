@@ -31,7 +31,7 @@ export function Footer({ locale, d, categories }: { locale: Locale; d: Dict; cat
       </div>
       <div className="container-x grid grid-cols-2 gap-x-6 gap-y-9 py-10 sm:py-14 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr] lg:gap-10">
         <div className="col-span-2 lg:col-span-1">
-          <Logo locale={locale} light />
+          <Logo locale={locale} size="lg" />
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/60">{d.footer.about}</p>
         </div>
         <div>
