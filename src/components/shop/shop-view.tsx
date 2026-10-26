@@ -18,7 +18,7 @@ function first(v: string | string[] | undefined) {
   return Array.isArray(v) ? v[0] : v;
 }
 
-function euroToCents(v: string | undefined) {
+function toCents(v: string | undefined) {
   if (!v) return undefined;
   const n = Number(v.replace(",", "."));
   return Number.isFinite(n) && n >= 0 ? Math.round(n * 100) : undefined;
@@ -34,8 +34,8 @@ export function parseParams(sp: RawParams) {
     condition: etat === "neuf" ? ("new" as const) : etat === "occasion" ? ("used" as const) : undefined,
     q: first(sp.q)?.trim().slice(0, 80) || undefined,
     brands,
-    min: euroToCents(first(sp.min)),
-    max: euroToCents(first(sp.max)),
+    min: toCents(first(sp.min)),
+    max: toCents(first(sp.max)),
     inStock: first(sp.stock) === "1",
     deals: first(sp.deals) === "1",
     isNew: first(sp.new) === "1",
@@ -165,7 +165,7 @@ export async function ShopView({ locale, d, basePath, categorySlug, title, searc
 
               <fieldset>
                 <legend className="mb-3 text-sm font-bold">
-                  {d.shop.price} <span className="font-normal text-muted">(€)</span>
+                  {d.shop.price} <span className="font-normal text-muted">(DH)</span>
                 </legend>
                 <div className="flex items-center gap-2">
                   <input

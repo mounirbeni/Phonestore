@@ -280,11 +280,11 @@ export function ProductForm({ initial, categories }: { initial: ProductFormIniti
                   <input className="input !py-2" dir="ltr" value={v.storage} onChange={(e) => setVariant(i, { storage: e.target.value })} placeholder="256 Go" />
                 </div>
                 <div>
-                  <label className="label">السعر (€)</label>
+                  <label className="label">السعر (DH)</label>
                   <input className="input !py-2" inputMode="decimal" dir="ltr" required value={v.price} onChange={(e) => setVariant(i, { price: e.target.value })} placeholder="899" />
                 </div>
                 <div>
-                  <label className="label">السعر قبل التخفيض (€)</label>
+                  <label className="label">السعر قبل التخفيض (DH)</label>
                   <input className="input !py-2" inputMode="decimal" dir="ltr" value={v.compareAt} onChange={(e) => setVariant(i, { compareAt: e.target.value })} />
                 </div>
                 <div>

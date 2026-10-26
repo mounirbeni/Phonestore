@@ -49,7 +49,7 @@ export default async function ProductPage({ params }: Props) {
     sku: variants[0]?.sku,
     offers: {
       "@type": "AggregateOffer",
-      priceCurrency: "EUR",
+      priceCurrency: store.currency,
       lowPrice: (Math.min(...prices) / 100).toFixed(2),
       highPrice: (Math.max(...prices) / 100).toFixed(2),
       offerCount: variants.length,
@@ -85,6 +85,7 @@ export default async function ProductPage({ params }: Props) {
           isNew={product.isNew}
           condition={product.condition}
           warrantyMonths={product.warrantyMonths}
+          optionLabel={pick(locale, product.optionLabelFr, product.optionLabelAr)}
           variants={variants.map((v) => ({
             id: v.id, sku: v.sku, colorFr: v.colorFr, colorAr: v.colorAr, colorHex: v.colorHex,
             storage: v.storage, price: v.price, compareAtPrice: v.compareAtPrice, stock: v.stock,

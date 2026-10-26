@@ -1,3 +1,4 @@
+import { formatPrice } from "@/lib/money";
 import type { OrderStatus } from "@/db/schema";
 
 export const statusLabel: Record<OrderStatus, string> = {
@@ -16,8 +17,7 @@ export const statusChip: Record<OrderStatus, string> = {
   cancelled: "bg-hot-50 text-hot",
 };
 
-export const eur = (cents: number) =>
-  new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(cents / 100);
+export const eur = (cents: number) => formatPrice(cents, "fr");
 
 export const dateTime = (d: Date) =>
   new Intl.DateTimeFormat("ar-u-nu-latn", { dateStyle: "medium", timeStyle: "short" }).format(d);

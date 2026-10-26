@@ -22,6 +22,13 @@
       "when": 1793014119524,
       "tag": "0002_last_zarek",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793023309575,
+      "tag": "0003_catalog_option_label",
+      "breakpoints": true
     }
   ]
 }

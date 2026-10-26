@@ -44,7 +44,10 @@ export const products = pgTable(
     featured: boolean("featured").notNull().default(false),
     isNew: boolean("is_new").notNull().default(false),
     active: boolean("active").notNull().default(true),
-    warrantyMonths: integer("warranty_months").notNull().default(24),
+    /** What the variant chips choose between (e.g. "Capacité", "État de la batterie"); empty = "Capacité". */
+  optionLabelFr: text("option_label_fr").notNull().default(""),
+  optionLabelAr: text("option_label_ar").notNull().default(""),
+  warrantyMonths: integer("warranty_months").notNull().default(24),
     /** "new" (sealed, manufacturer warranty) or "used" (tested second-hand). */
     condition: text("condition").$type<"new" | "used">().notNull().default("new"),
     createdAt: timestamp("created_at").notNull().defaultNow(),

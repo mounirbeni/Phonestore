@@ -35,11 +35,13 @@ type Props = {
   art: ArtKind;
   variants: V[];
   warrantyMonths: number;
+  /** Heading for the variant chips; empty falls back to "Capacité". */
+  optionLabel?: string;
   isNew: boolean;
   condition: "new" | "used";
 };
 
-export function ProductPurchase({ slug, name, brand, images, art, variants, warrantyMonths, isNew, condition }: Props) {
+export function ProductPurchase({ slug, name, brand, images, art, variants, warrantyMonths, optionLabel, isNew, condition }: Props) {
   const { locale, d } = useI18n();
   const cart = useCart();
   const router = useRouter();
@@ -257,7 +259,7 @@ export function ProductPurchase({ slug, name, brand, images, art, variants, warr
 
         {storages.length > 0 && (
           <div className="mt-6">
-            <p className="mb-3 text-sm font-semibold">{d.product.selectStorage}</p>
+            <p className="mb-3 text-sm font-semibold">{optionLabel || d.product.selectStorage}</p>
             <ul className="flex flex-wrap gap-2.5" role="radiogroup" aria-label={d.common.storage}>
               {storages.map((s) => {
                 const active = s === selected.storage;

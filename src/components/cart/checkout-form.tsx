@@ -189,7 +189,7 @@ export function CheckoutForm() {
             </div>
             <div className="sm:col-span-2">
               <label className="label" htmlFor="country">{d.checkout.country}</label>
-              <select {...field("country")} defaultValue="FR" autoComplete="country">
+              <select {...field("country")} defaultValue={store.countries[0].code} autoComplete="country">
                 {store.countries.map((c) => (
                   <option key={c.code} value={c.code}>{pick(locale, c.fr, c.ar)}</option>
                 ))}

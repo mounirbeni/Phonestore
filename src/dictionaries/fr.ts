@@ -3,7 +3,7 @@ export const fr = {
   meta: {
     homeTitle: "Smartphones, tablettes et high-tech au meilleur prix",
     homeDescription:
-      "Smartphones, tablettes, montres connectées, audio et accessoires neufs et garantis. Livraison rapide en Europe et paiement à la livraison.",
+      "Smartphones, tablettes, montres connectées, audio et accessoires neufs et garantis. Livraison rapide partout au Maroc et paiement à la livraison.",
   },
   common: {
     addToCart: "Ajouter au panier",
@@ -257,8 +257,8 @@ export const fr = {
     shipping: {
       title: "Livraison",
       sections: [
-        { h: "Zones et délais", p: "Nous livrons en France, Belgique, Luxembourg, Allemagne, Espagne, Italie, Pays-Bas et Portugal. Les commandes passées avant 15 h sont expédiées sous 24 h ouvrées. Livraison standard : 2 à 4 jours ouvrés. Livraison express : 1 à 2 jours ouvrés." },
-        { h: "Frais de livraison", p: "La livraison standard est offerte dès 100 € d'achat. En dessous, elle est facturée 4,90 €. La livraison express est facturée 9,90 €." },
+        { h: "Zones et délais", p: "Nous livrons partout au Maroc. Les commandes passées avant 15 h sont expédiées sous 24 h ouvrées. Livraison standard : 2 à 4 jours ouvrés. Livraison express : 1 à 2 jours ouvrés." },
+        { h: "Frais de livraison", p: "La livraison standard est offerte dès 500 DH d'achat. En dessous, elle est facturée 30 DH. La livraison express est facturée 50 DH." },
         { h: "Paiement à la livraison", p: "Le règlement s'effectue directement auprès du livreur à la réception du colis. Merci de préparer le montant exact indiqué dans votre confirmation de commande." },
         { h: "Suivi", p: "Vous pouvez suivre l'avancement de votre commande à tout moment depuis la page « Suivre ma commande » avec votre numéro de commande et votre e-mail." },
       ],
@@ -285,7 +285,7 @@ export const fr = {
       title: "Conditions générales de vente",
       sections: [
         { h: "Commande", p: "Toute commande passée sur le site vaut acceptation des présentes conditions. Une commande est confirmée après validation par notre équipe, qui peut vous contacter par téléphone ou e-mail." },
-        { h: "Prix", p: "Les prix sont indiqués en euros, toutes taxes comprises, hors frais de livraison éventuels. Nous nous réservons le droit de modifier nos prix à tout moment ; le prix applicable est celui affiché au moment de la commande." },
+        { h: "Prix", p: "Les prix sont indiqués en dirhams marocains (DH), toutes taxes comprises, hors frais de livraison éventuels. Nous nous réservons le droit de modifier nos prix à tout moment ; le prix applicable est celui affiché au moment de la commande." },
         { h: "Paiement", p: "Le paiement s'effectue à la livraison auprès du transporteur. Le refus de payer ou de réceptionner un colis peut entraîner des restrictions sur vos futures commandes." },
         { h: "Disponibilité", p: "Les offres sont valables dans la limite des stocks disponibles. En cas d'indisponibilité après commande, nous vous en informons et annulons la commande sans frais." },
         { h: "Droit applicable", p: "Les présentes conditions sont soumises au droit français. Pour toute réclamation, contactez d'abord notre service client." },

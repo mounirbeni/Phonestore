@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     title: { default: `${store.name} — ${d.meta.homeTitle}`, template: `%s | ${store.name}` },
     description: d.meta.homeDescription,
     alternates: { canonical: `/${locale}`, languages: { fr: "/fr", ar: "/ar" } },
-    openGraph: { siteName: store.name, locale: locale === "ar" ? "ar_AR" : "fr_FR", type: "website" },
+    openGraph: { siteName: store.name, locale: locale === "ar" ? "ar_MA" : "fr_MA", type: "website" },
     manifest: "/manifest.webmanifest",
     icons: { icon: [{ url: "/pwa-icon/192", sizes: "192x192", type: "image/png" }], apple: [{ url: "/pwa-icon/180", sizes: "180x180", type: "image/png" }] },
     appleWebApp: { capable: true, title: store.name, statusBarStyle: "black-translucent" },
