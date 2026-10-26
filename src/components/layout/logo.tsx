@@ -4,64 +4,77 @@ import { store } from "@/config/store";
 import { localePath, type Locale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
-const SIZES = { md: "h-10", lg: "h-14" } as const;
+const SIZES = { md: "h-8 sm:h-9", lg: "h-11 sm:h-12" } as const;
+
+/** One "A": outer shape plus the counter, cut out with evenodd. */
+const A = "M0 80L30 0H58L88 80H66L60 64H28L22 80ZM44 21.3L54.75 50H33.25Z";
 
 /**
- * The ELECTRO / SALAM wordmark, drawn in code: silver letters with a red lightning bolt as the first E.
- * Each line is laid out in a 0–80 box so one vertical gradient fits both.
+ * The ELECTRO SALAM wordmark, drawn in code: chrome letters on a single line with a red lightning-bolt
+ * first E. Letters sit in a 0–80 box (cap height); the bolt and the T's spike reach below it.
  */
 export function Logo({ locale, size = "md", className }: { locale: Locale; size?: keyof typeof SIZES; className?: string }) {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
-  const silver = `url(#silver${uid})`;
+  const chrome = `url(#chrome${uid})`;
+  const red = `url(#red${uid})`;
   return (
     <Link href={localePath(locale)} className={cn("inline-flex items-center", className)} aria-label={store.name}>
-      <svg viewBox="0 0 582 200" className={cn("w-auto", SIZES[size])} aria-hidden="true">
+      <svg viewBox="0 0 909 140" className={cn("w-auto", SIZES[size])} aria-hidden="true">
         <defs>
-          <linearGradient id={`silver${uid}`} gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="80">
+          <linearGradient id={`chrome${uid}`} gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="80">
             <stop offset="0" stopColor="#ffffff" />
-            <stop offset="0.55" stopColor="#e3e3e3" />
-            <stop offset="1" stopColor="#adadad" />
+            <stop offset="0.3" stopColor="#f0f0f0" />
+            <stop offset="0.47" stopColor="#bdbdbd" />
+            <stop offset="0.53" stopColor="#7d7d7d" />
+            <stop offset="0.58" stopColor="#d9d9d9" />
+            <stop offset="0.82" stopColor="#f5f5f5" />
+            <stop offset="1" stopColor="#a6a6a6" />
           </linearGradient>
-          <linearGradient id={`bolt${uid}`} x1="0.1" y1="0" x2="0.5" y2="1">
-            <stop offset="0" stopColor="#ff4b3e" />
-            <stop offset="1" stopColor="#c4121e" />
+          <linearGradient id={`red${uid}`} gradientUnits="userSpaceOnUse" x1="0" y1="-9" x2="0" y2="115">
+            <stop offset="0" stopColor="#ff6a5c" />
+            <stop offset="0.35" stopColor="#e8141c" />
+            <stop offset="0.7" stopColor="#c20d17" />
+            <stop offset="1" stopColor="#7e0510" />
           </linearGradient>
+          <filter id={`edge${uid}`} filterUnits="userSpaceOnUse" x="-6" y="-24" width="921" height="170">
+            <feMorphology in="SourceAlpha" operator="dilate" radius="2" result="grown" />
+            <feFlood floodColor="#000" />
+            <feComposite in2="grown" operator="in" result="outline" />
+            <feMerge>
+              <feMergeNode in="outline" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
         </defs>
 
-        {/* ELECTRO */}
-        <g transform="translate(0 6)">
-          <g transform="translate(34 0)">
-            <g fill={silver}>
-              <rect x="34" y="0" width="46" height="16" />
-              <rect x="30" y="32" width="42" height="14" />
-              <rect x="12" y="64" width="68" height="16" />
-            </g>
-            <polygon points="18,0 42,0 28,36 44,36 -16,118 2,50 -14,50" fill={`url(#bolt${uid})`} />
+        <g transform="translate(3 14)" filter={`url(#edge${uid})`}>
+          {/* E: the stem is a lightning bolt */}
+          <g fill={red}>
+            <polygon points="48,-9 140,-9 132,15 40,15" />
+            <polygon points="50,32 118,32 113,50 46,50" />
+            <polygon points="18,62 132,62 126,80 12,80" />
+            <polygon points="34,-9 70,-9 52,28 72,28 0,115 24,48 4,48" />
           </g>
-          <g fill="none" stroke={silver} strokeWidth="18">
-            <path transform="translate(122 0)" d="M9 0V71H54" />
-            <path transform="translate(184 0)" d="M58 9H9V71H58M9 40H50" />
-            <path transform="translate(250 0)" d="M63.75 20.07A31 31 0 1 0 63.75 59.93" />
-            <path transform="translate(326 0)" d="M0 9H70M35 18V80" />
-            <path transform="translate(408 0)" d="M9 80V9H40a16 16 0 0 1 0 32H9" />
-            <circle transform="translate(482 0)" cx="40" cy="40" r="31" />
-          </g>
-          <polygon transform="translate(408 0)" points="26,44 48,44 66,80 44,80" fill={silver} />
-        </g>
 
-        {/* SALAM */}
-        <g transform="translate(0 112)">
-          <g fill="none" stroke={silver} strokeWidth="18">
+          <g fill="none" stroke={chrome} strokeWidth="19">
+            <path transform="translate(146 0)" d="M9 0V71H48" />
+            <path transform="translate(200 0)" d="M52 9H9V71H52M9 40H46" />
+            <path transform="translate(258 0)" d="M47.85 20.07A22 31 0 1 0 47.85 59.93" />
+            <path transform="translate(318 0)" d="M0 9H64" />
+            <path transform="translate(388 0)" d="M9 80V9H34a15.5 15.5 0 0 1 0 31H9" />
+            <ellipse transform="translate(453 0)" cx="35" cy="40" rx="26" ry="31" />
             <path
-              transform="translate(180 0)"
-              d="M52 22C51 13 43 9 31 9C18 9 9 15 9 25C9 36 19 38 31 40C44 42 51 45 51 55C51 65 43 71 30 71C17 71 9 66 8 56"
+              transform="translate(559 0) skewX(-8)"
+              d="M47 22C46 13 39 9 28 9C16 9 9 14 9 24C9 34 17 36 28 39C40 42 47 45 47 55C47 65 40 71 27 71C15 71 8 66 7 56"
             />
-            <path transform="translate(332 0)" d="M9 0V71H54" />
+            <path transform="translate(691 0)" d="M9 0V71H48" />
           </g>
-          <g fill={silver} fillRule="evenodd">
-            <path transform="translate(248 0) scale(0.8636 1)" d="M0 80L30 0H58L88 80H66L60 64H28L22 80ZM44 21.3L54.75 50H33.25Z" />
-            <path transform="translate(394 0) scale(0.8636 1)" d="M0 80L30 0H58L88 80H66L60 64H28L22 80ZM44 21.3L54.75 50H33.25Z" />
-            <path transform="translate(478 0) scale(0.875 1)" d="M0 80V0H22L48 44L74 0H96V80H76V36L55 70H41L20 36V80Z" />
+          <g fill={chrome} fillRule="evenodd">
+            <polygon transform="translate(388 0)" points="24,42 44,42 60,80 40,80" />
+            <polygon transform="translate(318 0)" points="23,18 41,18 41,80 32,104 23,80" />
+            <path transform="translate(615 0) scale(0.795 1)" d={A} />
+            <path transform="translate(745 0) scale(0.795 1)" d={A} />
+            <path transform="translate(821 0) scale(0.8333 1)" d="M0 80V0H22L48 44L74 0H96V80H76V36L55 70H41L20 36V80Z" />
           </g>
         </g>
       </svg>
