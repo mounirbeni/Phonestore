@@ -19,9 +19,9 @@ export function ProductArt({ kind, color = "#1c1c1e", className }: Props) {
         <stop offset="1" stopColor={lo} />
       </linearGradient>
       <linearGradient id={`s${id}`} x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stopColor="#3b5bff" />
-        <stop offset="0.55" stopColor="#7a4dff" />
-        <stop offset="1" stopColor="#ff6a8b" />
+        <stop offset="0" stopColor="#1a0709" />
+        <stop offset="0.55" stopColor="#8a0f23" />
+        <stop offset="1" stopColor="#ef2b3f" />
       </linearGradient>
       <radialGradient id={`g${id}`} cx="0.5" cy="0.5" r="0.5">
         <stop offset="0" stopColor="#fff" stopOpacity="0.55" />
@@ -85,8 +85,8 @@ export function ProductArt({ kind, color = "#1c1c1e", className }: Props) {
           <rect x="62" y="64" width="116" height="112" rx="34" fill={shade(color, -0.2)} />
           <rect x="62" y="64" width="116" height="112" rx="34" fill="none" stroke="#fff" strokeOpacity="0.35" strokeWidth="2" />
           <rect x="70" y="72" width="100" height="96" rx="27" fill="#0b0d12" />
-          <circle cx="120" cy="120" r="30" fill="none" stroke="#3b5bff" strokeWidth="6" />
-          <circle cx="120" cy="120" r="19" fill="none" stroke="#ff6a8b" strokeWidth="5" strokeDasharray="60 80" />
+          <circle cx="120" cy="120" r="30" fill="none" stroke="#ef2b3f" strokeWidth="6" />
+          <circle cx="120" cy="120" r="19" fill="none" stroke="#ffffff" strokeWidth="5" strokeDasharray="60 80" />
           <rect x="178" y="98" width="8" height="22" rx="4" fill={hi} />
         </g>
       );

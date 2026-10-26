@@ -38,13 +38,13 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
       {/* Hero */}
       <section className="container-x pt-4 sm:pt-6">
-        <div className="relative isolate overflow-hidden rounded-[2rem] bg-ink text-white sm:rounded-[2.5rem]">
-          <div className="pointer-events-none absolute -end-24 -top-24 h-[28rem] w-[28rem] rounded-full bg-brand/60 blur-[110px]" aria-hidden="true" />
-          <div className="pointer-events-none absolute -bottom-32 start-1/3 h-[24rem] w-[24rem] rounded-full bg-[#7a4dff]/40 blur-[110px]" aria-hidden="true" />
+        <div className="relative isolate overflow-hidden rounded-[2rem] bg-ink text-white ring-1 ring-white/10 sm:rounded-[2.5rem]">
+          <div className="pointer-events-none absolute -end-24 -top-24 h-[28rem] w-[28rem] rounded-full bg-brand/45 blur-[120px]" aria-hidden="true" />
+          <div className="pointer-events-none absolute -bottom-32 start-1/3 h-[24rem] w-[24rem] rounded-full bg-[#7d0a1c]/50 blur-[120px]" aria-hidden="true" />
           <div className="relative grid items-center gap-6 px-6 py-12 sm:px-12 sm:py-16 lg:grid-cols-[1.1fr_1fr] lg:px-16 lg:py-20">
             <div>
               <span className="chip bg-white/10 text-white/90 ring-1 ring-white/15 backdrop-blur">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#38d996]" aria-hidden="true" />
+                <span className="h-1.5 w-1.5 rounded-full bg-brand" aria-hidden="true" />
                 {d.home.kicker}
               </span>
               <h1 className="mt-5 text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl">{d.home.title}</h1>
@@ -59,13 +59,13 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 </Link>
               </div>
               <ul className="mt-10 flex flex-wrap gap-x-6 gap-y-3 text-sm text-white/70">
-                <li className="flex items-center gap-2"><Banknote className="h-4.5 w-4.5 text-[#38d996]" aria-hidden="true" />{d.announcement.cod}</li>
-                <li className="flex items-center gap-2"><BadgeCheck className="h-4.5 w-4.5 text-[#38d996]" aria-hidden="true" />{d.announcement.warranty}</li>
-                <li className="flex items-center gap-2"><Truck className="h-4.5 w-4.5 text-[#38d996]" aria-hidden="true" />{fmt(d.announcement.shipping, { amount: formatPrice(store.freeShippingThreshold, locale) })}</li>
+                <li className="flex items-center gap-2"><Banknote className="h-4.5 w-4.5 text-[#ff4d5e]" aria-hidden="true" />{d.announcement.cod}</li>
+                <li className="flex items-center gap-2"><BadgeCheck className="h-4.5 w-4.5 text-[#ff4d5e]" aria-hidden="true" />{d.announcement.warranty}</li>
+                <li className="flex items-center gap-2"><Truck className="h-4.5 w-4.5 text-[#ff4d5e]" aria-hidden="true" />{fmt(d.announcement.shipping, { amount: formatPrice(store.freeShippingThreshold, locale) })}</li>
               </ul>
             </div>
             <div className="relative mx-auto aspect-square w-full max-w-[26rem] lg:max-w-[32rem]" aria-hidden="true">
-              <ProductArt kind="phone" color="#8b7ab8" className="h-full w-full [animation:float_6s_ease-in-out_infinite] drop-shadow-2xl" />
+              <ProductArt kind="phone" color="#2c2c31" className="h-full w-full [animation:float_6s_ease-in-out_infinite] drop-shadow-2xl" />
             </div>
           </div>
         </div>

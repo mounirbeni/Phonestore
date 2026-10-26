@@ -168,7 +168,7 @@ export async function saveProduct(input: ProductPayload): Promise<{ ok: true; id
       for (const [i, v] of p.variants.entries()) {
         const row = {
           productId,
-          sku: v.sku || `PS-${Date.now().toString(36).toUpperCase()}${i}`,
+          sku: v.sku || `ES-${Date.now().toString(36).toUpperCase()}${i}`,
           colorFr: v.colorFr,
           colorAr: v.colorAr,
           colorHex: v.colorHex,

@@ -282,7 +282,7 @@ async function main() {
     await db.insert(s.variants).values(
       p.variants.map((v, j) => ({
         productId: row.id,
-        sku: `PS-${sku++}`,
+        sku: `ES-${sku++}`,
         colorFr: v.color[0],
         colorAr: v.color[1],
         colorHex: v.color[2],

@@ -11,7 +11,7 @@ export const statusLabel: Record<OrderStatus, string> = {
 export const statusChip: Record<OrderStatus, string> = {
   pending: "bg-[#fff7e6] text-[#b26a00]",
   confirmed: "bg-brand-50 text-brand",
-  shipped: "bg-[#efeaff] text-[#6a3fd6]",
+  shipped: "bg-ink text-white",
   delivered: "bg-ok-50 text-ok",
   cancelled: "bg-hot-50 text-hot",
 };

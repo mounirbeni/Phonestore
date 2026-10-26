@@ -57,7 +57,7 @@ export default async function OrderPage({ params, searchParams }: Props) {
     <div className="container-x pb-10 pt-8 sm:pt-12">
       <div className="mx-auto max-w-3xl">
         <div className="rounded-[2rem] bg-ink p-8 text-center text-white sm:p-12">
-          <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[#38d996] text-ink">
+          <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-brand text-white">
             <Check className="h-8 w-8" strokeWidth={3} aria-hidden="true" />
           </span>
           <h1 className="mt-6 text-3xl font-extrabold tracking-tight sm:text-4xl">{d.order.thanks}</h1>

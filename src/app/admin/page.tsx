@@ -40,7 +40,7 @@ export default async function Dashboard() {
   const stats = [
     { label: "إيرادات 30 يومًا", value: eur(revenue30), icon: Banknote, tone: "bg-brand-50 text-brand" },
     { label: "طلبات 30 يومًا", value: String(orders30), icon: ShoppingCart, tone: "bg-ok-50 text-ok" },
-    { label: "متوسط قيمة الطلب", value: eur(orders30 ? Math.round(revenue30 / orders30) : 0), icon: TrendingUp, tone: "bg-[#efeaff] text-[#6a3fd6]" },
+    { label: "متوسط قيمة الطلب", value: eur(orders30 ? Math.round(revenue30 / orders30) : 0), icon: TrendingUp, tone: "bg-ink text-white" },
     { label: "بانتظار التأكيد", value: String(pendingRow?.n ?? 0), icon: Clock, tone: "bg-[#fff7e6] text-[#b26a00]" },
   ];
 

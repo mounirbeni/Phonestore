@@ -1,5 +1,5 @@
 export const store = {
-  name: process.env.NEXT_PUBLIC_STORE_NAME ?? "PhoneStore",
+  name: process.env.NEXT_PUBLIC_STORE_NAME ?? "ElectroSalam",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   currency: "EUR",
   /** Orders at or above this subtotal (in cents) ship for free (standard shipping). */
@@ -21,11 +21,11 @@ export const store = {
     { code: "PT", fr: "Portugal", ar: "البرتغال" },
   ],
   contact: {
-    email: process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "contact@phonestore.example",
+    email: process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "contact@electrosalam.example",
     phone: process.env.NEXT_PUBLIC_CONTACT_PHONE ?? "+33 1 00 00 00 00",
     whatsapp: process.env.NEXT_PUBLIC_WHATSAPP ?? "",
     address: process.env.NEXT_PUBLIC_ADDRESS ?? "Adresse de la société, 75000 Paris, France",
-    legalName: process.env.NEXT_PUBLIC_LEGAL_NAME ?? "PhoneStore SAS",
+    legalName: process.env.NEXT_PUBLIC_LEGAL_NAME ?? "ElectroSalam SAS",
   },
 } as const;
 

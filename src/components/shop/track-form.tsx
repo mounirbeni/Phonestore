@@ -29,7 +29,7 @@ export function TrackForm() {
     >
       <div>
         <label className="label" htmlFor="number">{d.track.orderNumber}</label>
-        <input id="number" name="number" required className="input" placeholder="PS-10001" dir="ltr" autoComplete="off" />
+        <input id="number" name="number" required className="input" placeholder="ES-10001" dir="ltr" autoComplete="off" />
       </div>
       <div>
         <label className="label" htmlFor="email">{d.checkout.email}</label>

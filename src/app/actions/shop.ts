@@ -154,7 +154,7 @@ export async function placeOrder(input: CheckoutInput): Promise<PlaceOrderResult
           customerNote: data.note,
         })
         .returning();
-      const number = `PS-${10000 + order.id}`;
+      const number = `ES-${10000 + order.id}`;
       const [finalOrder] = await tx.update(orders).set({ number }).where(eq(orders.id, order.id)).returning();
 
       const items = await tx
@@ -197,7 +197,7 @@ export async function placeOrder(input: CheckoutInput): Promise<PlaceOrderResult
 
 export async function lookupOrder(number: string, email: string): Promise<{ ok: true; token: string; number: string } | { ok: false }> {
   const n = number.trim().toUpperCase().replace(/^#/, "");
-  const normalized = /^\d+$/.test(n) ? `PS-${n}` : n;
+  const normalized = /^\d+$/.test(n) ? `ES-${n}` : n;
   const [o] = await db
     .select({ number: orders.number, token: orders.token })
     .from(orders)
