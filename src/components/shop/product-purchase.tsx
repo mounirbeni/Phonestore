@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BadgeCheck, Banknote, Check, RotateCcw, ShoppingBag, Truck, Zap } from "lucide-react";
 import type { ArtKind } from "@/lib/art";
@@ -9,6 +9,7 @@ import { ProductVisual } from "@/components/ui/product-visual";
 import { Price } from "@/components/ui/price";
 import { QtyStepper } from "@/components/ui/qty-stepper";
 import { WishlistButton } from "./wishlist-button";
+import { BackButton } from "./back-button";
 import { localePath, pick } from "@/lib/i18n";
 import { discountPercent, formatPrice } from "@/lib/money";
 import { cn, fmt, isolateLtr } from "@/lib/utils";
@@ -47,6 +48,19 @@ export function ProductPurchase({ slug, name, brand, images, art, variants, warr
   const [qty, setQty] = useState(1);
   const [imgIdx, setImgIdx] = useState(0);
   const [justAdded, setJustAdded] = useState(false);
+  const addRef = useRef<HTMLButtonElement>(null);
+  const [showSticky, setShowSticky] = useState(true);
+  const [slide, setSlide] = useState(0);
+  const railRef = useRef<HTMLUListElement>(null);
+
+  // The sticky buy bar only appears while the in-page "add to cart" button is out of view.
+  useEffect(() => {
+    const el = addRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(([e]) => setShowSticky(!e.isIntersecting), { threshold: 0.6 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   const colors = useMemo(() => {
     const m = new Map<string, V>();
@@ -126,18 +140,52 @@ export function ProductPurchase({ slug, name, brand, images, art, variants, warr
   );
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr] lg:gap-14">
+    <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr] lg:gap-14">
       {/* Gallery */}
       <div className="lg:sticky lg:top-36 lg:self-start">
-        <div className="relative aspect-square overflow-hidden rounded-[2rem] bg-gradient-to-b from-mist to-surface p-6 sm:p-10">
-          <ProductVisual image={images[imgIdx]} art={art} color={selected.colorHex} alt={name} eager className="transition duration-500" />
-          <div className="absolute start-4 top-4 flex flex-col items-start gap-1.5">
+        <div className="mb-3 flex items-center justify-between lg:hidden">
+          <BackButton fallback={localePath(locale, "/shop")} label={d.common.back} />
+          <WishlistButton slug={slug} className="!h-11 !w-11" />
+        </div>
+        <div className="relative aspect-square overflow-hidden rounded-[1.75rem] bg-gradient-to-b from-mist to-surface lg:rounded-[2rem]">
+          {images.length > 1 ? (
+            <>
+              {/* phones: swipe between photos */}
+              <ul
+                ref={railRef}
+                onScroll={(e) => {
+                  const el = e.currentTarget;
+                  setSlide(Math.round(Math.abs(el.scrollLeft) / el.clientWidth));
+                }}
+                className="flex h-full snap-x snap-mandatory overflow-x-auto scrollbar-none lg:hidden"
+              >
+                {images.map((src, i) => (
+                  <li key={src} className="h-full w-full shrink-0 snap-center p-6">
+                    <ProductVisual image={src} art={art} color={selected.colorHex} alt={`${name} ${i + 1}`} eager={i === 0} />
+                  </li>
+                ))}
+              </ul>
+              <div className="absolute inset-x-0 bottom-3 flex justify-center gap-1.5 lg:hidden" aria-hidden="true">
+                {images.map((_, i) => (
+                  <span key={i} className={cn("h-1.5 rounded-full transition-all", i === slide ? "w-5 bg-fg" : "w-1.5 bg-fg/30")} />
+                ))}
+              </div>
+              <div className="hidden h-full p-10 lg:block">
+                <ProductVisual image={images[imgIdx]} art={art} color={selected.colorHex} alt={name} eager className="transition duration-500" />
+              </div>
+            </>
+          ) : (
+            <div className="h-full p-6 sm:p-10">
+              <ProductVisual image={images[0]} art={art} color={selected.colorHex} alt={name} eager className="transition duration-500" />
+            </div>
+          )}
+          <div className="pointer-events-none absolute start-4 top-4 flex flex-col items-start gap-1.5">
             {pct > 0 && <span className="chip bg-hot text-white" dir="ltr">-{pct}%</span>}
             {isNew && <span className="chip bg-ink text-white">{d.common.new}</span>}
           </div>
         </div>
         {images.length > 1 && (
-          <ul className="mt-3 flex gap-2.5 overflow-x-auto scrollbar-none">
+          <ul className="mt-3 hidden gap-2.5 overflow-x-auto scrollbar-none lg:flex">
             {images.map((src, i) => (
               <li key={src}>
                 <button
@@ -159,7 +207,7 @@ export function ProductPurchase({ slug, name, brand, images, art, variants, warr
       {/* Buy box */}
       <div>
         <p className="text-sm font-semibold uppercase tracking-wider text-brand">{brand}</p>
-        <h1 className="mt-2 text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">{name}</h1>
+        <h1 className="mt-1.5 text-[1.65rem] font-extrabold leading-tight tracking-tight sm:mt-2 sm:text-4xl">{name}</h1>
 
         <div className="mt-5 flex flex-wrap items-center gap-3">
           <Price price={selected.price} compareAt={selected.compareAtPrice} locale={locale} size="lg" />
@@ -171,7 +219,7 @@ export function ProductPurchase({ slug, name, brand, images, art, variants, warr
         <div className="mt-4">{stockLabel}</div>
 
         {colors.length > 1 && (
-          <div className="mt-8">
+          <div className="mt-6 sm:mt-8">
             <p className="mb-3 text-sm font-semibold">{fmt(d.product.selectColor, { name: colorName })}</p>
             <ul className="flex flex-wrap gap-3" role="radiogroup" aria-label={d.common.color}>
               {colors.map((c) => {
@@ -187,7 +235,7 @@ export function ProductPurchase({ slug, name, brand, images, art, variants, warr
                       title={pick(locale, c.colorFr, c.colorAr)}
                       onClick={() => pickColor(c.colorHex)}
                       className={cn(
-                        "relative grid h-11 w-11 place-items-center rounded-full border-2 transition",
+                        "relative grid h-12 w-12 place-items-center rounded-full border-2 transition active:scale-95",
                         active ? "border-fg" : "border-transparent hover:border-line",
                         empty && "opacity-45",
                       )}
@@ -217,7 +265,7 @@ export function ProductPurchase({ slug, name, brand, images, art, variants, warr
                       aria-checked={active}
                       onClick={() => pickStorage(s)}
                       className={cn(
-                        "rounded-2xl border-2 px-4 py-2.5 text-sm font-semibold transition",
+                        "min-h-12 rounded-2xl border-2 px-5 py-2.5 text-sm font-semibold transition active:scale-95",
                         active ? "border-fg bg-fg text-bg" : "border-line hover:border-fg",
                         empty && !active && "text-muted line-through",
                       )}
@@ -231,9 +279,9 @@ export function ProductPurchase({ slug, name, brand, images, art, variants, warr
           </div>
         )}
 
-        <div className="mt-8 flex flex-wrap items-center gap-3">
+        <div className="mt-6 flex flex-wrap items-center gap-3 sm:mt-8">
           <QtyStepper value={qty} max={maxQty} onChange={setQty} label={d.common.quantity} />
-          <button type="button" onClick={handleAdd} disabled={out} className="btn btn-brand btn-lg min-w-0 flex-1">
+          <button type="button" onClick={handleAdd} disabled={out} ref={addRef} className="btn btn-brand btn-lg min-w-0 flex-1">
             {justAdded ? <Check className="h-5 w-5" aria-hidden="true" /> : <ShoppingBag className="h-5 w-5" aria-hidden="true" />}
             {justAdded ? d.common.added : d.common.addToCart}
           </button>
@@ -243,7 +291,7 @@ export function ProductPurchase({ slug, name, brand, images, art, variants, warr
             <Zap className="h-5 w-5" aria-hidden="true" />
             {d.common.buyNow}
           </button>
-          <WishlistButton slug={slug} className="!h-[3.25rem] !w-[3.25rem] !rounded-2xl" />
+          <WishlistButton slug={slug} className="!h-[3.25rem] !w-[3.25rem] !rounded-2xl max-lg:hidden" />
         </div>
         <p className="mt-3 text-xs text-muted" dir="ltr" style={{ textAlign: locale === "ar" ? "right" : "left" }}>
           {fmt(d.product.sku, { sku: selected.sku })}
@@ -258,15 +306,17 @@ export function ProductPurchase({ slug, name, brand, images, art, variants, warr
       </div>
 
       {/* Mobile sticky bar */}
-      <div className="fixed inset-x-0 bottom-0 z-30 flex items-center gap-3 border-t border-line bg-surface/95 p-3 backdrop-blur lg:hidden">
+      <div inert={!showSticky} aria-hidden={!showSticky} className={cn("fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-xl transition-transform duration-300 lg:hidden", !showSticky && "translate-y-full")}>
+        <div className="mx-auto flex max-w-lg items-center gap-3">
         <div className="min-w-0 flex-1">
           <p className="truncate text-xs text-muted">{name}</p>
           <p className="text-lg font-extrabold tabular-nums" dir="ltr" style={{ textAlign: locale === "ar" ? "right" : "left" }}>{formatPrice(selected.price * qty, locale)}</p>
         </div>
-        <button type="button" onClick={handleAdd} disabled={out} className="btn btn-brand">
+        <button type="button" onClick={handleAdd} disabled={out} className="btn btn-brand flex-1">
           <ShoppingBag className="h-5 w-5" aria-hidden="true" />
-          {d.common.addToCart}
+          {out ? d.common.outOfStock : d.common.addToCart}
         </button>
+        </div>
       </div>
     </div>
   );

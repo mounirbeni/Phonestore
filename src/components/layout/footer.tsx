@@ -8,7 +8,7 @@ import { Logo } from "./logo";
 type Cat = { slug: string; nameFr: string; nameAr: string };
 
 export function Footer({ locale, d, categories }: { locale: Locale; d: Dict; categories: Cat[] }) {
-  const link = "text-sm text-white/70 transition hover:text-white";
+  const link = "block py-2.5 text-[0.95rem] text-white/70 transition hover:text-white sm:text-sm";
   const perks = [
     { icon: Banknote, t: d.home.why[0].title },
     { icon: ShieldCheck, t: d.home.why[1].title },
@@ -16,12 +16,12 @@ export function Footer({ locale, d, categories }: { locale: Locale; d: Dict; cat
     { icon: RotateCcw, t: d.home.why[3].title },
   ];
   return (
-    <footer className="mt-24 border-t border-white/10 bg-ink text-white">
+    <footer className="mt-14 border-t border-white/10 bg-ink text-white sm:mt-24">
       <div className="border-b border-white/10">
-        <ul className="container-x grid grid-cols-2 gap-4 py-6 lg:grid-cols-4">
+        <ul className="container-x grid grid-cols-2 gap-3 py-5 sm:gap-4 sm:py-6 lg:grid-cols-4">
           {perks.map(({ icon: Icon, t }) => (
-            <li key={t} className="flex items-center gap-3 text-sm font-medium">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/10">
+            <li key={t} className="flex items-center gap-2.5 text-[0.8rem] font-medium leading-tight sm:gap-3 sm:text-sm">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/10 sm:h-10 sm:w-10">
                 <Icon className="h-5 w-5" aria-hidden="true" />
               </span>
               {t}
@@ -29,14 +29,14 @@ export function Footer({ locale, d, categories }: { locale: Locale; d: Dict; cat
           ))}
         </ul>
       </div>
-      <div className="container-x grid gap-10 py-14 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
-        <div>
+      <div className="container-x grid grid-cols-2 gap-x-6 gap-y-9 py-10 sm:py-14 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr] lg:gap-10">
+        <div className="col-span-2 lg:col-span-1">
           <Logo locale={locale} light />
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/60">{d.footer.about}</p>
         </div>
         <div>
           <h3 className="mb-4 text-sm font-semibold">{d.footer.shop}</h3>
-          <ul className="space-y-2.5">
+          <ul>
             {categories.map((c) => (
               <li key={c.slug}>
                 <Link href={localePath(locale, `/c/${c.slug}`)} className={link}>
@@ -48,7 +48,7 @@ export function Footer({ locale, d, categories }: { locale: Locale; d: Dict; cat
         </div>
         <div>
           <h3 className="mb-4 text-sm font-semibold">{d.footer.help}</h3>
-          <ul className="space-y-2.5">
+          <ul>
             {[
               ["track", d.nav.track],
               ["info/shipping", d.footer.shipping],
@@ -66,16 +66,16 @@ export function Footer({ locale, d, categories }: { locale: Locale; d: Dict; cat
             ))}
           </ul>
         </div>
-        <div>
+        <div className="col-span-2 lg:col-span-1">
           <h3 className="mb-4 text-sm font-semibold">{d.footer.followUs}</h3>
-          <ul className="space-y-3 text-sm text-white/70">
+          <ul className="space-y-3.5 text-[0.95rem] text-white/70 sm:text-sm">
             <li className="flex items-start gap-2.5">
               <Mail className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-              <a href={`mailto:${store.contact.email}`} className="hover:text-white" dir="ltr">{store.contact.email}</a>
+              <a href={`mailto:${store.contact.email}`} className="inline-block py-1.5 hover:text-white" dir="ltr">{store.contact.email}</a>
             </li>
             <li className="flex items-start gap-2.5">
               <Phone className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-              <a href={`tel:${store.contact.phone.replace(/\s/g, "")}`} className="hover:text-white" dir="ltr">{store.contact.phone}</a>
+              <a href={`tel:${store.contact.phone.replace(/\s/g, "")}`} className="inline-block py-1.5 hover:text-white" dir="ltr">{store.contact.phone}</a>
             </li>
             <li className="flex items-start gap-2.5">
               <MapPin className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />

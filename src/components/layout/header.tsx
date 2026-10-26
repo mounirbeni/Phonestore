@@ -7,7 +7,7 @@ import { formatPrice } from "@/lib/money";
 import { fmt } from "@/lib/utils";
 import { Logo } from "./logo";
 import { HeaderActions } from "./header-actions";
-import { MobileMenu } from "./mobile-menu";
+import { MobileSearch } from "./mobile-search";
 
 type Cat = { slug: string; nameFr: string; nameAr: string; icon: string };
 
@@ -25,7 +25,7 @@ function SearchForm({ locale, d, className, id }: { locale: Locale; d: Dict; cla
           type="search"
           placeholder={d.common.searchPlaceholder}
           autoComplete="off"
-          className="w-full rounded-full border border-transparent bg-mist py-2.5 ps-10 pe-4 text-sm transition focus:border-brand focus:bg-surface focus:outline-none focus:ring-4 focus:ring-brand/10"
+          className="w-full rounded-full border border-transparent bg-mist py-3 ps-10 pe-4 sm:py-2.5 text-base transition sm:text-sm focus:border-brand focus:bg-surface focus:outline-none focus:ring-4 focus:ring-brand/10"
         />
       </div>
     </form>
@@ -40,27 +40,23 @@ export function Header({ locale, d, categories }: { locale: Locale; d: Dict; cat
   ];
   return (
     <>
-      <div className="bg-ink text-white">
+      <div className="bg-ink pt-[env(safe-area-inset-top)] text-white">
         <div className="container-x flex h-9 items-center justify-center gap-6 overflow-hidden text-xs font-medium">
           {items.map((t, i) => (
-            <span key={t} className={i === 0 ? "" : "hidden sm:inline"}>
+            <span key={t} className={i === 0 ? "truncate" : "hidden sm:inline"}>
               {i > 0 && <span className="me-6 hidden text-white/30 sm:inline">•</span>}
               {t}
             </span>
           ))}
         </div>
       </div>
-      <header className="sticky top-0 z-40 border-b border-line bg-surface/85 backdrop-blur-xl">
-        <div className="container-x flex h-16 items-center gap-3 lg:gap-6">
-          <MobileMenu categories={categories} />
+      <header className="sticky top-0 z-40 border-b border-line bg-surface/90 backdrop-blur-xl">
+        <div className="container-x flex h-14 items-center gap-3 sm:h-16 lg:gap-6">
           <Logo locale={locale} />
           <SearchForm id="site-search" locale={locale} d={d} className="mx-auto hidden w-full max-w-xl md:block" />
           <div className="ms-auto md:ms-0">
             <HeaderActions />
           </div>
-        </div>
-        <div className="container-x pb-3 md:hidden">
-          <SearchForm id="site-search-m" locale={locale} d={d} />
         </div>
         <nav className="hidden border-t border-line lg:block" aria-label={d.nav.categories}>
           <ul className="container-x flex h-11 items-center gap-1 text-sm font-medium">
@@ -85,6 +81,8 @@ export function Header({ locale, d, categories }: { locale: Locale; d: Dict; cat
           </ul>
         </nav>
       </header>
+      {/* Mobile search scrolls away with the page so the sticky app bar stays slim. */}
+      <MobileSearch />
     </>
   );
 }

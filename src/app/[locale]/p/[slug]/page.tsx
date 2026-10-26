@@ -61,8 +61,8 @@ export default async function ProductPage({ params }: Props) {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <div className="container-x pb-24 pt-6 lg:pb-0 lg:pt-8">
-        <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center gap-1.5 text-sm text-muted">
+      <div className="container-x pb-6 pt-3 lg:pb-0 lg:pt-8">
+        <nav aria-label="Breadcrumb" className="mb-6 hidden flex-wrap items-center gap-1.5 text-sm text-muted lg:flex">
           <Link href={localePath(locale)} className="hover:text-fg">{d.product.breadcrumbHome}</Link>
           <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden="true" />
           <Link href={localePath(locale, `/c/${category.slug}`)} className="hover:text-fg">{pick(locale, category.nameFr, category.nameAr)}</Link>
@@ -84,7 +84,7 @@ export default async function ProductPage({ params }: Props) {
           }))}
         />
 
-        <div className="mt-16 grid gap-10 lg:grid-cols-2">
+        <div className="mt-10 grid gap-8 lg:mt-16 lg:grid-cols-2 lg:gap-10">
           {description && (
             <section>
               <h2 className="text-xl font-extrabold tracking-tight">{d.product.description}</h2>

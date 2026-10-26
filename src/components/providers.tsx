@@ -78,6 +78,17 @@ function writeJSON(key: string, value: unknown) {
   }
 }
 
+/* ---------- ui ---------- */
+
+type UiApi = { menuOpen: boolean; setMenuOpen: (v: boolean) => void };
+const UiContext = createContext<UiApi | null>(null);
+
+export function useUi() {
+  const v = useContext(UiContext);
+  if (!v) throw new Error("useUi outside provider");
+  return v;
+}
+
 /* ---------- wishlist ---------- */
 
 type WishApi = { slugs: string[]; has: (slug: string) => boolean; toggle: (slug: string) => void };
@@ -94,6 +105,8 @@ export function Providers({ locale, d, children }: { locale: Locale; d: Dict; ch
   const [slugs, setSlugs] = useState<string[]>([]);
   const [ready, setReady] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const ui = useMemo<UiApi>(() => ({ menuOpen, setMenuOpen }), [menuOpen]);
 
   useEffect(() => {
     setLines(readJSON<CartLine[]>(CART_KEY, []).filter((l) => l && l.variantId && l.qty > 0));
@@ -104,6 +117,10 @@ export function Providers({ locale, d, children }: { locale: Locale; d: Dict; ch
       if (e.key === WISH_KEY) setSlugs(readJSON<string[]>(WISH_KEY, []));
     };
     window.addEventListener("storage", onStorage);
+    // Minimal service worker so the store can be installed like an app.
+    if (process.env.NODE_ENV === "production" && "serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
+    }
     return () => window.removeEventListener("storage", onStorage);
   }, []);
 
@@ -159,7 +176,9 @@ export function Providers({ locale, d, children }: { locale: Locale; d: Dict; ch
   return (
     <I18nContext.Provider value={{ locale, d }}>
       <CartContext.Provider value={cart}>
-        <WishContext.Provider value={wish}>{children}</WishContext.Provider>
+        <WishContext.Provider value={wish}>
+          <UiContext.Provider value={ui}>{children}</UiContext.Provider>
+        </WishContext.Provider>
       </CartContext.Provider>
     </I18nContext.Provider>
   );

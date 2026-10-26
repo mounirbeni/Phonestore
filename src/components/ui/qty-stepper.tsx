@@ -12,13 +12,13 @@ type Props = {
 };
 
 export function QtyStepper({ value, max, onChange, label, size = "md" }: Props) {
-  const btn = cn("grid place-items-center rounded-full transition hover:bg-mist disabled:opacity-30 disabled:hover:bg-transparent", size === "md" ? "h-9 w-9" : "h-7 w-7");
+  const btn = cn("grid place-items-center rounded-full transition hover:bg-mist disabled:opacity-30 disabled:hover:bg-transparent", size === "md" ? "h-11 w-11 sm:h-9 sm:w-9" : "h-9 w-9 sm:h-7 sm:w-7");
   return (
     <div className="inline-flex items-center rounded-full border border-line bg-surface p-0.5" role="group" aria-label={label}>
       <button type="button" className={btn} onClick={() => onChange(value - 1)} disabled={value <= 1} aria-label="-">
         <Minus className="h-3.5 w-3.5" />
       </button>
-      <span className={cn("text-center text-sm font-semibold tabular-nums", size === "md" ? "w-8" : "w-6")} aria-live="polite">
+      <span className={cn("text-center text-sm font-semibold tabular-nums", size === "md" ? "w-9 sm:w-8" : "w-7 sm:w-6")} aria-live="polite">
         {value}
       </span>
       <button type="button" className={btn} onClick={() => onChange(value + 1)} disabled={value >= max} aria-label="+">

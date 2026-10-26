@@ -21,7 +21,7 @@ function LocaleSwitchInner() {
       onClick={() => {
         document.cookie = `NEXT_LOCALE=${to}; path=/; max-age=31536000; samesite=lax`;
       }}
-      className="btn btn-ghost btn-sm gap-1.5"
+      className="btn btn-ghost btn-sm min-h-10 gap-1.5"
       aria-label={`${d.nav.language}: ${to === "ar" ? "العربية" : "Français"}`}
     >
       <Languages className="h-4 w-4" aria-hidden="true" />
@@ -56,14 +56,12 @@ export function HeaderActions() {
   const wish = useWishlist();
   return (
     <div className="flex items-center gap-1">
-      <div className="hidden sm:block">
-        <LocaleSwitch />
-      </div>
-      <Link href={localePath(locale, "/wishlist")} className="btn btn-ghost relative !p-2.5" aria-label={d.nav.wishlist}>
+      <LocaleSwitch />
+      <Link href={localePath(locale, "/wishlist")} className="btn btn-ghost relative !p-2.5 max-lg:hidden" aria-label={d.nav.wishlist}>
         <Heart className="h-5 w-5" aria-hidden="true" />
         {cart.ready && <Badge n={wish.slugs.length} />}
       </Link>
-      <button type="button" onClick={() => cart.setDrawerOpen(true)} className="btn btn-ghost relative !p-2.5" aria-label={d.nav.cart}>
+      <button type="button" onClick={() => cart.setDrawerOpen(true)} className="btn btn-ghost relative !p-2.5 max-lg:hidden" aria-label={d.nav.cart}>
         <ShoppingBag className="h-5 w-5" aria-hidden="true" />
         {cart.ready && <Badge n={cart.count} />}
       </button>

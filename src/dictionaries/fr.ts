@@ -14,7 +14,7 @@ export const fr = {
     lowStock: "Plus que {n} en stock",
     from: "À partir de",
     search: "Rechercher",
-    searchPlaceholder: "Rechercher un smartphone, une marque…",
+    searchPlaceholder: "Rechercher un produit…",
     close: "Fermer",
     free: "Offerte",
     total: "Total",
@@ -302,6 +302,11 @@ export const fr = {
       phone: "Téléphone",
       address: "Adresse",
     },
+  },
+  errorPage: {
+    title: "Oups, un problème est survenu",
+    text: "Le chargement a échoué. Vérifiez votre connexion puis réessayez.",
+    retry: "Réessayer",
   },
   notFound: {
     title: "Page introuvable",

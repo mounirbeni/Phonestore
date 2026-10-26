@@ -58,6 +58,10 @@ export function CheckoutForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cart.subtotal]);
 
+  useEffect(() => {
+    if (error) document.getElementById("checkout-error")?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [error]);
+
   const discount = coupon?.discount ?? 0;
   const ship = shippingCost(method, cart.subtotal - discount) ?? 0;
   const total = cart.subtotal - discount + ship;
@@ -139,7 +143,7 @@ export function CheckoutForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-8 lg:grid-cols-[1fr_26rem]" noValidate={false}>
+    <form id="checkout-form" onSubmit={onSubmit} className="grid gap-6 pb-28 lg:grid-cols-[1fr_26rem] lg:gap-8 lg:pb-0">
       <div className="space-y-5">
         {notice && <p className="rounded-2xl bg-[#fff7e6] px-4 py-3 text-sm font-medium text-[#8a5300]">{d.cart.stockChanged}</p>}
 
@@ -308,14 +312,30 @@ export function CheckoutForm() {
           </div>
         </dl>
 
-        {error && <p role="alert" className="rounded-2xl bg-hot-50 px-4 py-3 text-sm font-medium text-hot">{error}</p>}
+        {error && <p id="checkout-error" role="alert" className="rounded-2xl bg-hot-50 px-4 py-3 text-sm font-medium text-hot">{error}</p>}
 
-        <button type="submit" disabled={pending} className="btn btn-brand btn-lg w-full">
+        <button type="submit" disabled={pending} className="btn btn-brand btn-lg hidden w-full lg:flex">
           <Lock className="h-4.5 w-4.5" aria-hidden="true" />
           {pending ? d.checkout.placing : d.checkout.place}
         </button>
         <p className="text-center text-xs text-muted">{d.checkout.terms}</p>
       </aside>
+
+      {/* Phones: total + confirm always within thumb reach */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-xl lg:hidden">
+        <div className="mx-auto flex max-w-lg items-center gap-3">
+          <div className="min-w-0">
+            <p className="text-xs text-muted">{d.common.total}</p>
+            <p className="text-lg font-extrabold tabular-nums" dir="ltr" style={{ textAlign: locale === "ar" ? "right" : "left" }}>
+              {formatPrice(total, locale)}
+            </p>
+          </div>
+          <button type="submit" form="checkout-form" disabled={pending} className="btn btn-brand btn-lg ms-auto flex-1">
+            <Lock className="h-4.5 w-4.5" aria-hidden="true" />
+            {pending ? d.checkout.placing : d.checkout.place}
+          </button>
+        </div>
+      </div>
     </form>
   );
 }

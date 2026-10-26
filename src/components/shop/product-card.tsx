@@ -11,8 +11,8 @@ export function ProductCard({ p, locale, d, priority }: { p: CardProduct; locale
   const pct = discountPercent(p.minPrice, p.compareAt);
   const color = p.colors[0]?.hex;
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-3xl border border-line bg-surface transition duration-300 hover:-translate-y-1 hover:border-transparent hover:shadow-pop">
-      <Link href={localePath(locale, `/p/${p.slug}`)} className="relative block aspect-square bg-gradient-to-b from-mist to-surface p-5" aria-label={p.name}>
+    <article className="group relative flex flex-col overflow-hidden rounded-3xl border border-line bg-surface transition duration-300 active:scale-[0.985] hover:-translate-y-1 hover:border-transparent hover:shadow-pop">
+      <Link href={localePath(locale, `/p/${p.slug}`)} className="relative block aspect-square bg-gradient-to-b from-mist to-surface p-4 sm:p-5" aria-label={p.name}>
         <ProductVisual
           image={p.images[0]}
           art={p.art}
@@ -32,14 +32,14 @@ export function ProductCard({ p, locale, d, priority }: { p: CardProduct; locale
         )}
       </Link>
       <WishlistButton slug={p.slug} className="absolute end-3 top-3 z-10" />
-      <div className="flex flex-1 flex-col p-4 pt-3">
+      <div className="flex flex-1 flex-col p-3 pt-2.5 sm:p-4 sm:pt-3">
         <p className="text-xs font-semibold uppercase tracking-wider text-muted">{p.brand}</p>
-        <h3 className="mt-1 line-clamp-2 min-h-[2.5rem] text-[0.95rem] font-semibold leading-snug">
+        <h3 className="mt-1 line-clamp-2 min-h-[2.4rem] text-[0.88rem] font-semibold leading-snug sm:min-h-[2.5rem] sm:text-[0.95rem]">
           <Link href={localePath(locale, `/p/${p.slug}`)} className="after:absolute after:inset-0 after:content-[''] after:rounded-3xl">
             {p.name}
           </Link>
         </h3>
-        <div className="mt-3 flex items-end justify-between gap-2">
+        <div className="mt-2 flex items-end justify-between gap-2 sm:mt-3">
           <Price price={p.minPrice} compareAt={p.compareAt} locale={locale} />
           {p.colors.length > 1 && (
             <ul className="relative z-10 mb-1 flex -space-x-1 rtl:space-x-reverse" aria-label={d.common.color}>
@@ -56,6 +56,19 @@ export function ProductCard({ p, locale, d, priority }: { p: CardProduct; locale
         </div>
       </div>
     </article>
+  );
+}
+
+/** Swipeable row on phones, regular grid from `sm`. */
+export function ProductRail({ items, locale, d }: { items: CardProduct[]; locale: Locale; d: Dict }) {
+  return (
+    <ul className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-ps-4 px-4 pb-3 scrollbar-none sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-5 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4">
+      {items.map((p, i) => (
+        <li key={p.id} className="w-[44vw] max-w-[13.5rem] shrink-0 snap-start sm:w-auto sm:max-w-none">
+          <ProductCard p={p} locale={locale} d={d} priority={i < 2} />
+        </li>
+      ))}
+    </ul>
   );
 }
 

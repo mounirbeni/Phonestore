@@ -33,7 +33,7 @@ export function CartLineItem({ line, onNavigate }: { line: CartLine; onNavigate?
           <button
             type="button"
             onClick={() => cart.remove(line.variantId)}
-            className="-me-1 grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted transition hover:bg-hot-50 hover:text-hot"
+            className="-me-2 -mt-1 grid h-11 w-11 shrink-0 place-items-center rounded-full text-muted transition hover:bg-hot-50 hover:text-hot active:bg-hot-50"
             aria-label={`${d.common.remove}: ${line.name}`}
           >
             <Trash2 className="h-4 w-4" />

@@ -65,7 +65,7 @@ export function CartView() {
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_24rem]">
+    <div className="grid gap-6 pb-28 lg:grid-cols-[1fr_24rem] lg:gap-8 lg:pb-0">
       <div>
         {notice && <p className="mb-4 rounded-2xl bg-[#fff7e6] px-4 py-3 text-sm font-medium text-[#8a5300]">{d.cart.stockChanged}</p>}
         <ul className="divide-y divide-line rounded-3xl border border-line bg-surface px-5">
@@ -77,7 +77,7 @@ export function CartView() {
           {d.common.continueShopping}
         </Link>
       </div>
-      <aside className="h-fit space-y-4 rounded-3xl border border-line bg-surface p-6 lg:sticky lg:top-36">
+      <aside className="h-fit space-y-4 rounded-3xl border border-line bg-surface p-5 sm:p-6 lg:sticky lg:top-36">
         <h2 className="text-lg font-bold">{d.cart.summary}</h2>
         <ShippingProgress subtotal={cart.subtotal} />
         <dl className="space-y-2.5 text-sm">
@@ -90,11 +90,26 @@ export function CartView() {
             <dd className="tabular-nums" dir="ltr">{formatPrice(cart.subtotal, locale)}</dd>
           </div>
         </dl>
-        <Link href={localePath(locale, "/checkout")} className="btn btn-brand btn-lg w-full">
+        <Link href={localePath(locale, "/checkout")} className="btn btn-brand btn-lg hidden w-full lg:flex">
           {d.cart.checkout}
         </Link>
         <p className="text-center text-xs text-muted">{d.cart.secure}</p>
       </aside>
+
+      {/* Phones: always-visible checkout bar */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-xl lg:hidden">
+        <div className="mx-auto flex max-w-lg items-center gap-3">
+          <div className="min-w-0">
+            <p className="text-xs text-muted">{d.common.subtotal}</p>
+            <p className="text-lg font-extrabold tabular-nums" dir="ltr" style={{ textAlign: locale === "ar" ? "right" : "left" }}>
+              {formatPrice(cart.subtotal, locale)}
+            </p>
+          </div>
+          <Link href={localePath(locale, "/checkout")} className="btn btn-brand btn-lg ms-auto flex-1">
+            {d.cart.checkout}
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

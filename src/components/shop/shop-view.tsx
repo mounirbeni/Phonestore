@@ -74,19 +74,24 @@ export async function ShopView({ locale, d, basePath, categorySlug, title, searc
   const Next = locale === "ar" ? ChevronLeft : ChevronRight;
 
   return (
-    <div className="container-x pb-10 pt-8 sm:pt-12">
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">{heading}</h1>
-          <p className="mt-1.5 text-sm text-muted">{countLabel}</p>
+    <div className="container-x pb-10 pt-5 sm:pt-12">
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-3 sm:mb-8">
+        <div className="min-w-0">
+          <h1 className="text-[1.65rem] font-extrabold leading-tight tracking-tight sm:text-4xl">{heading}</h1>
+          <p className="mt-1 text-sm text-muted">{countLabel}</p>
         </div>
-        <SortSelect value={f.sort} />
+        <div className="hidden lg:block">
+          <SortSelect value={f.sort} />
+        </div>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-[16.5rem_1fr]">
-        <aside>
+      <div className="grid gap-5 lg:grid-cols-[16.5rem_1fr] lg:gap-8">
+        <aside className="grid grid-cols-2 items-start gap-3 lg:block">
+          <div className="lg:hidden">
+            <SortSelect value={f.sort} full />
+          </div>
           <FilterPanel activeCount={activeCount}>
-            <form action={basePath} method="get" className="space-y-6 rounded-3xl border border-line bg-surface p-5">
+            <form action={basePath} method="get" className="space-y-6 rounded-3xl border border-line bg-surface p-5 max-lg:border-0 max-lg:bg-transparent max-lg:p-1">
               {f.q && <input type="hidden" name="q" value={f.q} />}
               {f.sort !== "featured" && <input type="hidden" name="sort" value={f.sort} />}
 
@@ -96,7 +101,7 @@ export async function ShopView({ locale, d, basePath, categorySlug, title, searc
                   <ul className="space-y-1.5 text-sm">
                     {categories.map((c) => (
                       <li key={c.id}>
-                        <Link href={localePath(locale, `/c/${c.slug}`)} className="block rounded-lg px-2 py-1.5 text-fg-2 hover:bg-mist hover:text-fg">
+                        <Link href={localePath(locale, `/c/${c.slug}`)} className="block rounded-lg px-2 py-2.5 text-fg-2 hover:bg-mist hover:text-fg lg:py-1.5">
                           {pick(locale, c.nameFr, c.nameAr)}
                         </Link>
                       </li>
@@ -111,8 +116,8 @@ export async function ShopView({ locale, d, basePath, categorySlug, title, searc
                   <ul className="space-y-2 text-sm">
                     {facets.brands.map((b) => (
                       <li key={b.brand}>
-                        <label className="flex cursor-pointer items-center gap-2.5">
-                          <input type="checkbox" name="brand" value={b.brand} defaultChecked={f.brands.includes(b.brand)} className="h-4 w-4 rounded accent-brand" />
+                        <label className="flex min-h-11 cursor-pointer items-center gap-3 lg:min-h-0 lg:gap-2.5">
+                          <input type="checkbox" name="brand" value={b.brand} defaultChecked={f.brands.includes(b.brand)} className="h-5 w-5 rounded accent-brand lg:h-4 lg:w-4" />
                           <span className="flex-1">{b.brand}</span>
                           <span className="text-xs text-muted">{b.n}</span>
                         </label>
@@ -144,18 +149,18 @@ export async function ShopView({ locale, d, basePath, categorySlug, title, searc
               </fieldset>
 
               <div className="space-y-2.5 text-sm">
-                <label className="flex cursor-pointer items-center gap-2.5">
-                  <input type="checkbox" name="stock" value="1" defaultChecked={f.inStock} className="h-4 w-4 rounded accent-brand" />
+                <label className="flex min-h-11 cursor-pointer items-center gap-3 lg:min-h-0 lg:gap-2.5">
+                  <input type="checkbox" name="stock" value="1" defaultChecked={f.inStock} className="h-5 w-5 rounded accent-brand lg:h-4 lg:w-4" />
                   {d.shop.onlyInStock}
                 </label>
-                <label className="flex cursor-pointer items-center gap-2.5">
-                  <input type="checkbox" name="deals" value="1" defaultChecked={f.deals} className="h-4 w-4 rounded accent-brand" />
+                <label className="flex min-h-11 cursor-pointer items-center gap-3 lg:min-h-0 lg:gap-2.5">
+                  <input type="checkbox" name="deals" value="1" defaultChecked={f.deals} className="h-5 w-5 rounded accent-brand lg:h-4 lg:w-4" />
                   {d.shop.onlyDeals}
                 </label>
               </div>
 
-              <div className="flex gap-2">
-                <button type="submit" className="btn btn-primary flex-1">{d.shop.apply}</button>
+              <div className="flex gap-2 max-lg:sticky max-lg:bottom-0 max-lg:-mx-1 max-lg:bg-surface max-lg:pb-3 max-lg:pt-3">
+                <button type="submit" className="btn btn-brand flex-1">{d.shop.apply}</button>
                 {(activeCount > 0 || f.q) && (
                   <Link href={basePath} className="btn btn-outline">{d.shop.reset}</Link>
                 )}

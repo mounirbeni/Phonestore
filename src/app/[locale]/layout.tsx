@@ -11,6 +11,8 @@ import { Providers } from "@/components/providers";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { CartDrawer } from "@/components/cart/cart-drawer";
+import { BottomNav } from "@/components/layout/bottom-nav";
+import { MobileMenu } from "@/components/layout/mobile-menu";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +20,7 @@ export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
 
-export const viewport: Viewport = { themeColor: "#0d0d10", width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { themeColor: "#0d0d10", width: "device-width", initialScale: 1, viewportFit: "cover", colorScheme: "dark" };
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -30,6 +32,10 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     description: d.meta.homeDescription,
     alternates: { canonical: `/${locale}`, languages: { fr: "/fr", ar: "/ar" } },
     openGraph: { siteName: store.name, locale: locale === "ar" ? "ar_AR" : "fr_FR", type: "website" },
+    manifest: "/manifest.webmanifest",
+    icons: { icon: [{ url: "/pwa-icon/192", sizes: "192x192", type: "image/png" }], apple: [{ url: "/pwa-icon/180", sizes: "180x180", type: "image/png" }] },
+    appleWebApp: { capable: true, title: store.name, statusBarStyle: "black-translucent" },
+    formatDetection: { telephone: false },
   };
 }
 
@@ -37,7 +43,7 @@ export default async function LocaleLayout({ children, params }: { children: Rea
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const d = getDictionary(locale);
-  const categories = await getCategories();
+  const categories = await getCategories().catch(() => []);
   const cats = categories.map(({ slug, nameFr, nameAr, icon }) => ({ slug, nameFr, nameAr, icon }));
 
   return (
@@ -50,6 +56,8 @@ export default async function LocaleLayout({ children, params }: { children: Rea
           <Header locale={locale} d={d} categories={cats} />
           <main id="main">{children}</main>
           <Footer locale={locale} d={d} categories={cats} />
+          <BottomNav />
+          <MobileMenu categories={cats} />
           <CartDrawer />
         </Providers>
       </body>

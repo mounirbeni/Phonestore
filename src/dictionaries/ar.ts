@@ -16,7 +16,7 @@ export const ar: Dict = {
     lowStock: "بقي {n} فقط في المخزون",
     from: "ابتداءً من",
     search: "بحث",
-    searchPlaceholder: "ابحث عن هاتف أو علامة تجارية…",
+    searchPlaceholder: "ابحث عن منتج…",
     close: "إغلاق",
     free: "مجاني",
     total: "الإجمالي",
@@ -304,6 +304,11 @@ export const ar: Dict = {
       phone: "الهاتف",
       address: "العنوان",
     },
+  },
+  errorPage: {
+    title: "عذرًا، حدثت مشكلة",
+    text: "تعذّر التحميل. تحقق من اتصالك بالإنترنت ثم حاول مرة أخرى.",
+    retry: "إعادة المحاولة",
   },
   notFound: {
     title: "الصفحة غير موجودة",
