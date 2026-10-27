@@ -11,17 +11,20 @@ import { WishlistButton } from "./wishlist-button";
 export function ProductCard({ p, locale, d, priority }: { p: CardProduct; locale: Locale; d: Dict; priority?: boolean }) {
   const pct = discountPercent(p.minPrice, p.compareAt);
   const color = p.colors[0]?.hex;
+  const photo = !!p.images[0];
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-3xl border border-line bg-surface transition duration-300 active:scale-[0.985] hover:-translate-y-1 hover:border-transparent hover:shadow-pop">
-      <Link href={localePath(locale, `/p/${p.slug}`)} className="relative block aspect-square bg-gradient-to-b from-mist to-surface p-4 sm:p-5" aria-label={p.name}>
+      <Link href={localePath(locale, `/p/${p.slug}`)} className={cn("relative block aspect-square overflow-hidden", photo ? "bg-surface" : "bg-gradient-to-b from-mist to-surface p-4 sm:p-5")} aria-label={p.name}>
         <ProductVisual
           image={p.images[0]}
           art={p.art}
           color={color}
           alt={p.name}
           eager={priority}
+          fit="cover"
           className="transition duration-500 group-hover:scale-105"
         />
+        {photo && <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-surface to-transparent" aria-hidden="true" />}
         <div className="absolute start-3 top-3 flex flex-col items-start gap-1.5">
           {pct > 0 && <span className="chip bg-hot text-white" dir="ltr">-{pct}%</span>}
           <span className={cn("chip", p.condition === "used" ? "bg-warn-50 text-warn" : "bg-ok-50 text-ok")}>

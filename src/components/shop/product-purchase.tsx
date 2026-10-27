@@ -164,8 +164,8 @@ export function ProductPurchase({ slug, name, brand, images, art, variants, warr
                 className="flex h-full snap-x snap-mandatory overflow-x-auto scrollbar-none lg:hidden"
               >
                 {images.map((src, i) => (
-                  <li key={src} className="h-full w-full shrink-0 snap-center p-6">
-                    <ProductVisual image={src} art={art} color={selected.colorHex} alt={`${name} ${i + 1}`} eager={i === 0} />
+                  <li key={src} className="h-full w-full shrink-0 snap-center">
+                    <ProductVisual image={src} art={art} color={selected.colorHex} alt={`${name} ${i + 1}`} eager={i === 0} fit="cover" />
                   </li>
                 ))}
               </ul>
@@ -174,13 +174,13 @@ export function ProductPurchase({ slug, name, brand, images, art, variants, warr
                   <span key={i} className={cn("h-1.5 rounded-full transition-all", i === slide ? "w-5 bg-fg" : "w-1.5 bg-fg/30")} />
                 ))}
               </div>
-              <div className="hidden h-full p-10 lg:block">
-                <ProductVisual image={images[imgIdx]} art={art} color={selected.colorHex} alt={name} eager className="transition duration-500" />
+              <div className="hidden h-full lg:block">
+                <ProductVisual image={images[imgIdx]} art={art} color={selected.colorHex} alt={name} eager fit="cover" className="transition duration-500" />
               </div>
             </>
           ) : (
-            <div className="h-full p-6 sm:p-10">
-              <ProductVisual image={images[0]} art={art} color={selected.colorHex} alt={name} eager className="transition duration-500" />
+            <div className={images.length ? "h-full" : "h-full p-6 sm:p-10"}>
+              <ProductVisual image={images[0]} art={art} color={selected.colorHex} alt={name} eager fit="cover" className="transition duration-500" />
             </div>
           )}
           <div className="pointer-events-none absolute start-4 top-4 flex flex-col items-start gap-1.5">
