@@ -9,7 +9,7 @@ import { formatPrice } from "@/lib/money";
 import { fmt } from "@/lib/utils";
 import { ProductRail } from "@/components/shop/product-card";
 import { Section } from "@/components/ui/section";
-import { CategoryIcon } from "@/components/ui/category-icon";
+import { CategoryShowcase } from "@/components/shop/category-showcase";
 import { ProductArt } from "@/components/ui/product-art";
 import { BrandMark } from "@/components/ui/brand-mark";
 
@@ -74,22 +74,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
       {/* Categories */}
       <Section title={d.home.shopByCategory}>
-        <ul className="-mx-4 flex snap-x gap-3 overflow-x-auto scroll-ps-4 px-4 pb-2 scrollbar-none sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-4 sm:overflow-visible sm:px-0 lg:grid-cols-6">
-          {categories.map((c) => (
-            <li key={c.id} className="w-[7.6rem] shrink-0 snap-start sm:w-auto">
-              <Link
-                href={localePath(locale, `/c/${c.slug}`)}
-                className="group flex h-full flex-col items-center gap-2.5 rounded-3xl border border-line bg-surface p-4 text-center transition duration-300 active:scale-[0.97] hover:-translate-y-1 hover:border-brand hover:shadow-card sm:gap-3 sm:p-5"
-              >
-                <span className="grid h-14 w-14 place-items-center rounded-2xl bg-brand-50 text-brand transition group-hover:bg-brand group-hover:text-white">
-                  <CategoryIcon name={c.icon} className="h-7 w-7" aria-hidden="true" />
-                </span>
-                <span className="text-sm font-semibold">{pick(locale, c.nameFr, c.nameAr)}</span>
-                <span className="text-xs text-muted">{fmt(c.count === 1 ? d.shop.resultsOne : d.shop.results, { n: c.count })}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <CategoryShowcase categories={categories} locale={locale} d={d} />
       </Section>
 
       <Section title={d.home.featured} href={localePath(locale, "/shop")} linkLabel={d.common.viewAll}>
