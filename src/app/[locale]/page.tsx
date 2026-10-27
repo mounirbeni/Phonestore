@@ -11,6 +11,7 @@ import { ProductRail } from "@/components/shop/product-card";
 import { Section } from "@/components/ui/section";
 import { CategoryIcon } from "@/components/ui/category-icon";
 import { ProductArt } from "@/components/ui/product-art";
+import { BrandMark } from "@/components/ui/brand-mark";
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -126,9 +127,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               <Link
                 href={localePath(locale, `/shop?brand=${encodeURIComponent(b)}`)}
                 className="grid h-16 place-items-center rounded-2xl border border-line bg-surface text-base sm:h-20 sm:text-lg font-extrabold tracking-tight text-fg-2 transition hover:border-fg hover:text-fg"
-                dir="ltr"
               >
-                {b}
+                <BrandMark brand={b} size="sm" />
               </Link>
             </li>
           ))}
