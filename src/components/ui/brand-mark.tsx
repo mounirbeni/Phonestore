@@ -12,8 +12,8 @@ const keyOf = (brand: string) =>
   brand.normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
 
 /**
- * Brand logo in its original colors on a white plate, so dark logos stay visible on the dark theme.
- * Brands without a logo file show their name on the same plate.
+ * Brand logo on a transparent background. Black or grey artwork in the files is pre-reversed to white
+ * (the usual dark-background version); brand colours are untouched. Brands without a file show their name.
  */
 export function BrandMark({ brand, size = "md", className }: { brand: string; size?: "sm" | "md"; className?: string }) {
   const key = keyOf(brand);
@@ -22,7 +22,7 @@ export function BrandMark({ brand, size = "md", className }: { brand: string; si
   return (
     <span
       className={cn(
-        "flex w-full min-w-0 items-center justify-center overflow-hidden rounded-xl bg-white px-3 text-[#111]",
+        "flex w-full min-w-0 items-center justify-center overflow-hidden px-1",
         size === "sm" ? "h-12" : "h-16 max-w-[220px]",
         className,
       )}
