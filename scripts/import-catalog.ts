@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { and, eq, notInArray } from "drizzle-orm";
@@ -71,6 +71,7 @@ async function main() {
         shortFr: summary(p.desc, p.name),
         descFr: text,
         specs: p.specs,
+        images: existsSync(`public/products/${slug}.webp`) ? [`/products/${slug}.webp`] : [],
         condition: p.condition,
         conditionNoteFr: p.noteFr,
         conditionNoteAr: p.noteAr,
