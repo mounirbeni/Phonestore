@@ -1,45 +1,48 @@
 import { cn } from "@/lib/utils";
 
-/** Monochrome logos in /public/brands (Simple Icons), keyed by lowercased brand name.
- *  `ratio` is width / height of the cropped artwork; `wordmark` logos already spell the name. */
-const LOGOS: Record<string, { file: string; ratio: number; wordmark?: boolean }> = {
-  apple: { file: "apple", ratio: 0.815 },
-  dell: { file: "dell", ratio: 1 },
-  honor: { file: "honor", ratio: 5.199, wordmark: true },
-  hp: { file: "hp", ratio: 1 },
-  lg: { file: "lg", ratio: 2.268, wordmark: true },
-  motorola: { file: "motorola", ratio: 1 },
-  samsung: { file: "samsung", ratio: 6.543, wordmark: true },
-  xiaomi: { file: "xiaomi", ratio: 1 },
+/** Logo files in /public/brands, keyed by brand name lowercased with accents and symbols stripped; value is width / height. */
+const LOGOS: Record<string, number> = {
+  aiwr: 3.181, amazfit: 4.094, apple: 2.837, blackshark: 3.194, ddpai: 3.131, daiko: 2.525, dell: 1.006, elite: 2.131,
+  honor: 5.049, hp: 0.875, itel: 1.475, jedel: 3.586, krohler: 3.206, lg: 2.056, microsoft: 3.05, mophie: 4.127,
+  motorola: 1.481, okade: 3.291, philips: 0.825, poco: 2.169, riversong: 3.1, samsung: 3.1, senic: 3.112, sonic: 3.741,
+  tcl: 1.9, ugreen: 3.138, xiaomi: 2.206,
 };
 
+const keyOf = (brand: string) =>
+  brand.normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+
 /**
- * Brand logo painted in the current text color (CSS mask), so it follows light/dark themes and hover
- * colors. Wordmarks render alone; symbol logos sit next to the name. Brands without a logo show the name.
+ * Brand logo in its original colors on a white plate, so dark logos stay visible on the dark theme.
+ * Brands without a logo file show their name on the same plate.
  */
 export function BrandMark({ brand, size = "md", className }: { brand: string; size?: "sm" | "md"; className?: string }) {
-  const logo = LOGOS[brand.toLowerCase()];
-  const name = (
-    <span className="font-extrabold tracking-tight" dir="ltr">
-      {brand}
-    </span>
-  );
-  if (!logo) return <span className={className}>{name}</span>;
-  const h = logo.wordmark ? (size === "sm" ? 16 : 22) : size === "sm" ? 24 : 34;
-  const mask = `url(/brands/${logo.file}.svg) center / contain no-repeat`;
-  const mark = (
-    <span
-      role="img"
-      aria-label={brand}
-      className="block max-w-full shrink bg-current"
-      style={{ height: h, width: Math.round(h * logo.ratio), WebkitMask: mask, mask }}
-    />
-  );
-  if (logo.wordmark) return <span className={cn("flex max-w-[85%] justify-center", className)}>{mark}</span>;
+  const key = keyOf(brand);
+  const ratio = LOGOS[key];
+  const h = size === "sm" ? 28 : 44;
   return (
-    <span className={cn("flex items-center gap-2", size === "md" && "flex-col gap-1.5", className)}>
-      {mark}
-      {name}
+    <span
+      className={cn(
+        "flex w-full min-w-0 items-center justify-center overflow-hidden rounded-xl bg-white px-3 text-[#111]",
+        size === "sm" ? "h-12" : "h-16 max-w-[220px]",
+        className,
+      )}
+    >
+      {ratio ? (
+        // eslint-disable-next-line @next/next/no-img-element -- small static logos, already sized
+        <img
+          src={`/brands/${key}.webp`}
+          alt={brand}
+          width={Math.round(h * ratio)}
+          height={h}
+          loading="lazy"
+          className="max-h-full max-w-full object-contain"
+          style={{ height: h, width: "auto" }}
+        />
+      ) : (
+        <span className={cn("truncate font-extrabold tracking-tight", size === "sm" && "text-sm")} dir="ltr">
+          {brand}
+        </span>
+      )}
     </span>
   );
 }

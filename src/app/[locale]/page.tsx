@@ -126,7 +126,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             <li key={b} className="w-32 shrink-0 snap-start sm:w-auto">
               <Link
                 href={localePath(locale, `/shop?brand=${encodeURIComponent(b)}`)}
-                className="grid h-16 place-items-center rounded-2xl border border-line bg-surface text-base sm:h-20 sm:text-lg font-extrabold tracking-tight text-fg-2 transition hover:border-fg hover:text-fg"
+                className="grid h-16 place-items-center rounded-2xl border border-line bg-surface px-2 text-base sm:h-20 sm:text-lg font-extrabold tracking-tight text-fg-2 transition hover:border-fg hover:text-fg"
               >
                 <BrandMark brand={b} size="sm" />
               </Link>
