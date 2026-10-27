@@ -9,7 +9,7 @@ import { CategoryIcon } from "@/components/ui/category-icon";
 
 /** Families that have a cover in /public/categories (the products sit on the right of each scene). */
 const COVERS = new Set([
-  "telephones", "informatique", "tablettes", "montres-bracelets", "audio",
+  "telephones", "accessoires-mobiles", "informatique", "tablettes", "montres-bracelets", "audio",
   "mobilite-electrique", "tv-video", "electromenagers", "cameras",
 ]);
 
