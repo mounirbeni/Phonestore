@@ -1,5 +1,6 @@
 "use server";
 
+import { after } from "next/server";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { addresses, coupons, orderEvents, orderItems, orders, products, variants } from "@/db/schema";
@@ -215,7 +216,8 @@ export async function placeOrder(input: CheckoutInput): Promise<PlaceOrderResult
     });
 
     if ("error" in created) return { ok: false, error: "coupon" };
-    void sendOrderEmails(created.order, created.items);
+    // Runs after the response is sent; a bare promise can be cut off when the serverless function freezes.
+    after(() => sendOrderEmails(created.order, created.items));
     return { ok: true, number: created.order.number, token: created.order.token };
   } catch (e) {
     if (e instanceof StockError) return { ok: false, error: "stock", name: e.productName };
