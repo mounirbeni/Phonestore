@@ -5,9 +5,10 @@ import "../globals.css";
 import { store } from "@/config/store";
 import { can, getMember, ROLE_LABELS, type Perm } from "@/lib/auth";
 import { AdminNav } from "@/components/admin/admin-nav";
+import { SITE_ICONS } from "@/lib/site-icons";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: { default: "لوحة التحكم", template: "%s | لوحة التحكم" }, robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: { default: "لوحة التحكم", template: "%s | لوحة التحكم" }, robots: { index: false, follow: false }, icons: SITE_ICONS };
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const member = await getMember();

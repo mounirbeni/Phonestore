@@ -13,6 +13,7 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { CartDrawer } from "@/components/cart/cart-drawer";
 import { BottomNav } from "@/components/layout/bottom-nav";
+import { SITE_ICONS } from "@/lib/site-icons";
 import { MobileMenu } from "@/components/layout/mobile-menu";
 
 export const dynamic = "force-dynamic";
@@ -34,7 +35,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     alternates: { canonical: `/${locale}`, languages: { fr: "/fr", ar: "/ar" } },
     openGraph: { siteName: store.name, locale: locale === "ar" ? "ar_MA" : "fr_MA", type: "website" },
     manifest: "/manifest.webmanifest",
-    icons: { icon: [{ url: "/pwa-icon/192", sizes: "192x192", type: "image/png" }], apple: [{ url: "/pwa-icon/180", sizes: "180x180", type: "image/png" }] },
+    icons: SITE_ICONS,
     appleWebApp: { capable: true, title: store.name, statusBarStyle: "black-translucent" },
     formatDetection: { telephone: false },
   };
