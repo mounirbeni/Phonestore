@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, Banknote, BadgeCheck, ChevronDown, RotateCcw, Truck } from "lucide-react";
@@ -10,7 +11,6 @@ import { fmt } from "@/lib/utils";
 import { ProductRail } from "@/components/shop/product-card";
 import { Section } from "@/components/ui/section";
 import { CategoryShowcase } from "@/components/shop/category-showcase";
-import { ProductArt } from "@/components/ui/product-art";
 import { BrandMark } from "@/components/ui/brand-mark";
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
@@ -40,34 +40,41 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       {/* Hero */}
       <section className="container-x pt-2 sm:pt-6">
         <div className="relative isolate overflow-hidden rounded-[2rem] bg-ink text-white ring-1 ring-white/10 sm:rounded-[2.5rem]">
-          <div className="pointer-events-none absolute -end-24 -top-24 h-[28rem] w-[28rem] rounded-full bg-brand/45 blur-[120px]" aria-hidden="true" />
-          <div className="pointer-events-none absolute -bottom-32 start-1/3 h-[24rem] w-[24rem] rounded-full bg-[#7d0a1c]/50 blur-[120px]" aria-hidden="true" />
-          <div className="relative grid items-center gap-2 px-5 py-8 sm:gap-6 sm:px-12 sm:py-16 lg:grid-cols-[1.1fr_1fr] lg:px-16 lg:py-20">
-            <div>
+          {/* Photo scene on the far side (mirrored in Arabic so the products never sit under the text). */}
+          <div className="relative aspect-[16/11] sm:absolute sm:inset-y-0 sm:end-0 sm:aspect-auto sm:w-[64%] lg:w-[60%]" aria-hidden="true">
+            <Image
+              src="/categories/telephones.webp"
+              alt=""
+              fill
+              priority
+              sizes="(min-width: 1280px) 740px, (min-width: 640px) 64vw, 100vw"
+              className="object-cover object-[72%_40%] rtl:-scale-x-100 sm:object-[60%_50%]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/20 to-transparent sm:bg-gradient-to-r sm:from-ink sm:via-ink/30 sm:to-transparent sm:rtl:bg-gradient-to-l" />
+          </div>
+          <div className="relative -mt-14 px-5 pb-6 sm:mt-0 sm:px-12 sm:py-16 lg:px-16 lg:py-24">
+            <div className="max-w-xl">
               <span className="chip bg-white/10 text-white/90 ring-1 ring-white/15 backdrop-blur">
-                <span className="h-1.5 w-1.5 rounded-full bg-brand" aria-hidden="true" />
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" aria-hidden="true" />
                 {d.home.kicker}
               </span>
-              <h1 className="mt-4 text-[2.15rem] font-extrabold leading-[1.1] tracking-tight sm:mt-5 sm:text-5xl lg:text-6xl">{d.home.title}</h1>
-              <p className="mt-3 max-w-xl text-[0.95rem] leading-relaxed text-white/70 sm:mt-5 sm:text-lg">{d.home.text}</p>
-              <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap">
-                <Link href={localePath(locale, "/shop")} className="btn btn-lg bg-white text-ink hover:bg-white/90">
+              <h1 className="mt-4 text-[2rem] font-extrabold leading-[1.08] tracking-tight sm:mt-5 sm:text-5xl lg:text-[3.6rem]">{d.home.title}</h1>
+              <p className="mt-3 text-[0.95rem] leading-relaxed text-white/70 sm:mt-5 sm:text-lg">{d.home.text}</p>
+              <div className="mt-6 grid grid-cols-2 gap-2.5 sm:mt-8 sm:flex sm:flex-wrap sm:gap-3">
+                <Link href={localePath(locale, "/shop")} className="btn btn-lg bg-brand px-3 text-[0.85rem] text-white shadow-[0_10px_30px_-10px_rgba(225,29,52,0.8)] hover:bg-brand/90 sm:px-6 sm:text-base">
                   {d.home.ctaPrimary}
                   <ArrowRight className="h-4.5 w-4.5 rtl:rotate-180" aria-hidden="true" />
                 </Link>
-                <Link href={localePath(locale, "/shop?deals=1")} className="btn btn-lg border border-white/20 text-white hover:bg-white/10">
+                <Link href={localePath(locale, "/shop?deals=1")} className="btn btn-lg border border-white/20 bg-white/5 px-3 text-[0.85rem] text-white backdrop-blur hover:bg-white/10 sm:px-6 sm:text-base">
                   {d.home.ctaSecondary}
                 </Link>
               </div>
-              <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2.5 text-[0.82rem] text-white/70 sm:mt-10 sm:gap-x-6 sm:text-sm">
-                <li className="flex items-center gap-2"><Banknote className="h-4.5 w-4.5 text-[#ff4d5e]" aria-hidden="true" />{d.announcement.cod}</li>
-                <li className="flex items-center gap-2"><BadgeCheck className="h-4.5 w-4.5 text-[#ff4d5e]" aria-hidden="true" />{d.announcement.warranty}</li>
-                <li className="flex items-center gap-2"><Truck className="h-4.5 w-4.5 text-[#ff4d5e]" aria-hidden="true" />{fmt(d.announcement.shipping, { amount: formatPrice(store.freeShippingThreshold, locale) })}</li>
-              </ul>
             </div>
-            <div className="relative mx-auto aspect-square w-full max-w-[17rem] sm:max-w-[26rem] lg:max-w-[32rem]" aria-hidden="true">
-              <ProductArt kind="phone" color="#2c2c31" className="h-full w-full [animation:float_6s_ease-in-out_infinite] drop-shadow-2xl" />
-            </div>
+            <ul className="mt-6 grid gap-2.5 text-[0.82rem] text-white/80 sm:mt-12 sm:inline-flex sm:flex-wrap sm:gap-x-6 sm:rounded-2xl sm:border sm:border-white/10 sm:bg-black/40 sm:px-5 sm:py-3.5 sm:text-sm sm:backdrop-blur-md">
+              <li className="flex items-center gap-2"><Banknote className="h-4.5 w-4.5 text-[#ff4d5e]" aria-hidden="true" />{d.announcement.cod}</li>
+              <li className="flex items-center gap-2"><BadgeCheck className="h-4.5 w-4.5 text-[#ff4d5e]" aria-hidden="true" />{d.announcement.warranty}</li>
+              <li className="flex items-center gap-2"><Truck className="h-4.5 w-4.5 text-[#ff4d5e]" aria-hidden="true" />{fmt(d.announcement.shipping, { amount: formatPrice(store.freeShippingThreshold, locale) })}</li>
+            </ul>
           </div>
         </div>
       </section>
