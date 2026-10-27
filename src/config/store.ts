@@ -23,10 +23,13 @@ export const store = {
     { code: "PT", fr: "Portugal", ar: "البرتغال" },
   ],
   contact: {
-    email: process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "contact@electrosalam.example",
-    phone: process.env.NEXT_PUBLIC_CONTACT_PHONE ?? "+33 1 00 00 00 00",
+    email: process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "electrosalam12000@gmail.com",
+    phone: process.env.NEXT_PUBLIC_CONTACT_PHONE ?? "+212-520 06 29 20",
     whatsapp: process.env.NEXT_PUBLIC_WHATSAPP ?? "",
-    address: process.env.NEXT_PUBLIC_ADDRESS ?? "Adresse de la société, 75000 Paris, France",
+    addresses: [
+      { city: "Casablanca", value: "All. des Mimosas, Casablanca 20590" },
+      { city: "Marrakech", value: "Résidence Aya, Boulevard Mohammed, Abdelkaraim El Khattabi, Marrakech 40000" },
+    ],
     legalName: process.env.NEXT_PUBLIC_LEGAL_NAME ?? "ElectroSalam SAS",
   },
 } as const;

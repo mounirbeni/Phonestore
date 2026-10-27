@@ -77,10 +77,12 @@ export function Footer({ locale, d, categories }: { locale: Locale; d: Dict; cat
               <Phone className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
               <a href={`tel:${store.contact.phone.replace(/\s/g, "")}`} className="inline-block py-1.5 hover:text-white" dir="ltr">{store.contact.phone}</a>
             </li>
-            <li className="flex items-start gap-2.5">
-              <MapPin className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-              <span>{store.contact.address}</span>
-            </li>
+            {store.contact.addresses.map((address) => (
+              <li key={address.city} className="flex items-start gap-2.5">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                <span><strong className="font-medium text-white/90">{address.city}</strong><br />{address.value}</span>
+              </li>
+            ))}
           </ul>
         </div>
       </div>

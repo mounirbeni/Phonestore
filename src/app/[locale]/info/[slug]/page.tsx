@@ -47,11 +47,13 @@ export default async function InfoPage({ params }: Props) {
               <p className="mt-3 text-sm font-semibold">{d.info.contact.phone}</p>
               <a href={`tel:${store.contact.phone.replace(/\s/g, "")}`} className="mt-1 block text-sm text-fg-2 hover:underline" dir="ltr">{store.contact.phone}</a>
             </li>
-            <li className="rounded-3xl border border-line bg-surface p-5">
-              <MapPin className="h-6 w-6 text-brand" aria-hidden="true" />
-              <p className="mt-3 text-sm font-semibold">{d.info.contact.address}</p>
-              <p className="mt-1 text-sm text-fg-2">{store.contact.address}</p>
-            </li>
+            {store.contact.addresses.map((address) => (
+              <li key={address.city} className="rounded-3xl border border-line bg-surface p-5">
+                <MapPin className="h-6 w-6 text-brand" aria-hidden="true" />
+                <p className="mt-3 text-sm font-semibold">{d.info.contact.address} — {address.city}</p>
+                <p className="mt-1 text-sm text-fg-2">{address.value}</p>
+              </li>
+            ))}
           </ul>
         )}
       </article>
