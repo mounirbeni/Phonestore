@@ -1,12 +1,13 @@
 import { put } from "@vercel/blob";
 import { NextResponse } from "next/server";
-import { isAdmin } from "@/lib/auth";
+import { can, getMember } from "@/lib/auth";
 
 const ALLOWED = ["image/jpeg", "image/png", "image/webp", "image/avif"];
 const MAX = 5 * 1024 * 1024;
 
 export async function POST(req: Request) {
-  if (!(await isAdmin())) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const member = await getMember();
+  if (!member || !can(member.role, "catalog")) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
     return NextResponse.json({ error: "not_configured" }, { status: 501 });
   }

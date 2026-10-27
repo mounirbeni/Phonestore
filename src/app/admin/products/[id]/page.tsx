@@ -1,3 +1,4 @@
+import { requirePerm } from "@/lib/auth";
 import { notFound } from "next/navigation";
 import { asc, eq } from "drizzle-orm";
 import { db } from "@/db";
@@ -12,6 +13,7 @@ export async function generateMetadata({ params }: Props) {
 }
 
 export default async function EditProduct({ params }: Props) {
+  await requirePerm("catalog");
   const { id } = await params;
   const all = await db.select().from(categories).orderBy(asc(categories.sort), asc(categories.id));
   // Only the most precise categories can hold products; sub-categories are grouped under their family.

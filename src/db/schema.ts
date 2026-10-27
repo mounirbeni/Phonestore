@@ -119,9 +119,18 @@ export const orders = pgTable(
     total: integer("total").notNull(),
     customerNote: text("customer_note").notNull().default(""),
     adminNote: text("admin_note").notNull().default(""),
+    /** Set when the order was placed while signed in. */
+    customerId: integer("customer_id").references((): AnyPgColumn => customers.id, { onDelete: "set null" }),
+    /** Team member (role "driver") delivering the order. */
+    driverId: integer("driver_id").references((): AnyPgColumn => staff.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
-  (t) => [uniqueIndex("orders_number_idx").on(t.number), index("orders_status_idx").on(t.status)],
+  (t) => [
+    uniqueIndex("orders_number_idx").on(t.number),
+    index("orders_status_idx").on(t.status),
+    index("orders_customer_idx").on(t.customerId),
+    index("orders_driver_idx").on(t.driverId),
+  ],
 );
 
 export const orderItems = pgTable(
@@ -142,6 +151,91 @@ export const orderItems = pgTable(
   },
   (t) => [index("order_items_order_idx").on(t.orderId)],
 );
+
+/* ---------- people ---------- */
+
+export const STAFF_ROLES = ["orders", "catalog", "driver"] as const;
+export type StaffRole = (typeof STAFF_ROLES)[number];
+
+/** Team accounts. The owner signs in with ADMIN_PASSWORD and is not stored here. */
+export const staff = pgTable("staff", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  role: text("role").$type<StaffRole>().notNull(),
+  phone: text("phone").notNull().default(""),
+  active: boolean("active").notNull().default(true),
+  lastLoginAt: timestamp("last_login_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const customers = pgTable("customers", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  phone: text("phone").notNull().default(""),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const addresses = pgTable(
+  "addresses",
+  {
+    id: serial("id").primaryKey(),
+    customerId: integer("customer_id")
+      .notNull()
+      .references(() => customers.id, { onDelete: "cascade" }),
+    firstName: text("first_name").notNull(),
+    lastName: text("last_name").notNull(),
+    phone: text("phone").notNull(),
+    address: text("address").notNull(),
+    address2: text("address2").notNull().default(""),
+    city: text("city").notNull(),
+    postalCode: text("postal_code").notNull().default(""),
+    country: text("country").notNull(),
+    isDefault: boolean("is_default").notNull().default(false),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [index("addresses_customer_idx").on(t.customerId)],
+);
+
+export const wishlistItems = pgTable(
+  "wishlist_items",
+  {
+    customerId: integer("customer_id")
+      .notNull()
+      .references(() => customers.id, { onDelete: "cascade" }),
+    productSlug: text("product_slug").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("wishlist_customer_slug_idx").on(t.customerId, t.productSlug)],
+);
+
+/** What happened to an order, in order: shown as a timeline to the team and (status rows only) to the customer. */
+export const orderEvents = pgTable(
+  "order_events",
+  {
+    id: serial("id").primaryKey(),
+    orderId: integer("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    kind: text("kind").$type<"status" | "assign" | "note">().notNull(),
+    status: text("status").$type<OrderStatus>(),
+    note: text("note").notNull().default(""),
+    /** Null for the owner and for the customer. */
+    staffId: integer("staff_id").references(() => staff.id, { onDelete: "set null" }),
+    by: text("by").notNull().default(""),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [index("order_events_order_idx").on(t.orderId)],
+);
+
+export type Staff = typeof staff.$inferSelect;
+export type Customer = typeof customers.$inferSelect;
+export type Address = typeof addresses.$inferSelect;
+export type OrderEvent = typeof orderEvents.$inferSelect;
 
 export const categoriesRelations = relations(categories, ({ many }) => ({ products: many(products) }));
 export const productsRelations = relations(products, ({ one, many }) => ({

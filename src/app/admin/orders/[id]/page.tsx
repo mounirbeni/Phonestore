@@ -1,23 +1,32 @@
+import { requirePerm } from "@/lib/auth";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { ArrowRight, Mail, MapPin, Phone } from "lucide-react";
 import { db } from "@/db";
-import { orderItems, orders } from "@/db/schema";
+import { customers, orderEvents, orderItems, orders, staff } from "@/db/schema";
 import { store } from "@/config/store";
 import { dateTime, eur, statusChip, statusLabel } from "@/lib/admin-ui";
 import { OrderActions } from "@/components/admin/order-actions";
+import { DriverAssign } from "@/components/admin/driver-assign";
+import { OrderTimeline } from "@/components/admin/order-timeline";
 import { cn } from "@/lib/utils";
 
 type Props = { params: Promise<{ id: string }> };
 
 export default async function OrderDetail({ params }: Props) {
+  await requirePerm("orders");
   const { id } = await params;
   const oid = parseInt(id, 10);
   if (!Number.isInteger(oid)) notFound();
   const [order] = await db.select().from(orders).where(eq(orders.id, oid)).limit(1);
   if (!order) notFound();
-  const items = await db.select().from(orderItems).where(eq(orderItems.orderId, oid)).orderBy(orderItems.id);
+  const [items, events, drivers, [customer]] = await Promise.all([
+    db.select().from(orderItems).where(eq(orderItems.orderId, oid)).orderBy(orderItems.id),
+    db.select().from(orderEvents).where(eq(orderEvents.orderId, oid)).orderBy(desc(orderEvents.createdAt), desc(orderEvents.id)),
+    db.select({ id: staff.id, name: staff.name, phone: staff.phone }).from(staff).where(and(eq(staff.role, "driver"), eq(staff.active, true))).orderBy(asc(staff.name)),
+    order.customerId ? db.select({ id: customers.id, createdAt: customers.createdAt }).from(customers).where(eq(customers.id, order.customerId)).limit(1) : Promise.resolve([]),
+  ]);
   const country = store.countries.find((c) => c.code === order.country)?.fr ?? order.country;
   const shipLabel = order.shippingMethod === "express" ? "توصيل سريع" : "توصيل عادي";
 
@@ -55,12 +64,15 @@ export default async function OrderDetail({ params }: Props) {
             </dl>
           </section>
           <OrderActions id={order.id} status={order.status} note={order.adminNote} />
+          <OrderTimeline events={events} />
         </div>
 
         <div className="space-y-6">
+          <DriverAssign orderId={order.id} driverId={order.driverId} drivers={drivers} />
           <section className="rounded-2xl border border-line bg-white p-5 text-sm">
             <h2 className="mb-3 font-bold">العميل</h2>
             <p className="font-semibold">{order.firstName} {order.lastName}</p>
+            <p className="mt-1 text-xs text-muted">{customer ? <Link href={`/admin/customers?q=${encodeURIComponent(order.email)}`} className="text-brand hover:underline">صاحب حساب في المتجر</Link> : "طلب بدون حساب"}</p>
             <p className="mt-3 flex items-center gap-2"><Mail className="h-4 w-4 text-muted" aria-hidden="true" /><a className="hover:underline" href={`mailto:${order.email}`} dir="ltr">{order.email}</a></p>
             <p className="mt-2 flex items-center gap-2"><Phone className="h-4 w-4 text-muted" aria-hidden="true" /><a className="hover:underline" href={`tel:${order.phone}`} dir="ltr">{order.phone}</a></p>
           </section>

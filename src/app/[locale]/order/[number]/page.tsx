@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray } from "drizzle-orm";
 import { Banknote, Check, CheckCircle2, Package, Truck, XCircle } from "lucide-react";
 import { db } from "@/db";
-import { categories, orderItems, orders, products } from "@/db/schema";
+import { categories, orderEvents, orderItems, orders, products } from "@/db/schema";
+import { getCustomerId } from "@/lib/customer-auth";
 import { store } from "@/config/store";
 import { artKind } from "@/lib/art";
 import { getDictionary } from "@/lib/dictionary";
@@ -22,7 +23,10 @@ export default async function OrderPage({ params, searchParams }: Props) {
   const { t } = await searchParams;
   if (!isLocale(locale)) notFound();
   const d = getDictionary(locale);
-  const [order] = t ? await db.select().from(orders).where(and(eq(orders.number, number), eq(orders.token, t))).limit(1) : [];
+  // The private link (token) works for anyone who has it; the account owner needs no token.
+  const customerId = await getCustomerId();
+  const [found] = await db.select().from(orders).where(eq(orders.number, number)).limit(1);
+  const order = found && ((t && found.token === t) || (customerId != null && found.customerId === customerId)) ? found : undefined;
   if (!order) {
     return (
       <div className="container-x grid min-h-[50vh] place-items-center py-20 text-center">
@@ -34,7 +38,15 @@ export default async function OrderPage({ params, searchParams }: Props) {
       </div>
     );
   }
-  const items = await db.select().from(orderItems).where(eq(orderItems.orderId, order.id)).orderBy(orderItems.id);
+  const [items, events] = await Promise.all([
+    db.select().from(orderItems).where(eq(orderItems.orderId, order.id)).orderBy(orderItems.id),
+    db.select({ status: orderEvents.status, at: orderEvents.createdAt }).from(orderEvents).where(and(eq(orderEvents.orderId, order.id), eq(orderEvents.kind, "status"))).orderBy(asc(orderEvents.createdAt)),
+  ]);
+  // When each step was reached (first time), shown under the progress steps.
+  const reached = new Map<string, Date>();
+  for (const e of events) if (e.status && !reached.has(e.status)) reached.set(e.status, e.at);
+  if (!reached.has("pending")) reached.set("pending", order.createdAt);
+  const stepDate = new Intl.DateTimeFormat(locale === "ar" ? "ar-u-nu-latn" : "fr-FR", { day: "numeric", month: "short" });
   const icons = items.length
     ? await db
         .select({ slug: products.slug, icon: categories.icon })
@@ -81,6 +93,7 @@ export default async function OrderPage({ params, searchParams }: Props) {
                       <s.icon className="h-5 w-5" aria-hidden="true" />
                     </span>
                     <span className={cn("text-xs font-medium sm:text-sm", done ? "text-fg" : "text-muted")}>{s.label}</span>
+                    {done && reached.get(s.key) && <span className="text-[0.7rem] text-muted">{stepDate.format(reached.get(s.key)!)}</span>}
                   </li>
                 );
               })}

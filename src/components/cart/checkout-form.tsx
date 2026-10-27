@@ -26,7 +26,10 @@ function Section({ n, title, children }: { n: number; title: string; children: R
   );
 }
 
-export function CheckoutForm() {
+/** Signed-in customers get their details and default address filled in. */
+export type CheckoutPrefill = Partial<Record<"firstName" | "lastName" | "email" | "phone" | "address" | "address2" | "postalCode" | "city", string>>;
+
+export function CheckoutForm({ prefill = {} }: { prefill?: CheckoutPrefill }) {
   const { locale, d } = useI18n();
   const cart = useCart();
   const router = useRouter();
@@ -67,8 +70,14 @@ export function CheckoutForm() {
   const total = cart.subtotal - discount + ship;
 
   const field = useMemo(
-    () => (name: string) => ({ name, id: name, "aria-invalid": errorFields.includes(name) ? (true as const) : undefined, className: "input" }),
-    [errorFields],
+    () => (name: string) => ({
+      name,
+      id: name,
+      defaultValue: prefill[name as keyof CheckoutPrefill],
+      "aria-invalid": errorFields.includes(name) ? (true as const) : undefined,
+      className: "input",
+    }),
+    [errorFields, prefill],
   );
 
   if (!cart.ready) return <div className="min-h-[40vh]" aria-busy="true" />;

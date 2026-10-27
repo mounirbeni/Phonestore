@@ -1,3 +1,4 @@
+import { requirePerm } from "@/lib/auth";
 import Link from "next/link";
 import { and, count, desc, eq, ilike, or, type SQL } from "drizzle-orm";
 import { db } from "@/db";
@@ -12,6 +13,7 @@ const PER = 25;
 type Props = { searchParams: Promise<{ status?: string; q?: string; page?: string }> };
 
 export default async function OrdersPage({ searchParams }: Props) {
+  await requirePerm("orders");
   const sp = await searchParams;
   const status = ORDER_STATUSES.includes(sp.status as OrderStatus) ? (sp.status as OrderStatus) : undefined;
   const q = sp.q?.trim().slice(0, 60);

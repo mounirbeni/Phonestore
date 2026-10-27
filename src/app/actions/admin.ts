@@ -5,8 +5,21 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/db";
-import { categories, coupons, ORDER_STATUSES, orderItems, orders, products, variants, type OrderStatus, type Spec } from "@/db/schema";
-import { checkPassword, createSession, destroySession, requireAdmin } from "@/lib/auth";
+import {
+  categories,
+  coupons,
+  ORDER_STATUSES,
+  orderEvents,
+  orderItems,
+  orders,
+  products,
+  staff,
+  variants,
+  type OrderStatus,
+  type Spec,
+} from "@/db/schema";
+import { checkPassword, createSession, destroySession, homeFor, requirePerm, type Member } from "@/lib/auth";
+import { failDelay, verifyPassword } from "@/lib/password";
 import { CATEGORY_ICONS } from "@/lib/category-icons";
 import { slugify } from "@/lib/utils";
 
@@ -14,14 +27,26 @@ const refresh = () => revalidatePath("/admin", "layout");
 
 /* ---------- auth ---------- */
 
+/** Team members sign in with their e-mail; the owner leaves the e-mail empty and uses ADMIN_PASSWORD. */
 export async function login(_prev: { error?: string } | undefined, formData: FormData) {
-  const ok = checkPassword(String(formData.get("password") ?? ""));
-  if (!ok) {
-    await new Promise((r) => setTimeout(r, 800)); // slow down brute-force attempts
-    return { error: "كلمة المرور غير صحيحة" };
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const password = String(formData.get("password") ?? "");
+  if (!email) {
+    if (!checkPassword(password)) {
+      await failDelay();
+      return { error: "كلمة المرور غير صحيحة" };
+    }
+    await createSession(null);
+    redirect("/admin");
   }
-  await createSession();
-  redirect("/admin");
+  const [m] = await db.select().from(staff).where(eq(staff.email, email)).limit(1);
+  if (!m || !m.active || !(await verifyPassword(password, m.passwordHash))) {
+    await failDelay();
+    return { error: "البريد الإلكتروني أو كلمة المرور غير صحيحة" };
+  }
+  await db.update(staff).set({ lastLoginAt: new Date() }).where(eq(staff.id, m.id));
+  await createSession(m.id);
+  redirect(homeFor(m.role));
 }
 
 export async function logout() {
@@ -31,31 +56,38 @@ export async function logout() {
 
 /* ---------- orders ---------- */
 
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+/** Moves an order to a new status, giving stock back on cancel (and taking it again on un-cancel). */
+async function applyStatus(tx: Tx, orderId: number, status: OrderStatus, by: Member, note = "") {
+  const [o] = await tx.select().from(orders).where(eq(orders.id, orderId)).for("update");
+  if (!o || o.status === status) return o ?? null;
+  const items = await tx.select().from(orderItems).where(eq(orderItems.orderId, orderId));
+  const stocked = items.filter((i) => i.variantId != null);
+  if (o.status !== "cancelled" && status === "cancelled") {
+    for (const i of stocked) {
+      await tx.update(variants).set({ stock: sql`${variants.stock} + ${i.quantity}` }).where(eq(variants.id, i.variantId!));
+    }
+  } else if (o.status === "cancelled" && status !== "cancelled") {
+    for (const i of stocked) {
+      const upd = await tx
+        .update(variants)
+        .set({ stock: sql`${variants.stock} - ${i.quantity}` })
+        .where(and(eq(variants.id, i.variantId!), sql`${variants.stock} >= ${i.quantity}`))
+        .returning({ id: variants.id });
+      if (!upd.length) throw new Error("STOCK");
+    }
+  }
+  await tx.update(orders).set({ status }).where(eq(orders.id, orderId));
+  await tx.insert(orderEvents).values({ orderId, kind: "status", status, note, staffId: by.id, by: by.name });
+  return o;
+}
+
 export async function updateOrderStatus(orderId: number, status: OrderStatus): Promise<{ ok: boolean; error?: string }> {
-  await requireAdmin();
+  const me = await requirePerm("orders");
   if (!ORDER_STATUSES.includes(status)) return { ok: false, error: "حالة غير صالحة" };
   try {
-    await db.transaction(async (tx) => {
-      const [o] = await tx.select().from(orders).where(eq(orders.id, orderId)).for("update");
-      if (!o || o.status === status) return;
-      const items = await tx.select().from(orderItems).where(eq(orderItems.orderId, orderId));
-      const stocked = items.filter((i) => i.variantId != null);
-      if (o.status !== "cancelled" && status === "cancelled") {
-        for (const i of stocked) {
-          await tx.update(variants).set({ stock: sql`${variants.stock} + ${i.quantity}` }).where(eq(variants.id, i.variantId!));
-        }
-      } else if (o.status === "cancelled" && status !== "cancelled") {
-        for (const i of stocked) {
-          const upd = await tx
-            .update(variants)
-            .set({ stock: sql`${variants.stock} - ${i.quantity}` })
-            .where(and(eq(variants.id, i.variantId!), sql`${variants.stock} >= ${i.quantity}`))
-            .returning({ id: variants.id });
-          if (!upd.length) throw new Error("STOCK");
-        }
-      }
-      await tx.update(orders).set({ status }).where(eq(orders.id, orderId));
-    });
+    await db.transaction((tx) => applyStatus(tx, orderId, status, me));
   } catch (e) {
     if (e instanceof Error && e.message === "STOCK") return { ok: false, error: "المخزون غير كافٍ لإعادة تفعيل هذا الطلب" };
     throw e;
@@ -65,9 +97,45 @@ export async function updateOrderStatus(orderId: number, status: OrderStatus): P
 }
 
 export async function saveAdminNote(orderId: number, note: string) {
-  await requireAdmin();
+  await requirePerm("orders");
   await db.update(orders).set({ adminNote: note.slice(0, 2000) }).where(eq(orders.id, orderId));
   refresh();
+}
+
+/** Hands the order to a driver (or takes it back with null). */
+export async function assignDriver(orderId: number, driverId: number | null): Promise<{ ok: boolean; error?: string }> {
+  const me = await requirePerm("orders");
+  let driverName = "";
+  if (driverId != null) {
+    const [d] = await db.select().from(staff).where(eq(staff.id, driverId)).limit(1);
+    if (!d || d.role !== "driver" || !d.active) return { ok: false, error: "الموصّل غير موجود أو غير مفعّل" };
+    driverName = d.name;
+  }
+  await db.transaction(async (tx) => {
+    await tx.update(orders).set({ driverId }).where(eq(orders.id, orderId));
+    await tx.insert(orderEvents).values({ orderId, kind: "assign", note: driverName ? `أُسند إلى ${driverName}` : "أُلغي الإسناد", staffId: me.id, by: me.name });
+  });
+  refresh();
+  return { ok: true };
+}
+
+/* ---------- deliveries (driver) ---------- */
+
+/** The driver's own orders only: mark delivered, refused (back to stock), or log a note such as a failed attempt. */
+export async function driverUpdate(orderId: number, action: "delivered" | "refused" | "note", note = ""): Promise<{ ok: boolean; error?: string }> {
+  const me = await requirePerm("deliveries");
+  const [o] = await db.select({ driverId: orders.driverId, status: orders.status }).from(orders).where(eq(orders.id, orderId)).limit(1);
+  if (!o || o.driverId !== me.id) return { ok: false, error: "هذا الطلب غير مسند إليك" };
+  if (o.status !== "confirmed" && o.status !== "shipped") return { ok: false, error: "لم يعد هذا الطلب قيد التوصيل" };
+  const text = note.trim().slice(0, 500);
+  if (action === "note") {
+    if (!text) return { ok: false, error: "اكتب الملاحظة" };
+    await db.insert(orderEvents).values({ orderId, kind: "note", note: text, staffId: me.id, by: me.name });
+  } else {
+    await db.transaction((tx) => applyStatus(tx, orderId, action === "delivered" ? "delivered" : "cancelled", me, action === "refused" ? `رفض العميل الاستلام${text ? ` — ${text}` : ""}` : text));
+  }
+  refresh();
+  return { ok: true };
 }
 
 /* ---------- products ---------- */
@@ -116,7 +184,7 @@ function parseSpecs(text: string): Spec[] {
 }
 
 export async function saveProduct(input: ProductPayload): Promise<{ ok: true; id: number } | { ok: false; error: string }> {
-  await requireAdmin();
+  await requirePerm("catalog");
   const parsed = productSchema.safeParse(input);
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
@@ -205,13 +273,13 @@ export async function saveProduct(input: ProductPayload): Promise<{ ok: true; id
 }
 
 export async function setProductActive(id: number, active: boolean) {
-  await requireAdmin();
+  await requirePerm("catalog");
   await db.update(products).set({ active }).where(eq(products.id, id));
   refresh();
 }
 
 export async function deleteProduct(id: number) {
-  await requireAdmin();
+  await requirePerm("catalog");
   await db.delete(products).where(eq(products.id, id));
   refresh();
 }
@@ -229,7 +297,7 @@ const categorySchema = z.object({
 });
 
 export async function saveCategory(input: z.input<typeof categorySchema>): Promise<{ ok: boolean; error?: string }> {
-  await requireAdmin();
+  await requirePerm("catalog");
   const parsed = categorySchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "بيانات غير صالحة" };
   const c = parsed.data;
@@ -260,7 +328,7 @@ export async function saveCategory(input: z.input<typeof categorySchema>): Promi
 }
 
 export async function deleteCategory(id: number): Promise<{ ok: boolean; error?: string }> {
-  await requireAdmin();
+  await requirePerm("catalog");
   const [{ n }] = await db.select({ n: count() }).from(products).where(eq(products.categoryId, id));
   if (n > 0) return { ok: false, error: "لا يمكن حذف فئة تحتوي على منتجات" };
   const [{ kids }] = await db.select({ kids: count() }).from(categories).where(eq(categories.parentId, id));
@@ -283,7 +351,7 @@ const couponSchema = z
   .refine((c) => c.kind !== "percent" || c.value <= 100);
 
 export async function saveCoupon(input: z.input<typeof couponSchema>): Promise<{ ok: boolean; error?: string }> {
-  await requireAdmin();
+  await requirePerm("coupons");
   const parsed = couponSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "بيانات غير صالحة (النسبة بين 1 و100)" };
   const c = parsed.data;
@@ -303,13 +371,13 @@ export async function saveCoupon(input: z.input<typeof couponSchema>): Promise<{
 }
 
 export async function setCouponActive(id: number, active: boolean) {
-  await requireAdmin();
+  await requirePerm("coupons");
   await db.update(coupons).set({ active }).where(eq(coupons.id, id));
   refresh();
 }
 
 export async function deleteCoupon(id: number) {
-  await requireAdmin();
+  await requirePerm("coupons");
   await db.delete(coupons).where(eq(coupons.id, id));
   refresh();
 }

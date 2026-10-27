@@ -6,8 +6,13 @@ import { orders, products, variants } from "@/db/schema";
 import { eur } from "@/lib/admin-ui";
 import { cn } from "@/lib/utils";
 import { OrdersTable } from "@/components/admin/orders-table";
+import { CatalogDashboard, OrdersDashboard } from "@/components/admin/role-dashboards";
+import { requirePerm } from "@/lib/auth";
 
 export default async function Dashboard() {
+  const me = await requirePerm("dashboard");
+  if (me.role === "orders") return <OrdersDashboard name={me.name} />;
+  if (me.role === "catalog") return <CatalogDashboard name={me.name} />;
   const now = new Date();
   const d30 = new Date(now.getTime() - 30 * 864e5);
   const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());

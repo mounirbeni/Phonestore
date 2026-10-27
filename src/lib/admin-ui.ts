@@ -4,7 +4,7 @@ import type { OrderStatus } from "@/db/schema";
 export const statusLabel: Record<OrderStatus, string> = {
   pending: "قيد الانتظار",
   confirmed: "مؤكَّد",
-  shipped: "تم الشحن",
+  shipped: "قيد التوصيل",
   delivered: "تم التسليم",
   cancelled: "ملغى",
 };

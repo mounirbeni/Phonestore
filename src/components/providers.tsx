@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { saveWishlist, syncWishlist } from "@/app/actions/account";
 import type { Dict } from "@/lib/dictionary";
 import type { Locale } from "@/lib/i18n";
 import type { ArtKind } from "@/lib/art";
@@ -100,7 +101,7 @@ export function useWishlist() {
   return v;
 }
 
-export function Providers({ locale, d, children }: { locale: Locale; d: Dict; children: React.ReactNode }) {
+export function Providers({ locale, d, signedIn = false, children }: { locale: Locale; d: Dict; signedIn?: boolean; children: React.ReactNode }) {
   const [lines, setLines] = useState<CartLine[]>([]);
   const [slugs, setSlugs] = useState<string[]>([]);
   const [ready, setReady] = useState(false);
@@ -130,6 +131,26 @@ export function Providers({ locale, d, children }: { locale: Locale; d: Dict; ch
   useEffect(() => {
     if (ready) writeJSON(WISH_KEY, slugs);
   }, [slugs, ready]);
+
+  // Signed in: favourites live in the account. This device's list is merged in once, then every change is saved.
+  const synced = useRef(false);
+  useEffect(() => {
+    if (!ready || !signedIn || synced.current) return;
+    synced.current = true;
+    syncWishlist(readJSON<string[]>(WISH_KEY, []))
+      .then((merged) => merged && setSlugs(merged))
+      .catch(() => {});
+  }, [ready, signedIn]);
+  const first = useRef(true);
+  useEffect(() => {
+    if (!ready || !signedIn) return;
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+    const t = setTimeout(() => saveWishlist(slugs).catch(() => {}), 600);
+    return () => clearTimeout(t);
+  }, [slugs, ready, signedIn]);
 
   const add = useCallback<CartApi["add"]>((line, qty = 1) => {
     setLines((prev) => {

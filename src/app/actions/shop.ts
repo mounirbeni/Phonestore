@@ -2,7 +2,8 @@
 
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { coupons, orderItems, orders, products, variants } from "@/db/schema";
+import { addresses, coupons, orderEvents, orderItems, orders, products, variants } from "@/db/schema";
+import { getCustomerId } from "@/lib/customer-auth";
 import { getCartVariants, getProductsBySlugs } from "@/db/queries";
 import { store } from "@/config/store";
 import { artKind } from "@/lib/art";
@@ -85,6 +86,8 @@ export async function placeOrder(input: CheckoutInput): Promise<PlaceOrderResult
     return { ok: false, error: "invalid", fields: [...new Set(parsed.error.issues.map((i) => String(i.path[0])))] };
   }
   const data = parsed.data;
+  // Linked server-side from the session cookie, never from the form.
+  const customerId = await getCustomerId();
 
   // Merge duplicate variant lines.
   const qtyById = new Map<number, number>();
@@ -152,8 +155,10 @@ export async function placeOrder(input: CheckoutInput): Promise<PlaceOrderResult
           shippingCost: ship,
           total,
           customerNote: data.note,
+          customerId,
         })
         .returning();
+      await tx.insert(orderEvents).values({ orderId: order.id, kind: "status", status: "pending", by: "client" });
       const number = `ES-${10000 + order.id}`;
       const [finalOrder] = await tx.update(orders).set({ number }).where(eq(orders.id, order.id)).returning();
 
@@ -179,6 +184,24 @@ export async function placeOrder(input: CheckoutInput): Promise<PlaceOrderResult
           .update(variants)
           .set({ stock: sql`${variants.stock} - ${qty}` })
           .where(eq(variants.id, v.id));
+      }
+      // A signed-in customer's first delivery address is kept for next time.
+      if (customerId) {
+        const [saved] = await tx.select({ id: addresses.id }).from(addresses).where(eq(addresses.customerId, customerId)).limit(1);
+        if (!saved) {
+          await tx.insert(addresses).values({
+            customerId,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            phone: data.phone,
+            address: data.address,
+            address2: data.address2,
+            city: data.city,
+            postalCode: data.postalCode,
+            country: data.country,
+            isDefault: true,
+          });
+        }
       }
       return { order: finalOrder, items };
     });
