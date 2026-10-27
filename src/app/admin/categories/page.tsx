@@ -1,3 +1,4 @@
+import { requirePerm } from "@/lib/auth";
 import { asc, count, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { categories, products } from "@/db/schema";
@@ -6,6 +7,7 @@ import { CategoryManager } from "@/components/admin/category-manager";
 export const metadata = { title: "الفئات" };
 
 export default async function CategoriesPage() {
+  await requirePerm("catalog");
   const rows = await db
     .select({ c: categories, n: count(products.id) })
     .from(categories)

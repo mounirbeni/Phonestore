@@ -12,9 +12,8 @@ export function couponDiscount(coupon: CouponLike | null, subtotal: number) {
   return Math.max(0, Math.min(raw, subtotal));
 }
 
-export function shippingCost(methodId: string, subtotalAfterDiscount: number) {
+export function shippingCost(methodId: string) {
   const method = store.shippingMethods.find((m) => m.id === methodId);
   if (!method) return null;
-  if (method.id === "standard" && subtotalAfterDiscount >= store.freeShippingThreshold) return 0;
   return method.cents;
 }

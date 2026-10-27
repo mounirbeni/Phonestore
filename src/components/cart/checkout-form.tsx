@@ -26,7 +26,10 @@ function Section({ n, title, children }: { n: number; title: string; children: R
   );
 }
 
-export function CheckoutForm() {
+/** Signed-in customers get their details and default address filled in. */
+export type CheckoutPrefill = Partial<Record<"firstName" | "lastName" | "email" | "phone" | "address" | "address2" | "postalCode" | "city", string>>;
+
+export function CheckoutForm({ prefill = {} }: { prefill?: CheckoutPrefill }) {
   const { locale, d } = useI18n();
   const cart = useCart();
   const router = useRouter();
@@ -49,7 +52,7 @@ export function CheckoutForm() {
       if (r.ok) setCoupon({ code: r.code, discount: r.discount });
       else {
         setCoupon(null);
-        setCouponMsg(r.reason === "min" ? d.cart.couponMin : d.cart.couponInvalid);
+        setCouponMsg(r.reason === "min" ? d.cart.couponMin : r.reason === "rate" ? d.common.tooMany : d.cart.couponInvalid);
       }
     });
     return () => {
@@ -63,12 +66,18 @@ export function CheckoutForm() {
   }, [error]);
 
   const discount = coupon?.discount ?? 0;
-  const ship = shippingCost(method, cart.subtotal - discount) ?? 0;
+  const ship = shippingCost(method) ?? 0;
   const total = cart.subtotal - discount + ship;
 
   const field = useMemo(
-    () => (name: string) => ({ name, id: name, "aria-invalid": errorFields.includes(name) ? (true as const) : undefined, className: "input" }),
-    [errorFields],
+    () => (name: string) => ({
+      name,
+      id: name,
+      defaultValue: prefill[name as keyof CheckoutPrefill],
+      "aria-invalid": errorFields.includes(name) ? (true as const) : undefined,
+      className: "input",
+    }),
+    [errorFields, prefill],
   );
 
   if (!cart.ready) return <div className="min-h-[40vh]" aria-busy="true" />;
@@ -92,7 +101,7 @@ export function CheckoutForm() {
         setCouponMsg(null);
       } else {
         setCoupon(null);
-        setCouponMsg(r.reason === "min" ? d.cart.couponMin : d.cart.couponInvalid);
+        setCouponMsg(r.reason === "min" ? d.cart.couponMin : r.reason === "rate" ? d.common.tooMany : d.cart.couponInvalid);
       }
     });
   }
@@ -132,6 +141,8 @@ export function CheckoutForm() {
         document.getElementById(res.fields?.[0] ?? "")?.focus();
       } else if (res.error === "stock") {
         setError(res.name ? fmt(d.checkout.outOfStock, { name: res.name }) : d.cart.removedUnavailable);
+      } else if (res.error === "rate") {
+        setError(d.common.tooMany);
       } else if (res.error === "coupon") {
         setCoupon(null);
         setCouponMsg(d.cart.couponInvalid);
@@ -163,7 +174,7 @@ export function CheckoutForm() {
             </div>
             <div>
               <label className="label" htmlFor="phone">{d.checkout.phone}</label>
-              <input {...field("phone")} type="tel" required autoComplete="tel" dir="ltr" maxLength={20} />
+              <input {...field("phone")} type="tel" required autoComplete="tel" dir="ltr" inputMode="tel" maxLength={20} />
               <p className="mt-1.5 text-xs text-muted">{d.checkout.phoneHint}</p>
             </div>
           </div>
@@ -180,8 +191,8 @@ export function CheckoutForm() {
               <input {...field("address2")} autoComplete="address-line2" maxLength={160} />
             </div>
             <div>
-              <label className="label" htmlFor="postalCode">{d.checkout.postalCode}</label>
-              <input {...field("postalCode")} required autoComplete="postal-code" dir="ltr" maxLength={12} />
+              <label className="label" htmlFor="postalCode">{d.checkout.postalCode} <span className="font-normal text-muted">({d.common.optional})</span></label>
+              <input {...field("postalCode")} autoComplete="postal-code" dir="ltr" inputMode="numeric" maxLength={12} />
             </div>
             <div>
               <label className="label" htmlFor="city">{d.checkout.city}</label>
@@ -189,7 +200,7 @@ export function CheckoutForm() {
             </div>
             <div className="sm:col-span-2">
               <label className="label" htmlFor="country">{d.checkout.country}</label>
-              <select {...field("country")} defaultValue="FR" autoComplete="country">
+              <select {...field("country")} defaultValue={store.countries[0].code} autoComplete="country">
                 {store.countries.map((c) => (
                   <option key={c.code} value={c.code}>{pick(locale, c.fr, c.ar)}</option>
                 ))}
@@ -209,7 +220,7 @@ export function CheckoutForm() {
         <Section n={3} title={d.checkout.shippingMethod}>
           <ul className="space-y-3" role="radiogroup">
             {store.shippingMethods.map((m) => {
-              const cost = shippingCost(m.id, cart.subtotal - discount) ?? 0;
+              const cost = shippingCost(m.id) ?? 0;
               const active = method === m.id;
               return (
                 <li key={m.id}>

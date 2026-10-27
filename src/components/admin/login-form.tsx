@@ -9,8 +9,13 @@ export function LoginForm() {
   return (
     <form action={action} className="space-y-4">
       <div>
+        <label htmlFor="email" className="label">البريد الإلكتروني</label>
+        <input id="email" name="email" type="email" autoFocus autoComplete="username" className="input" dir="ltr" />
+        <p className="mt-1.5 text-xs text-muted">المالك: اترك البريد فارغًا واستعمل كلمة مرور المتجر.</p>
+      </div>
+      <div>
         <label htmlFor="password" className="label">كلمة المرور</label>
-        <input id="password" name="password" type="password" required autoFocus autoComplete="current-password" className="input" dir="ltr" />
+        <input id="password" name="password" type="password" required autoComplete="current-password" className="input" dir="ltr" />
       </div>
       {state?.error && <p role="alert" className="rounded-xl bg-hot-50 px-4 py-3 text-sm font-medium text-hot">{state.error}</p>}
       <button type="submit" disabled={pending} className="btn btn-primary btn-lg w-full">

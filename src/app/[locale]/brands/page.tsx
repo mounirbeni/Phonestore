@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BrandMark } from "@/components/ui/brand-mark";
 import { getAllBrands } from "@/db/queries";
 import { getDictionary } from "@/lib/dictionary";
 import { isLocale, localePath } from "@/lib/i18n";
@@ -28,9 +29,9 @@ export default async function BrandsPage({ params }: Props) {
           <li key={b.brand}>
             <Link
               href={localePath(locale, `/shop?brand=${encodeURIComponent(b.brand)}`)}
-              className="flex h-28 flex-col items-center justify-center gap-1 rounded-3xl border border-line bg-surface px-3 text-center transition active:scale-[0.97] hover:border-brand hover:shadow-card"
+              className="flex h-28 flex-col items-center justify-center gap-2 rounded-3xl border border-line bg-surface px-3 text-center transition active:scale-[0.97] hover:border-brand hover:shadow-card"
             >
-              <span className="text-lg font-extrabold tracking-tight" dir="ltr">{b.brand}</span>
+              <BrandMark brand={b.brand} className="text-lg" />
               <span className="text-xs text-muted">{fmt(b.n === 1 ? d.shop.resultsOne : d.shop.results, { n: b.n })}</span>
             </Link>
           </li>

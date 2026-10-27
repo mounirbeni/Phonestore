@@ -3,9 +3,40 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { SignJWT, jwtVerify } from "jose";
 import { timingSafeEqual } from "node:crypto";
+import { eq } from "drizzle-orm";
+import { db } from "@/db";
+import { staff, type StaffRole } from "@/db/schema";
 
 const COOKIE = "ps_admin";
 const MAX_AGE = 60 * 60 * 24 * 7;
+
+/** "owner" is the shop owner (ADMIN_PASSWORD); the others are team accounts. */
+export type Role = "owner" | StaffRole;
+export type Member = { id: number | null; name: string; role: Role };
+
+export const ROLE_LABELS: Record<Role, string> = {
+  owner: "المالك",
+  orders: "مسؤول الطلبات",
+  catalog: "مسؤول المنتجات والمخزون",
+  driver: "موصّل",
+};
+
+const PERMS = {
+  dashboard: ["owner", "orders", "catalog"],
+  orders: ["owner", "orders"],
+  customers: ["owner", "orders"],
+  catalog: ["owner", "catalog"],
+  coupons: ["owner"],
+  team: ["owner"],
+  stats: ["owner"],
+  deliveries: ["driver"],
+} as const satisfies Record<string, readonly Role[]>;
+export type Perm = keyof typeof PERMS;
+
+export const can = (role: Role, perm: Perm) => (PERMS[perm] as readonly Role[]).includes(role);
+
+/** Where each role lands after signing in. */
+export const homeFor = (role: Role) => (role === "driver" ? "/admin/deliveries" : "/admin");
 
 function secret() {
   const s = process.env.AUTH_SECRET;
@@ -21,8 +52,9 @@ export function checkPassword(input: string) {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-export async function createSession() {
-  const token = await new SignJWT({ role: "admin" })
+/** `version` is the staff account's session version (0 for the owner); a password change bumps it. */
+export async function createSession(sid: number | null, version = 0) {
+  const token = await new SignJWT({ sid: sid ?? 0, sv: version })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(`${MAX_AGE}s`)
@@ -40,18 +72,29 @@ export async function destroySession() {
   (await cookies()).delete(COOKIE);
 }
 
-export async function isAdmin() {
+/** The signed-in team member. Team accounts are re-read each time so a deactivated account loses access at once. */
+export async function getMember(): Promise<Member | null> {
   const token = (await cookies()).get(COOKIE)?.value;
-  if (!token) return false;
+  if (!token) return null;
   try {
-    await jwtVerify(token, secret());
-    return true;
+    const { payload } = await jwtVerify(token, secret());
+    const sid = Number(payload.sid ?? 0);
+    if (!sid) return { id: null, name: "المالك", role: "owner" };
+    const [row] = await db
+      .select({ id: staff.id, name: staff.name, role: staff.role, active: staff.active, sessionVersion: staff.sessionVersion })
+      .from(staff)
+      .where(eq(staff.id, sid))
+      .limit(1);
+    return row?.active && row.sessionVersion === Number(payload.sv ?? 0) ? { id: row.id, name: row.name, role: row.role } : null;
   } catch {
-    return false;
+    return null;
   }
 }
 
-/** Call at the top of every admin server action and route handler. */
-export async function requireAdmin() {
-  if (!(await isAdmin())) redirect("/admin/login");
+/** Call at the top of every admin page, server action and route handler. */
+export async function requirePerm(perm: Perm): Promise<Member> {
+  const m = await getMember();
+  if (!m) redirect("/admin/login");
+  if (!can(m.role, perm)) redirect(homeFor(m.role));
+  return m;
 }

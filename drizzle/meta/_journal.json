@@ -22,6 +22,34 @@
       "when": 1793014119524,
       "tag": "0002_last_zarek",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793023309575,
+      "tag": "0003_catalog_option_label",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793025583946,
+      "tag": "0004_condition_note",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793099760157,
+      "tag": "0005_accounts_and_team",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793135348545,
+      "tag": "0006_security_rate_limits_sessions",
+      "breakpoints": true
     }
   ]
 }

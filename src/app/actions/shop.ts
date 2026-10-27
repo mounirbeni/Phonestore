@@ -1,8 +1,10 @@
 "use server";
 
+import { after } from "next/server";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { coupons, orderItems, orders, products, variants } from "@/db/schema";
+import { addresses, coupons, orderEvents, orderItems, orders, products, variants } from "@/db/schema";
+import { getCustomerId } from "@/lib/customer-auth";
 import { getCartVariants, getProductsBySlugs } from "@/db/queries";
 import { store } from "@/config/store";
 import { artKind } from "@/lib/art";
@@ -10,6 +12,7 @@ import { couponDiscount, shippingCost } from "@/lib/pricing";
 import { isolateLtr, randomToken } from "@/lib/utils";
 import { checkoutSchema, type CheckoutInput } from "@/lib/validation";
 import { sendOrderEmails } from "@/lib/mail";
+import { allowAll, clientIp } from "@/lib/rate-limit";
 import type { CartLine } from "@/components/providers";
 
 /* ---------- cart refresh ---------- */
@@ -52,7 +55,7 @@ export async function refreshCart(items: { variantId: number; qty: number }[]) {
 
 export type CouponResult =
   | { ok: true; code: string; discount: number }
-  | { ok: false; reason: "invalid" | "min" };
+  | { ok: false; reason: "invalid" | "min" | "rate" };
 
 async function findCoupon(code: string) {
   const [c] = await db.select().from(coupons).where(eq(coupons.code, code.trim().toUpperCase())).limit(1);
@@ -61,6 +64,8 @@ async function findCoupon(code: string) {
 }
 
 export async function validateCoupon(code: string, subtotal: number): Promise<CouponResult> {
+  if (typeof code !== "string" || code.length > 40) return { ok: false, reason: "invalid" };
+  if (!(await allowAll([[`coupon:ip:${await clientIp()}`, 30, 900]]))) return { ok: false, reason: "rate" };
   const c = await findCoupon(code);
   if (!c) return { ok: false, reason: "invalid" };
   if (subtotal < c.minSubtotal) return { ok: false, reason: "min" };
@@ -71,7 +76,7 @@ export async function validateCoupon(code: string, subtotal: number): Promise<Co
 
 export type PlaceOrderResult =
   | { ok: true; number: string; token: string }
-  | { ok: false; error: "invalid" | "empty" | "stock" | "coupon" | "server"; fields?: string[]; name?: string };
+  | { ok: false; error: "invalid" | "empty" | "stock" | "coupon" | "rate" | "server"; fields?: string[]; name?: string };
 
 class StockError extends Error {
   constructor(public productName: string) {
@@ -85,11 +90,18 @@ export async function placeOrder(input: CheckoutInput): Promise<PlaceOrderResult
     return { ok: false, error: "invalid", fields: [...new Set(parsed.error.issues.map((i) => String(i.path[0])))] };
   }
   const data = parsed.data;
+  // Cash-on-delivery orders cost nothing to place, so cap them per network to stop fake orders draining stock.
+  if (!(await allowAll([[`order:ip:${await clientIp()}`, 8, 3600], [`order:phone:${data.phone.replace(/\D/g, "")}`, 5, 3600]]))) {
+    return { ok: false, error: "rate" };
+  }
+  // Linked server-side from the session cookie, never from the form.
+  const customerId = await getCustomerId();
 
   // Merge duplicate variant lines.
   const qtyById = new Map<number, number>();
   for (const it of data.items) qtyById.set(it.variantId, (qtyById.get(it.variantId) ?? 0) + it.qty);
   if (!qtyById.size) return { ok: false, error: "empty" };
+  if ([...qtyById.values()].some((q) => q > store.maxQtyPerLine)) return { ok: false, error: "invalid", fields: ["items"] };
 
   try {
     const created = await db.transaction(async (tx) => {
@@ -126,7 +138,7 @@ export async function placeOrder(input: CheckoutInput): Promise<PlaceOrderResult
         couponCode = c.code;
       }
 
-      const ship = shippingCost(data.shippingMethod, subtotal - discount) ?? 0;
+      const ship = shippingCost(data.shippingMethod) ?? 0;
       const total = subtotal - discount + ship;
       const token = randomToken(12);
 
@@ -152,8 +164,10 @@ export async function placeOrder(input: CheckoutInput): Promise<PlaceOrderResult
           shippingCost: ship,
           total,
           customerNote: data.note,
+          customerId,
         })
         .returning();
+      await tx.insert(orderEvents).values({ orderId: order.id, kind: "status", status: "pending", by: "client" });
       const number = `ES-${10000 + order.id}`;
       const [finalOrder] = await tx.update(orders).set({ number }).where(eq(orders.id, order.id)).returning();
 
@@ -180,11 +194,30 @@ export async function placeOrder(input: CheckoutInput): Promise<PlaceOrderResult
           .set({ stock: sql`${variants.stock} - ${qty}` })
           .where(eq(variants.id, v.id));
       }
+      // A signed-in customer's first delivery address is kept for next time.
+      if (customerId) {
+        const [saved] = await tx.select({ id: addresses.id }).from(addresses).where(eq(addresses.customerId, customerId)).limit(1);
+        if (!saved) {
+          await tx.insert(addresses).values({
+            customerId,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            phone: data.phone,
+            address: data.address,
+            address2: data.address2,
+            city: data.city,
+            postalCode: data.postalCode,
+            country: data.country,
+            isDefault: true,
+          });
+        }
+      }
       return { order: finalOrder, items };
     });
 
     if ("error" in created) return { ok: false, error: "coupon" };
-    void sendOrderEmails(created.order, created.items);
+    // Runs after the response is sent; a bare promise can be cut off when the serverless function freezes.
+    after(() => sendOrderEmails(created.order, created.items));
     return { ok: true, number: created.order.number, token: created.order.token };
   } catch (e) {
     if (e instanceof StockError) return { ok: false, error: "stock", name: e.productName };
@@ -195,7 +228,9 @@ export async function placeOrder(input: CheckoutInput): Promise<PlaceOrderResult
 
 /* ---------- order lookup ---------- */
 
-export async function lookupOrder(number: string, email: string): Promise<{ ok: true; token: string; number: string } | { ok: false }> {
+export async function lookupOrder(number: string, email: string): Promise<{ ok: true; token: string; number: string } | { ok: false; rate?: true }> {
+  if (typeof number !== "string" || typeof email !== "string" || number.length > 30 || email.length > 120) return { ok: false };
+  if (!(await allowAll([[`lookup:ip:${await clientIp()}`, 20, 900]]))) return { ok: false, rate: true };
   const n = number.trim().toUpperCase().replace(/^#/, "");
   const normalized = /^\d+$/.test(n) ? `ES-${n}` : n;
   const [o] = await db

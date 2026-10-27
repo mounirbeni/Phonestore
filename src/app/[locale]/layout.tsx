@@ -8,10 +8,12 @@ import { getCategoryTree } from "@/db/queries";
 import { getDictionary } from "@/lib/dictionary";
 import { dirOf, isLocale, locales } from "@/lib/i18n";
 import { Providers } from "@/components/providers";
+import { hasCustomerSession } from "@/lib/customer-auth";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { CartDrawer } from "@/components/cart/cart-drawer";
 import { BottomNav } from "@/components/layout/bottom-nav";
+import { SITE_ICONS } from "@/lib/site-icons";
 import { MobileMenu } from "@/components/layout/mobile-menu";
 
 export const dynamic = "force-dynamic";
@@ -31,9 +33,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     title: { default: `${store.name} — ${d.meta.homeTitle}`, template: `%s | ${store.name}` },
     description: d.meta.homeDescription,
     alternates: { canonical: `/${locale}`, languages: { fr: "/fr", ar: "/ar" } },
-    openGraph: { siteName: store.name, locale: locale === "ar" ? "ar_AR" : "fr_FR", type: "website" },
+    openGraph: { siteName: store.name, locale: locale === "ar" ? "ar_MA" : "fr_MA", type: "website" },
     manifest: "/manifest.webmanifest",
-    icons: { icon: [{ url: "/pwa-icon/192", sizes: "192x192", type: "image/png" }], apple: [{ url: "/pwa-icon/180", sizes: "180x180", type: "image/png" }] },
+    icons: SITE_ICONS,
     appleWebApp: { capable: true, title: store.name, statusBarStyle: "black-translucent" },
     formatDetection: { telephone: false },
   };
@@ -49,7 +51,7 @@ export default async function LocaleLayout({ children, params }: { children: Rea
   return (
     <html lang={locale} dir={dirOf(locale)} data-theme="dark">
       <body className="min-h-screen antialiased">
-        <Providers locale={locale} d={d}>
+        <Providers locale={locale} d={d} signedIn={await hasCustomerSession()}>
           <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-4 focus:z-[100] focus:rounded-xl focus:bg-ink focus:px-4 focus:py-2 focus:text-white">
             {d.nav.skip}
           </a>

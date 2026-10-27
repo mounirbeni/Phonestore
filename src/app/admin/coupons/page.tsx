@@ -1,3 +1,4 @@
+import { requirePerm } from "@/lib/auth";
 import { desc } from "drizzle-orm";
 import { db } from "@/db";
 import { coupons } from "@/db/schema";
@@ -7,6 +8,7 @@ import { CouponManager } from "@/components/admin/coupon-manager";
 export const metadata = { title: "أكواد الخصم" };
 
 export default async function CouponsPage() {
+  await requirePerm("coupons");
   const rows = await db.select().from(coupons).orderBy(desc(coupons.createdAt));
   return (
     <div className="mx-auto max-w-5xl space-y-5">

@@ -49,7 +49,7 @@ export default async function ProductPage({ params }: Props) {
     sku: variants[0]?.sku,
     offers: {
       "@type": "AggregateOffer",
-      priceCurrency: "EUR",
+      priceCurrency: store.currency,
       lowPrice: (Math.min(...prices) / 100).toFixed(2),
       highPrice: (Math.max(...prices) / 100).toFixed(2),
       offerCount: variants.length,
@@ -60,7 +60,7 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <div className="container-x pb-6 pt-3 lg:pb-0 lg:pt-8">
         <nav aria-label="Breadcrumb" className="mb-6 hidden flex-wrap items-center gap-1.5 text-sm text-muted lg:flex">
           <Link href={localePath(locale)} className="hover:text-fg">{d.product.breadcrumbHome}</Link>
@@ -84,7 +84,9 @@ export default async function ProductPage({ params }: Props) {
           art={art}
           isNew={product.isNew}
           condition={product.condition}
+          conditionNote={pick(locale, product.conditionNoteFr, product.conditionNoteAr)}
           warrantyMonths={product.warrantyMonths}
+          optionLabel={pick(locale, product.optionLabelFr, product.optionLabelAr)}
           variants={variants.map((v) => ({
             id: v.id, sku: v.sku, colorFr: v.colorFr, colorAr: v.colorAr, colorHex: v.colorHex,
             storage: v.storage, price: v.price, compareAtPrice: v.compareAtPrice, stock: v.stock,

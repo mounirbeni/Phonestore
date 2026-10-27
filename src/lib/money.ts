@@ -2,19 +2,16 @@ import type { Locale } from "./i18n";
 
 const cache = new Map<string, Intl.NumberFormat>();
 
-/** Formats euro cents. Arabic keeps Latin digits for consistency with prices elsewhere. */
+/** Formats dirham amounts stored in centimes ("DH" in French, "د.م" in Arabic; Latin digits in both). */
 export function formatPrice(cents: number, locale: Locale = "fr") {
-  const tag = locale === "ar" ? "ar-u-nu-latn" : "fr-FR";
-  let f = cache.get(tag);
+  const whole = cents % 100 === 0;
+  const key = `${locale}${whole}`;
+  let f = cache.get(key);
   if (!f) {
-    f = new Intl.NumberFormat(tag, { style: "currency", currency: "EUR", minimumFractionDigits: cents % 100 === 0 ? 0 : 2 });
-    cache.set(tag, f);
+    f = new Intl.NumberFormat(locale === "ar" ? "ar-u-nu-latn" : "fr-FR", { minimumFractionDigits: whole ? 0 : 2, maximumFractionDigits: 2, useGrouping: true });
+    cache.set(key, f);
   }
-  // Fractional prices always show 2 decimals; whole prices show none.
-  if (cents % 100 !== 0) {
-    return new Intl.NumberFormat(tag, { style: "currency", currency: "EUR" }).format(cents / 100);
-  }
-  return f.format(cents / 100);
+  return `${f.format(cents / 100)}\u00a0${locale === "ar" ? "د.م" : "DH"}`;
 }
 
 export function discountPercent(price: number, compareAt?: number | null) {

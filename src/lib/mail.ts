@@ -1,4 +1,5 @@
 import "server-only";
+import nodemailer, { type Transporter } from "nodemailer";
 import { store } from "@/config/store";
 import { formatPrice } from "@/lib/money";
 import { getDictionary } from "@/lib/dictionary";
@@ -8,19 +9,49 @@ import type { Order, OrderItem } from "@/db/schema";
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
+/**
+ * SMTP settings come from the environment: SMTP_HOST, SMTP_PORT (587 by default, 465 = implicit TLS),
+ * SMTP_USER, SMTP_PASS, optional SMTP_SECURE=true, and MAIL_FROM (defaults to SMTP_USER).
+ */
+let transport: Transporter | null | undefined;
+function getTransport() {
+  if (transport !== undefined) return transport;
+  const host = process.env.SMTP_HOST;
+  if (!host) return (transport = null);
+  const port = Number(process.env.SMTP_PORT || 587);
+  transport = nodemailer.createTransport({
+    host,
+    port,
+    secure: process.env.SMTP_SECURE ? process.env.SMTP_SECURE === "true" : port === 465,
+    auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS ?? "" } : undefined,
+    // Order e-mails are built from our own data only; never let a message pull local files or URLs.
+    disableFileAccess: true,
+    disableUrlAccess: true,
+  });
+  return transport;
+}
+
 async function send(to: string, subject: string, html: string) {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) {
-    console.log(`[mail] RESEND_API_KEY not set — skipped "${subject}" to ${to}`);
+  const t = getTransport();
+  if (!t) {
+    console.log(`[mail] SMTP_HOST not set — skipped "${subject}" to ${to}`);
     return;
   }
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: process.env.MAIL_FROM ?? `${store.name} <onboarding@resend.dev>`, to, subject, html }),
-  });
-  if (!res.ok) console.error("[mail] Resend error", res.status, await res.text());
+  const from = process.env.MAIL_FROM || (process.env.SMTP_USER ? `${store.name} <${process.env.SMTP_USER}>` : undefined);
+  await t.sendMail({ from, to, subject, html, text: htmlToText(html) });
 }
+
+/** Plain-text part for clients (and spam filters) that prefer it. */
+const htmlToText = (html: string) =>
+  html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|tr|h\d|div)>/gi, "\n")
+    .replace(/<\/td>/gi, "  ")
+    .replace(/<a [^>]*href="([^"]+)"[^>]*>([^<]*)<\/a>/gi, "$2: $1")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 
 function orderHtml(order: Order, items: OrderItem[], locale: Locale, intro: string, link?: { href: string; label: string }) {
   const d = getDictionary(locale);

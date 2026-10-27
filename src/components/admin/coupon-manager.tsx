@@ -39,11 +39,11 @@ export function CouponManager({ coupons }: { coupons: C[] }) {
           <label className="label">النوع</label>
           <select className="input !py-2" value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value as "percent" | "amount" })}>
             <option value="percent">نسبة %</option>
-            <option value="amount">مبلغ €</option>
+            <option value="amount">مبلغ DH</option>
           </select>
         </div>
         <div><label className="label">القيمة</label><input required className="input !py-2" inputMode="decimal" dir="ltr" value={form.value} onChange={(e) => setForm({ ...form, value: e.target.value })} /></div>
-        <div><label className="label">حد أدنى للطلب (€)</label><input className="input !py-2" inputMode="decimal" dir="ltr" value={form.min} onChange={(e) => setForm({ ...form, min: e.target.value })} /></div>
+        <div><label className="label">حد أدنى للطلب (DH)</label><input className="input !py-2" inputMode="decimal" dir="ltr" value={form.min} onChange={(e) => setForm({ ...form, min: e.target.value })} /></div>
         <div><label className="label">أقصى استخدام</label><input className="input !py-2" inputMode="numeric" dir="ltr" value={form.max} placeholder="غير محدود" onChange={(e) => setForm({ ...form, max: e.target.value })} /></div>
         <button type="submit" disabled={pending} className="btn btn-brand btn-sm">إضافة</button>
         {error && <p role="alert" className="text-sm font-medium text-hot sm:col-span-6">{error}</p>}

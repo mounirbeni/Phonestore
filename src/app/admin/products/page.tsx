@@ -1,3 +1,4 @@
+import { requirePerm } from "@/lib/auth";
 import Link from "next/link";
 import { and, asc, count, desc, eq, ilike, or, sql, type SQL } from "drizzle-orm";
 import { Plus } from "lucide-react";
@@ -15,6 +16,7 @@ const PER = 25;
 type Props = { searchParams: Promise<{ q?: string; page?: string }> };
 
 export default async function ProductsPage({ searchParams }: Props) {
+  await requirePerm("catalog");
   const sp = await searchParams;
   const q = sp.q?.trim().slice(0, 60);
   const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);

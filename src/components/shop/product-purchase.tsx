@@ -35,11 +35,14 @@ type Props = {
   art: ArtKind;
   variants: V[];
   warrantyMonths: number;
+  /** Heading for the variant chips; empty falls back to "Capacité". */
+  optionLabel?: string;
   isNew: boolean;
   condition: "new" | "used";
+  conditionNote?: string;
 };
 
-export function ProductPurchase({ slug, name, brand, images, art, variants, warrantyMonths, isNew, condition }: Props) {
+export function ProductPurchase({ slug, name, brand, images, art, variants, warrantyMonths, optionLabel, isNew, condition, conditionNote }: Props) {
   const { locale, d } = useI18n();
   const cart = useCart();
   const router = useRouter();
@@ -161,8 +164,8 @@ export function ProductPurchase({ slug, name, brand, images, art, variants, warr
                 className="flex h-full snap-x snap-mandatory overflow-x-auto scrollbar-none lg:hidden"
               >
                 {images.map((src, i) => (
-                  <li key={src} className="h-full w-full shrink-0 snap-center p-6">
-                    <ProductVisual image={src} art={art} color={selected.colorHex} alt={`${name} ${i + 1}`} eager={i === 0} />
+                  <li key={src} className="h-full w-full shrink-0 snap-center">
+                    <ProductVisual image={src} art={art} color={selected.colorHex} alt={`${name} ${i + 1}`} eager={i === 0} fit="cover" />
                   </li>
                 ))}
               </ul>
@@ -171,18 +174,18 @@ export function ProductPurchase({ slug, name, brand, images, art, variants, warr
                   <span key={i} className={cn("h-1.5 rounded-full transition-all", i === slide ? "w-5 bg-fg" : "w-1.5 bg-fg/30")} />
                 ))}
               </div>
-              <div className="hidden h-full p-10 lg:block">
-                <ProductVisual image={images[imgIdx]} art={art} color={selected.colorHex} alt={name} eager className="transition duration-500" />
+              <div className="hidden h-full lg:block">
+                <ProductVisual image={images[imgIdx]} art={art} color={selected.colorHex} alt={name} eager fit="cover" className="transition duration-500" />
               </div>
             </>
           ) : (
-            <div className="h-full p-6 sm:p-10">
-              <ProductVisual image={images[0]} art={art} color={selected.colorHex} alt={name} eager className="transition duration-500" />
+            <div className={images.length ? "h-full" : "h-full p-6 sm:p-10"}>
+              <ProductVisual image={images[0]} art={art} color={selected.colorHex} alt={name} eager fit="cover" className="transition duration-500" />
             </div>
           )}
           <div className="pointer-events-none absolute start-4 top-4 flex flex-col items-start gap-1.5">
             {pct > 0 && <span className="chip bg-hot text-white" dir="ltr">-{pct}%</span>}
-            {condition === "used" && <span className="chip bg-warn-50 text-warn">{d.condition.used}</span>}
+            <span className={cn("chip", condition === "used" ? "bg-warn-50 text-warn" : "bg-ok-50 text-ok")}>{condition === "used" ? conditionNote || d.condition.used : d.condition.new}</span>
             {isNew && <span className="chip bg-ink text-white">{d.common.new}</span>}
           </div>
         </div>
@@ -220,7 +223,7 @@ export function ProductPurchase({ slug, name, brand, images, art, variants, warr
         <p className="mt-1 text-xs text-muted">{d.common.vatIncluded}</p>
         <div className="mt-4 flex flex-wrap items-center gap-2">
           {stockLabel}
-          {condition === "used" && <span className="chip bg-warn-50 text-warn">{d.condition.used} · {d.condition.usedText}</span>}
+          {condition === "used" && <span className="chip bg-warn-50 text-warn">{conditionNote || d.condition.used} · {d.condition.usedText}</span>}
         </div>
 
         {colors.length > 1 && (
@@ -257,7 +260,7 @@ export function ProductPurchase({ slug, name, brand, images, art, variants, warr
 
         {storages.length > 0 && (
           <div className="mt-6">
-            <p className="mb-3 text-sm font-semibold">{d.product.selectStorage}</p>
+            <p className="mb-3 text-sm font-semibold">{optionLabel || d.product.selectStorage}</p>
             <ul className="flex flex-wrap gap-2.5" role="radiogroup" aria-label={d.common.storage}>
               {storages.map((s) => {
                 const active = s === selected.storage;
