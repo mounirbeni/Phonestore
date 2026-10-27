@@ -60,7 +60,7 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <div className="container-x pb-6 pt-3 lg:pb-0 lg:pt-8">
         <nav aria-label="Breadcrumb" className="mb-6 hidden flex-wrap items-center gap-1.5 text-sm text-muted lg:flex">
           <Link href={localePath(locale)} className="hover:text-fg">{d.product.breadcrumbHome}</Link>

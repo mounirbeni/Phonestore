@@ -8,7 +8,7 @@ import { getCategoryTree } from "@/db/queries";
 import { getDictionary } from "@/lib/dictionary";
 import { dirOf, isLocale, locales } from "@/lib/i18n";
 import { Providers } from "@/components/providers";
-import { getCustomerId } from "@/lib/customer-auth";
+import { hasCustomerSession } from "@/lib/customer-auth";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { CartDrawer } from "@/components/cart/cart-drawer";
@@ -50,7 +50,7 @@ export default async function LocaleLayout({ children, params }: { children: Rea
   return (
     <html lang={locale} dir={dirOf(locale)} data-theme="dark">
       <body className="min-h-screen antialiased">
-        <Providers locale={locale} d={d} signedIn={(await getCustomerId()) != null}>
+        <Providers locale={locale} d={d} signedIn={await hasCustomerSession()}>
           <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-4 focus:z-[100] focus:rounded-xl focus:bg-ink focus:px-4 focus:py-2 focus:text-white">
             {d.nav.skip}
           </a>

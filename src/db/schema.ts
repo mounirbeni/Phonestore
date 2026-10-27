@@ -166,6 +166,8 @@ export const staff = pgTable("staff", {
   role: text("role").$type<StaffRole>().notNull(),
   phone: text("phone").notNull().default(""),
   active: boolean("active").notNull().default(true),
+  /** Bumped when the password changes so older sessions stop working. */
+  sessionVersion: integer("session_version").notNull().default(0),
   lastLoginAt: timestamp("last_login_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
@@ -177,6 +179,8 @@ export const customers = pgTable("customers", {
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
   phone: text("phone").notNull().default(""),
+  /** Bumped when the password changes so older sessions stop working. */
+  sessionVersion: integer("session_version").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -256,3 +260,14 @@ export type Variant = typeof variants.$inferSelect;
 export type Order = typeof orders.$inferSelect;
 export type OrderItem = typeof orderItems.$inferSelect;
 export type Coupon = typeof coupons.$inferSelect;
+
+/** One row per attempt at a rate-limited action (sign-in, order, lookup); old rows are pruned as they expire. */
+export const rateHits = pgTable(
+  "rate_hits",
+  {
+    id: serial("id").primaryKey(),
+    key: text("key").notNull(),
+    at: timestamp("at").notNull().defaultNow(),
+  },
+  (t) => [index("rate_hits_key_at_idx").on(t.key, t.at)],
+);

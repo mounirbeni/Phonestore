@@ -13,7 +13,8 @@ export const checkoutSchema = z.object({
   address: z.string().trim().min(3).max(160),
   address2: z.string().trim().max(160).default(""),
   city: z.string().trim().min(1).max(80),
-  postalCode: z.string().trim().min(3).max(12),
+  // Optional: many customers paying on delivery do not know their postal code.
+  postalCode: z.string().trim().max(12).default(""),
   country: z.enum(countryCodes),
   shippingMethod: z.enum(store.shippingMethods.map((m) => m.id) as [string, ...string[]]),
   couponCode: z.string().trim().max(40).optional(),

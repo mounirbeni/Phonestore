@@ -6,7 +6,6 @@ import { ShoppingBag } from "lucide-react";
 import { useCart, useI18n } from "@/components/providers";
 import { refreshCart } from "@/app/actions/shop";
 import { CartLineItem } from "./cart-line";
-import { ShippingProgress } from "./shipping-progress";
 import { localePath } from "@/lib/i18n";
 import { formatPrice } from "@/lib/money";
 import { fmt } from "@/lib/utils";
@@ -79,7 +78,6 @@ export function CartView() {
       </div>
       <aside className="h-fit space-y-4 rounded-3xl border border-line bg-surface p-5 sm:p-6 lg:sticky lg:top-36">
         <h2 className="text-lg font-bold">{d.cart.summary}</h2>
-        <ShippingProgress subtotal={cart.subtotal} />
         <dl className="space-y-2.5 text-sm">
           <div className="flex justify-between">
             <dt className="text-muted">{fmt(d.cart.items, { n: cart.count })}</dt>

@@ -10,6 +10,7 @@ import { countryCodes } from "@/config/store";
 import { getCustomerId, signInCustomer, signOutCustomer } from "@/lib/customer-auth";
 import { isLocale, localePath, type Locale } from "@/lib/i18n";
 import { failDelay, hashPassword, verifyPassword } from "@/lib/password";
+import { allowAll, clientIp } from "@/lib/rate-limit";
 
 type FormState = { error?: string; ok?: boolean } | undefined;
 
@@ -36,13 +37,14 @@ export async function register(_prev: FormState, f: FormData): Promise<FormState
     .safeParse(Object.fromEntries(["email", "password", "firstName", "lastName", "phone"].map((k) => [k, String(f.get(k) ?? "")])));
   if (!parsed.success) return { error: String(parsed.error.issues[0]?.path[0] ?? "form") };
   const v = parsed.data;
+  if (!(await allowAll([[`register:ip:${await clientIp()}`, 5, 3600]]))) return { error: "rate" };
   const [exists] = await db.select({ id: customers.id }).from(customers).where(eq(customers.email, v.email)).limit(1);
   if (exists) return { error: "taken" };
   const [c] = await db
     .insert(customers)
     .values({ email: v.email, passwordHash: await hashPassword(v.password), firstName: v.firstName, lastName: v.lastName, phone: v.phone })
-    .returning({ id: customers.id });
-  await signInCustomer(c.id);
+    .returning({ id: customers.id, sessionVersion: customers.sessionVersion });
+  await signInCustomer(c.id, c.sessionVersion);
   redirect(safeNext(f, locale));
 }
 
@@ -50,12 +52,14 @@ export async function signIn(_prev: FormState, f: FormData): Promise<FormState> 
   const locale = locOf(f);
   const e = email.safeParse(String(f.get("email") ?? ""));
   const pw = String(f.get("password") ?? "");
+  const ip = await clientIp();
+  if (!(await allowAll([[`signin:ip:${ip}`, 20, 900], [`signin:email:${e.success ? e.data : "-"}`, 8, 900]]))) return { error: "rate" };
   const [c] = e.success ? await db.select().from(customers).where(eq(customers.email, e.data)).limit(1) : [];
   if (!c || !(await verifyPassword(pw, c.passwordHash))) {
     await failDelay();
     return { error: "credentials" };
   }
-  await signInCustomer(c.id);
+  await signInCustomer(c.id, c.sessionVersion);
   redirect(safeNext(f, locale));
 }
 
@@ -87,12 +91,19 @@ export async function changePassword(_prev: FormState, f: FormData): Promise<For
   const id = await me();
   const next = password.safeParse(String(f.get("next") ?? ""));
   if (!next.success) return { error: "password" };
+  if (!(await allowAll([[`password:customer:${id}`, 10, 900]]))) return { error: "rate" };
   const [c] = await db.select().from(customers).where(eq(customers.id, id)).limit(1);
   if (!c || !(await verifyPassword(String(f.get("current") ?? ""), c.passwordHash))) {
     await failDelay();
     return { error: "current" };
   }
-  await db.update(customers).set({ passwordHash: await hashPassword(next.data) }).where(eq(customers.id, id));
+  // A new session version signs out every other device; this one gets a fresh cookie.
+  const [u] = await db
+    .update(customers)
+    .set({ passwordHash: await hashPassword(next.data), sessionVersion: c.sessionVersion + 1 })
+    .where(eq(customers.id, id))
+    .returning({ sessionVersion: customers.sessionVersion });
+  await signInCustomer(id, u.sessionVersion);
   return { ok: true };
 }
 

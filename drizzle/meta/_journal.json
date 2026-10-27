@@ -43,6 +43,13 @@
       "when": 1793099760157,
       "tag": "0005_accounts_and_team",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793135348545,
+      "tag": "0006_security_rate_limits_sessions",
+      "breakpoints": true
     }
   ]
 }

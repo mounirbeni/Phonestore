@@ -35,7 +35,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
 
       {/* Hero */}
       <section className="container-x pt-2 sm:pt-6">
@@ -73,7 +73,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             <ul className="mt-6 grid gap-2.5 text-[0.82rem] text-white/80 sm:mt-12 sm:inline-flex sm:flex-wrap sm:gap-x-6 sm:rounded-2xl sm:border sm:border-white/10 sm:bg-black/40 sm:px-5 sm:py-3.5 sm:text-sm sm:backdrop-blur-md">
               <li className="flex items-center gap-2"><Banknote className="h-4.5 w-4.5 text-[#ff4d5e]" aria-hidden="true" />{d.announcement.cod}</li>
               <li className="flex items-center gap-2"><BadgeCheck className="h-4.5 w-4.5 text-[#ff4d5e]" aria-hidden="true" />{d.announcement.warranty}</li>
-              <li className="flex items-center gap-2"><Truck className="h-4.5 w-4.5 text-[#ff4d5e]" aria-hidden="true" />{fmt(d.announcement.shipping, { amount: formatPrice(store.freeShippingThreshold, locale) })}</li>
             </ul>
           </div>
         </div>

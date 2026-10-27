@@ -63,21 +63,21 @@ export default async function Dashboard() {
       </ul>
 
       <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
-        <section className="rounded-2xl border border-line bg-white p-5">
-          <div className="flex items-baseline justify-between">
+        <section className="min-w-0 rounded-2xl border border-line bg-white p-5">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
             <h2 className="font-bold">المبيعات اليومية (آخر 14 يومًا)</h2>
             <span className="text-xs text-muted">اليوم: {eur(Number(today?.revenue ?? 0))} · {today?.n ?? 0} طلب</span>
           </div>
           {daily.length === 0 ? (
             <p className="py-12 text-center text-sm text-muted">لا توجد مبيعات بعد</p>
           ) : (
-            <ul className="mt-6 flex h-48 items-end gap-2" dir="ltr">
+            <ul className="mt-6 flex h-48 items-end gap-1 sm:gap-2" dir="ltr">
               {daily.map((d) => {
                 const v = Number(d.revenue ?? 0);
                 return (
-                  <li key={d.day} className="flex h-full flex-1 flex-col items-center justify-end gap-1.5" title={`${d.day}: ${eur(v)}`}>
+                  <li key={d.day} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1.5" title={`${d.day}: ${eur(v)}`}>
                     <div className="w-full max-w-14 rounded-t-lg bg-brand/85 transition hover:bg-brand" style={{ height: `${Math.max(4, (v / maxDay) * 100)}%` }} />
-                    <span className="text-[0.6rem] text-muted">{d.day}</span>
+                    <span className="text-[0.6rem] text-muted">{String(d.day).slice(-2)}</span>
                   </li>
                 );
               })}
@@ -85,7 +85,7 @@ export default async function Dashboard() {
           )}
         </section>
 
-        <section className="rounded-2xl border border-line bg-white p-5">
+        <section className="min-w-0 rounded-2xl border border-line bg-white p-5">
           <h2 className="flex items-center gap-2 font-bold"><AlertTriangle className="h-4.5 w-4.5 text-[#b26a00]" aria-hidden="true" />مخزون منخفض</h2>
           {lowStock.length === 0 ? (
             <p className="py-10 text-center text-sm text-muted">المخزون كافٍ لجميع المنتجات</p>

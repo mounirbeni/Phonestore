@@ -37,6 +37,7 @@ export const fr = {
     required: "Obligatoire",
     unavailable: "Indisponible",
     error: "Une erreur est survenue. Veuillez réessayer.",
+    tooMany: "Trop de tentatives. Veuillez patienter quelques minutes puis réessayer.",
     vatIncluded: "TVA incluse",
     save: "Économisez {amount}",
   },
@@ -57,7 +58,6 @@ export const fr = {
     brands: "Marques",
   },
   announcement: {
-    shipping: "Livraison offerte dès {amount}",
     cod: "Paiement à la livraison",
     warranty: "Garantie 2 ans sur tous nos produits",
   },
@@ -159,8 +159,6 @@ export const fr = {
     items: "{n} article(s)",
     checkout: "Passer la commande",
     viewCart: "Voir le panier",
-    freeShippingLeft: "Plus que {amount} pour la livraison offerte",
-    freeShippingReached: "Livraison offerte débloquée !",
     summary: "Récapitulatif",
     stockChanged: "Certains articles ont été mis à jour (prix ou stock).",
     removedUnavailable: "Un article n'est plus disponible et a été retiré.",
@@ -258,7 +256,7 @@ export const fr = {
       title: "Livraison",
       sections: [
         { h: "Zones et délais", p: "Nous livrons partout au Maroc. Les commandes passées avant 15 h sont expédiées sous 24 h ouvrées. Livraison standard : 2 à 4 jours ouvrés. Livraison express : 1 à 2 jours ouvrés." },
-        { h: "Frais de livraison", p: "La livraison standard est offerte dès 500 DH d'achat. En dessous, elle est facturée 30 DH. La livraison express est facturée 50 DH." },
+        { h: "Frais de livraison", p: "La livraison standard est facturée 30 DH. La livraison express est facturée 50 DH." },
         { h: "Paiement à la livraison", p: "Le règlement s'effectue directement auprès du livreur à la réception du colis. Merci de préparer le montant exact indiqué dans votre confirmation de commande." },
         { h: "Suivi", p: "Vous pouvez suivre l'avancement de votre commande à tout moment depuis la page « Suivre ma commande » avec votre numéro de commande et votre e-mail." },
       ],
@@ -380,6 +378,7 @@ export const fr = {
       password: "Le mot de passe doit contenir au moins 8 caractères.",
       current: "Le mot de passe actuel est incorrect.",
       form: "Veuillez vérifier les champs du formulaire.",
+      rate: "Trop de tentatives. Veuillez patienter quelques minutes puis réessayer.",
     },
   },
   brandsPage: {

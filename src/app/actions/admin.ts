@@ -20,6 +20,7 @@ import {
 } from "@/db/schema";
 import { checkPassword, createSession, destroySession, homeFor, requirePerm, type Member } from "@/lib/auth";
 import { failDelay, verifyPassword } from "@/lib/password";
+import { allowAll, clientIp } from "@/lib/rate-limit";
 import { CATEGORY_ICONS } from "@/lib/category-icons";
 import { slugify } from "@/lib/utils";
 
@@ -31,6 +32,9 @@ const refresh = () => revalidatePath("/admin", "layout");
 export async function login(_prev: { error?: string } | undefined, formData: FormData) {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
+  if (!(await allowAll([[`admin:ip:${await clientIp()}`, 10, 900], [`admin:email:${email || "owner"}`, 10, 900]]))) {
+    return { error: "محاولات كثيرة. انتظر 15 دقيقة ثم حاول مجددًا." };
+  }
   if (!email) {
     if (!checkPassword(password)) {
       await failDelay();
@@ -45,7 +49,7 @@ export async function login(_prev: { error?: string } | undefined, formData: For
     return { error: "البريد الإلكتروني أو كلمة المرور غير صحيحة" };
   }
   await db.update(staff).set({ lastLoginAt: new Date() }).where(eq(staff.id, m.id));
-  await createSession(m.id);
+  await createSession(m.id, m.sessionVersion);
   redirect(homeFor(m.role));
 }
 

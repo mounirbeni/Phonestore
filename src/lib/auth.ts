@@ -52,8 +52,9 @@ export function checkPassword(input: string) {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-export async function createSession(sid: number | null) {
-  const token = await new SignJWT({ sid: sid ?? 0 })
+/** `version` is the staff account's session version (0 for the owner); a password change bumps it. */
+export async function createSession(sid: number | null, version = 0) {
+  const token = await new SignJWT({ sid: sid ?? 0, sv: version })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(`${MAX_AGE}s`)
@@ -79,8 +80,12 @@ export async function getMember(): Promise<Member | null> {
     const { payload } = await jwtVerify(token, secret());
     const sid = Number(payload.sid ?? 0);
     if (!sid) return { id: null, name: "المالك", role: "owner" };
-    const [row] = await db.select({ id: staff.id, name: staff.name, role: staff.role, active: staff.active }).from(staff).where(eq(staff.id, sid)).limit(1);
-    return row?.active ? { id: row.id, name: row.name, role: row.role } : null;
+    const [row] = await db
+      .select({ id: staff.id, name: staff.name, role: staff.role, active: staff.active, sessionVersion: staff.sessionVersion })
+      .from(staff)
+      .where(eq(staff.id, sid))
+      .limit(1);
+    return row?.active && row.sessionVersion === Number(payload.sv ?? 0) ? { id: row.id, name: row.name, role: row.role } : null;
   } catch {
     return null;
   }

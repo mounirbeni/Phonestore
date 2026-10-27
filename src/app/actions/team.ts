@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq, ne } from "drizzle-orm";
+import { and, eq, ne, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/db";
@@ -31,7 +31,8 @@ export async function saveMember(input: z.input<typeof memberSchema>): Promise<{
     .limit(1);
   if (clash) return { ok: false, error: "هذا البريد الإلكتروني مستخدم لعضو آخر" };
   const values = { name: m.name, email: m.email, phone: m.phone, role: m.role, ...(m.password ? { passwordHash: await hashPassword(m.password) } : {}) };
-  if (m.id) await db.update(staff).set(values).where(eq(staff.id, m.id));
+  // Any edit by the owner (password, role, e-mail) signs the member out so the change applies at once.
+  if (m.id) await db.update(staff).set({ ...values, sessionVersion: sql`${staff.sessionVersion} + 1` }).where(eq(staff.id, m.id));
   else await db.insert(staff).values({ ...values, passwordHash: values.passwordHash! });
   revalidatePath("/admin", "layout");
   return { ok: true };

@@ -2,8 +2,6 @@ export const store = {
   name: process.env.NEXT_PUBLIC_STORE_NAME ?? "ElectroSalam",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   currency: "MAD",
-  /** Orders at or above this subtotal (in cents) ship for free (standard shipping). */
-  freeShippingThreshold: 50000,
   /** Highest quantity of a single variant per order. */
   maxQtyPerLine: 10,
   /** Categories that first ask "new or used?" and then the brand. */

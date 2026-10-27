@@ -5,7 +5,6 @@ import { useEffect } from "react";
 import { ShoppingBag, X } from "lucide-react";
 import { useCart, useI18n } from "@/components/providers";
 import { CartLineItem } from "./cart-line";
-import { ShippingProgress } from "./shipping-progress";
 import { localePath } from "@/lib/i18n";
 import { formatPrice } from "@/lib/money";
 import { fmt } from "@/lib/utils";
@@ -58,10 +57,7 @@ export function CartDrawer() {
         ) : (
           <>
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5">
-              <div className="pt-4">
-                <ShippingProgress subtotal={cart.subtotal} />
-              </div>
-              <ul className="divide-y divide-line">
+              <ul className="divide-y divide-line pt-2">
                 {cart.lines.map((l) => (
                   <CartLineItem key={l.variantId} line={l} onNavigate={close} />
                 ))}
