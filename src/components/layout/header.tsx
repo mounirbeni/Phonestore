@@ -1,10 +1,7 @@
 import Link from "next/link";
 import { Search } from "lucide-react";
-import { store } from "@/config/store";
 import type { Dict } from "@/lib/dictionary";
 import { localePath, pick, type Locale } from "@/lib/i18n";
-import { formatPrice } from "@/lib/money";
-import { fmt } from "@/lib/utils";
 import { Logo } from "./logo";
 import { HeaderActions } from "./header-actions";
 import { MobileSearch } from "./mobile-search";
@@ -38,24 +35,9 @@ function SearchForm({ locale, d, className, id }: { locale: Locale; d: Dict; cla
 }
 
 export function Header({ locale, d, categories }: { locale: Locale; d: Dict; categories: Cat[] }) {
-  const items = [
-    fmt(d.announcement.shipping, { amount: formatPrice(store.freeShippingThreshold, locale) }),
-    d.announcement.cod,
-    d.announcement.warranty,
-  ];
   return (
     <>
-      <div className="bg-ink pt-[env(safe-area-inset-top)] text-white">
-        <div className="container-x flex h-9 items-center justify-center gap-6 overflow-hidden text-xs font-medium">
-          {items.map((t, i) => (
-            <span key={t} className={i === 0 ? "truncate" : "hidden sm:inline"}>
-              {i > 0 && <span className="me-6 hidden text-white/30 sm:inline">•</span>}
-              {t}
-            </span>
-          ))}
-        </div>
-      </div>
-      <header className="sticky top-0 z-40 border-b border-line bg-surface/90 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-line bg-surface/90 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
         <div className="container-x flex h-14 items-center gap-3 sm:h-16 lg:gap-6">
           <Logo locale={locale} />
           <SearchForm id="site-search" locale={locale} d={d} className="mx-auto hidden w-full max-w-xl md:block" />
