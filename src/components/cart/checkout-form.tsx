@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Banknote, Check, Lock, Tag } from "lucide-react";
+import { Check, Landmark, Lock, Tag } from "lucide-react";
 import { useCart, useI18n } from "@/components/providers";
 import { placeOrder, validateCoupon } from "@/app/actions/shop";
 import { useCartSync } from "./cart-view";
@@ -11,7 +11,7 @@ import { ProductVisual } from "@/components/ui/product-visual";
 import { store } from "@/config/store";
 import { localePath, pick } from "@/lib/i18n";
 import { formatPrice } from "@/lib/money";
-import { shippingCost } from "@/lib/pricing";
+import { depositFor, shippingCost } from "@/lib/pricing";
 import { cn, fmt } from "@/lib/utils";
 
 function Section({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
@@ -68,6 +68,7 @@ export function CheckoutForm({ prefill = {} }: { prefill?: CheckoutPrefill }) {
   const discount = coupon?.discount ?? 0;
   const ship = shippingCost(method) ?? 0;
   const total = cart.subtotal - discount + ship;
+  const deposit = depositFor(total);
 
   const field = useMemo(
     () => (name: string) => ({
@@ -241,14 +242,14 @@ export function CheckoutForm({ prefill = {} }: { prefill?: CheckoutPrefill }) {
         <Section n={4} title={d.checkout.payment}>
           <div className="flex items-start gap-4 rounded-2xl border-2 border-fg bg-mist/60 p-4">
             <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-ink text-white">
-              <Banknote className="h-5.5 w-5.5" aria-hidden="true" />
+              <Landmark className="h-5.5 w-5.5" aria-hidden="true" />
             </span>
             <div className="flex-1">
               <p className="flex items-center gap-2 font-semibold">
                 {d.checkout.cod}
                 <Check className="h-4 w-4 text-ok" aria-hidden="true" />
               </p>
-              <p className="mt-1 text-sm text-muted">{fmt(d.checkout.codText, { amount: formatPrice(total, locale) })}</p>
+              <p className="mt-1 text-sm text-muted">{fmt(d.checkout.codText, { deposit: formatPrice(deposit, locale), rest: formatPrice(total - deposit, locale) })}</p>
             </div>
           </div>
         </Section>
@@ -321,6 +322,18 @@ export function CheckoutForm({ prefill = {} }: { prefill?: CheckoutPrefill }) {
             <dt>{d.common.total}</dt>
             <dd className="tabular-nums" dir="ltr">{formatPrice(total, locale)}</dd>
           </div>
+          {deposit > 0 && (
+            <>
+              <div className="flex justify-between">
+                <dt className="text-muted">{d.checkout.deposit}</dt>
+                <dd className="font-semibold tabular-nums" dir="ltr">{formatPrice(deposit, locale)}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted">{d.checkout.rest}</dt>
+                <dd className="font-semibold tabular-nums" dir="ltr">{formatPrice(total - deposit, locale)}</dd>
+              </div>
+            </>
+          )}
         </dl>
 
         {error && <p id="checkout-error" role="alert" className="rounded-2xl bg-hot-50 px-4 py-3 text-sm font-medium text-hot">{error}</p>}

@@ -6,6 +6,7 @@ import { requirePerm } from "@/lib/auth";
 import { dateTime, eur, statusChip, statusLabel } from "@/lib/admin-ui";
 import { cn } from "@/lib/utils";
 import { DeliveryActions } from "@/components/admin/delivery-actions";
+import { dueOnDelivery } from "@/lib/pricing";
 
 export const metadata = { title: "توصيلاتي" };
 
@@ -18,7 +19,7 @@ export default async function DeliveriesPage() {
     db.select().from(orders).where(and(eq(orders.driverId, me.id!), inArray(orders.status, ["delivered", "cancelled"]))).orderBy(desc(orders.createdAt)).limit(15),
   ]);
   const items = open.length ? await db.select().from(orderItems).where(inArray(orderItems.orderId, open.map((o) => o.id))) : [];
-  const toCollect = open.reduce((n, o) => n + o.total, 0);
+  const toCollect = open.reduce((n, o) => n + dueOnDelivery(o), 0);
 
   return (
     <div className="mx-auto max-w-3xl space-y-5">
@@ -36,9 +37,9 @@ export default async function DeliveriesPage() {
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-extrabold" dir="ltr">{o.number}</span>
                 <span className={cn("chip", statusChip[o.status])}>{statusLabel[o.status]}</span>
-                <span className="ms-auto text-lg font-extrabold tabular-nums" dir="ltr">{eur(o.total)}</span>
+                <span className="ms-auto text-lg font-extrabold tabular-nums" dir="ltr">{eur(dueOnDelivery(o))}</span>
               </div>
-              <p className="mt-0.5 text-end text-xs text-muted">يُحصَّل نقدًا عند التسليم</p>
+              <p className="mt-0.5 text-end text-xs text-muted">يُحصَّل نقدًا عند التسليم{o.depositPaidAt && o.deposit > 0 ? ` (بعد خصم تسبيق ${eur(o.deposit)})` : ""}</p>
               <p className="mt-3 font-semibold">{o.firstName} {o.lastName}</p>
               <p className="mt-1 flex items-start gap-2 text-sm text-ink-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted" aria-hidden="true" />{o.address}{o.address2 ? `، ${o.address2}` : ""} — {o.city} {o.postalCode}</p>
               <div className="mt-3 flex flex-wrap gap-2">

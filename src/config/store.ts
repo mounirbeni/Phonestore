@@ -7,9 +7,16 @@ export const store = {
   /** Categories that first ask "new or used?" and then the brand. */
   conditionCategories: ["telephones"] as string[],
   shippingMethods: [
-    { id: "standard", cents: 3000, minDays: 2, maxDays: 4 },
+    { id: "standard", cents: 3000, minDays: 1, maxDays: 3 },
     { id: "express", cents: 5000, minDays: 1, maxDays: 2 },
   ],
+  /** Fixed advance paid by bank transfer to confirm an order; the rest is paid in cash on delivery. */
+  deposit: {
+    cents: 10000,
+    bank: process.env.NEXT_PUBLIC_BANK_NAME ?? "",
+    holder: process.env.NEXT_PUBLIC_BANK_HOLDER ?? "",
+    rib: process.env.NEXT_PUBLIC_BANK_RIB ?? "",
+  },
   countries: [{ code: "MA", fr: "Maroc", ar: "المغرب" }],
 
   contact: {
@@ -21,7 +28,7 @@ export const store = {
       { city: { fr: "Casablanca", ar: "الدار البيضاء" }, line: "All. des Mimosas, Casablanca 20590", locality: "Casablanca", postalCode: "20590" },
       {
         city: { fr: "Marrakech", ar: "مراكش" },
-        line: "Résidence Aya, Boulevard Mohammed Abdelkrim El Khattabi, Marrakech 40000",
+        line: "Résidence Aya, Boulevard Mohammed Abdelkarim El Khattabi, Marrakech 40000",
         locality: "Marrakech",
         postalCode: "40000",
       },

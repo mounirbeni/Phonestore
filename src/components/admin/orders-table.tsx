@@ -23,7 +23,7 @@ export function OrdersTable({ rows }: { rows: Order[] }) {
               <td className="px-5 py-3 font-semibold"><Link href={`/admin/orders/${o.id}`} className="text-brand hover:underline" dir="ltr">{o.number}</Link></td>
               <td className="px-3 py-3">{o.firstName} {o.lastName}</td>
               <td className="hidden px-3 py-3 text-muted sm:table-cell">{dateTime(o.createdAt)}</td>
-              <td className="px-3 py-3"><span className={cn("chip", statusChip[o.status])}>{statusLabel[o.status]}</span></td>
+              <td className="px-3 py-3"><span className={cn("chip", statusChip[o.status])}>{o.status === "pending" && o.deposit > 0 && !o.depositPaidAt ? "بانتظار التسبيق" : statusLabel[o.status]}</span></td>
               <td className="px-5 py-3 font-semibold tabular-nums" dir="ltr" style={{ textAlign: "right" }}>{eur(o.total)}</td>
             </tr>
           ))}

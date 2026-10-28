@@ -158,7 +158,11 @@ export function ProductForm({ initial, categories }: { initial: ProductFormIniti
           </div>
           <div>
             <label className="label" htmlFor="condition">حالة المنتج</label>
-            <select id="condition" className="input" value={f.condition} onChange={(e) => set("condition", e.target.value as "new" | "used")}>
+            <select id="condition" className="input" value={f.condition} onChange={(e) => {
+                const condition = e.target.value as "new" | "used";
+                // Store warranty: 12 months new, 1 month used; a custom value is kept.
+                setF((p) => ({ ...p, condition, warrantyMonths: p.warrantyMonths === 12 || p.warrantyMonths === 1 ? (condition === "used" ? 1 : 12) : p.warrantyMonths }));
+              }}>
               <option value="new">جديد</option>
               <option value="used">مستعمل</option>
             </select>

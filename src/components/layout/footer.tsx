@@ -4,6 +4,7 @@ import { store } from "@/config/store";
 import type { Dict } from "@/lib/dictionary";
 import { localePath, pick, type Locale } from "@/lib/i18n";
 import { Logo } from "./logo";
+import { NewsletterForm } from "./newsletter-form";
 
 type Cat = { slug: string; nameFr: string; nameAr: string };
 
@@ -53,10 +54,12 @@ export function Footer({ locale, d, categories }: { locale: Locale; d: Dict; cat
               ["track", d.nav.track],
               ["info/shipping", d.footer.shipping],
               ["info/returns", d.footer.returns],
+              ["info/faq", d.footer.faq],
               ["info/contact", d.footer.contact],
               ["info/about", d.footer.aboutUs],
               ["info/privacy", d.footer.privacy],
               ["info/terms", d.footer.terms],
+              ["info/usage", d.footer.usage],
             ].map(([href, label]) => (
               <li key={href}>
                 <Link href={localePath(locale, `/${href}`)} className={link}>
@@ -87,6 +90,11 @@ export function Footer({ locale, d, categories }: { locale: Locale; d: Dict; cat
               </li>
             ))}
           </ul>
+        </div>
+      </div>
+      <div className="border-t border-white/10">
+        <div className="container-x py-8">
+          <NewsletterForm locale={locale} d={d.footer} />
         </div>
       </div>
       <div className="border-t border-white/10">

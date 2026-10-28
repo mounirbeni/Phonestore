@@ -5,7 +5,7 @@ import { store } from "@/config/store";
 import { getDictionary } from "@/lib/dictionary";
 import { isLocale, localePath, pick } from "@/lib/i18n";
 
-const SLUGS = ["shipping", "returns", "privacy", "terms", "about", "contact"] as const;
+const SLUGS = ["shipping", "returns", "privacy", "terms", "usage", "faq", "about", "contact"] as const;
 type Slug = (typeof SLUGS)[number];
 type Props = { params: Promise<{ locale: string; slug: string }> };
 

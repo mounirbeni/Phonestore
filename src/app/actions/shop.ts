@@ -8,7 +8,7 @@ import { getCustomerId } from "@/lib/customer-auth";
 import { getCartVariants, getProductsBySlugs } from "@/db/queries";
 import { store } from "@/config/store";
 import { artKind } from "@/lib/art";
-import { couponDiscount, shippingCost } from "@/lib/pricing";
+import { couponDiscount, depositFor, shippingCost } from "@/lib/pricing";
 import { isolateLtr, randomToken } from "@/lib/utils";
 import { checkoutSchema, type CheckoutInput } from "@/lib/validation";
 import { sendOrderEmails } from "@/lib/mail";
@@ -90,7 +90,7 @@ export async function placeOrder(input: CheckoutInput): Promise<PlaceOrderResult
     return { ok: false, error: "invalid", fields: [...new Set(parsed.error.issues.map((i) => String(i.path[0])))] };
   }
   const data = parsed.data;
-  // Cash-on-delivery orders cost nothing to place, so cap them per network to stop fake orders draining stock.
+  // Orders cost nothing to place (the advance is paid later by transfer), so cap them per network to stop fake orders draining stock.
   if (!(await allowAll([[`order:ip:${await clientIp()}`, 8, 3600], [`order:phone:${data.phone.replace(/\D/g, "")}`, 5, 3600]]))) {
     return { ok: false, error: "rate" };
   }
@@ -163,6 +163,7 @@ export async function placeOrder(input: CheckoutInput): Promise<PlaceOrderResult
           discount,
           shippingCost: ship,
           total,
+          deposit: depositFor(total),
           customerNote: data.note,
           customerId,
         })

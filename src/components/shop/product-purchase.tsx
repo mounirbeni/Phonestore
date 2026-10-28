@@ -309,7 +309,7 @@ export function ProductPurchase({ slug, name, brand, images, art, variants, warr
           <li className="flex items-center gap-3"><Banknote className="h-5 w-5 text-brand" aria-hidden="true" />{d.product.deliveryCod}</li>
           <li className="flex items-center gap-3"><Truck className="h-5 w-5 text-brand" aria-hidden="true" />{d.product.deliveryStandard}</li>
           <li className="flex items-center gap-3"><RotateCcw className="h-5 w-5 text-brand" aria-hidden="true" />{d.product.deliveryReturn}</li>
-          <li className="flex items-center gap-3"><BadgeCheck className="h-5 w-5 text-brand" aria-hidden="true" />{fmt(d.product.deliveryWarranty, { months: warrantyMonths })}</li>
+          <li className="flex items-center gap-3"><BadgeCheck className="h-5 w-5 text-brand" aria-hidden="true" />{warrantyMonths === 1 ? d.product.deliveryWarrantyOne : fmt(d.product.deliveryWarranty, { months: warrantyMonths })}</li>
         </ul>
       </div>
 

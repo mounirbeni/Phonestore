@@ -17,3 +17,13 @@ export function shippingCost(methodId: string) {
   if (!method) return null;
   return method.cents;
 }
+
+/** The advance for an order of `total` (never more than the order itself). */
+export function depositFor(total: number) {
+  return Math.min(store.deposit.cents, total);
+}
+
+/** What the driver collects: the total, less the advance once it has been received. */
+export function dueOnDelivery(order: { total: number; deposit: number; depositPaidAt: Date | null }) {
+  return order.total - (order.depositPaidAt ? order.deposit : 0);
+}

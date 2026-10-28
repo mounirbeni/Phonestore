@@ -9,6 +9,8 @@ import { store } from "@/config/store";
 import { dateTime, eur, statusChip, statusLabel } from "@/lib/admin-ui";
 import { OrderActions } from "@/components/admin/order-actions";
 import { DriverAssign } from "@/components/admin/driver-assign";
+import { DepositBox } from "@/components/admin/deposit-box";
+import { dueOnDelivery } from "@/lib/pricing";
 import { OrderTimeline } from "@/components/admin/order-timeline";
 import { cn } from "@/lib/utils";
 
@@ -60,7 +62,9 @@ export default async function OrderDetail({ params }: Props) {
               <div className="flex justify-between"><dt className="text-muted">المجموع الفرعي</dt><dd dir="ltr">{eur(order.subtotal)}</dd></div>
               {order.discount > 0 && <div className="flex justify-between text-ok"><dt>خصم {order.couponCode ? `(${order.couponCode})` : ""}</dt><dd dir="ltr">−{eur(order.discount)}</dd></div>}
               <div className="flex justify-between"><dt className="text-muted">التوصيل ({shipLabel})</dt><dd dir="ltr">{order.shippingCost === 0 ? "مجاني" : eur(order.shippingCost)}</dd></div>
-              <div className="flex justify-between border-t border-line pt-3 text-base font-extrabold"><dt>المبلغ المطلوب عند الاستلام</dt><dd dir="ltr">{eur(order.total)}</dd></div>
+              <div className="flex justify-between border-t border-line pt-3 text-base font-extrabold"><dt>المجموع</dt><dd dir="ltr">{eur(order.total)}</dd></div>
+              {order.deposit > 0 && <div className="flex justify-between text-muted"><dt>تسبيق بالتحويل {order.depositPaidAt ? "(مستلم)" : "(غير مستلم)"}</dt><dd dir="ltr">−{eur(order.deposit)}</dd></div>}
+              {order.deposit > 0 && <div className="flex justify-between font-bold"><dt>المبلغ المطلوب عند الاستلام</dt><dd dir="ltr">{eur(order.total - order.deposit)}</dd></div>}
             </dl>
           </section>
           <OrderActions id={order.id} status={order.status} note={order.adminNote} />
@@ -68,6 +72,7 @@ export default async function OrderDetail({ params }: Props) {
         </div>
 
         <div className="space-y-6">
+          <DepositBox orderId={order.id} deposit={order.deposit} paidAt={order.depositPaidAt?.toISOString() ?? null} due={dueOnDelivery(order)} status={order.status} />
           <DriverAssign orderId={order.id} driverId={order.driverId} drivers={drivers} />
           <section className="rounded-2xl border border-line bg-white p-5 text-sm">
             <h2 className="mb-3 font-bold">العميل</h2>
@@ -87,9 +92,7 @@ export default async function OrderDetail({ params }: Props) {
             )}
           </section>
           <section className="rounded-2xl border border-line bg-white p-5 text-sm">
-            <h2 className="mb-2 font-bold">الدفع</h2>
-            <p>الدفع عند الاستلام</p>
-            <p className="mt-1 text-xs text-muted">لغة العميل: {order.locale === "ar" ? "العربية" : "الفرنسية"}</p>
+            <p className="text-xs text-muted">لغة العميل: {order.locale === "ar" ? "العربية" : "الفرنسية"}</p>
           </section>
         </div>
       </div>

@@ -66,6 +66,8 @@ type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 async function applyStatus(tx: Tx, orderId: number, status: OrderStatus, by: Member, note = "") {
   const [o] = await tx.select().from(orders).where(eq(orders.id, orderId)).for("update");
   if (!o || o.status === status) return o ?? null;
+  // An order is confirmed by its advance: it cannot move on to delivery until the transfer has arrived.
+  if (o.deposit > 0 && !o.depositPaidAt && status !== "pending" && status !== "cancelled") throw new Error("DEPOSIT");
   const items = await tx.select().from(orderItems).where(eq(orderItems.orderId, orderId));
   const stocked = items.filter((i) => i.variantId != null);
   if (o.status !== "cancelled" && status === "cancelled") {
@@ -94,6 +96,30 @@ export async function updateOrderStatus(orderId: number, status: OrderStatus): P
     await db.transaction((tx) => applyStatus(tx, orderId, status, me));
   } catch (e) {
     if (e instanceof Error && e.message === "STOCK") return { ok: false, error: "المخزون غير كافٍ لإعادة تفعيل هذا الطلب" };
+    if (e instanceof Error && e.message === "DEPOSIT") return { ok: false, error: "لم يُستلم التسبيق بعد: سجّل استلام التحويل أولًا" };
+    throw e;
+  }
+  refresh();
+  return { ok: true };
+}
+
+/** Records (or undoes) the arrival of the bank-transfer advance; a waiting order is then confirmed. */
+export async function setDepositPaid(orderId: number, paid: boolean): Promise<{ ok: boolean; error?: string }> {
+  const me = await requirePerm("orders");
+  try {
+    await db.transaction(async (tx) => {
+      const [o] = await tx.select().from(orders).where(eq(orders.id, orderId)).for("update");
+      if (!o || o.deposit <= 0) throw new Error("NONE");
+      if (!paid && (o.status === "shipped" || o.status === "delivered")) throw new Error("LATE");
+      if (paid === !!o.depositPaidAt) return;
+      await tx.update(orders).set({ depositPaidAt: paid ? new Date() : null }).where(eq(orders.id, orderId));
+      await tx.insert(orderEvents).values({ orderId, kind: "note", note: paid ? "تم استلام التسبيق بالتحويل البنكي" : "أُلغي تسجيل استلام التسبيق", staffId: me.id, by: me.name });
+      if (paid && o.status === "pending") await applyStatus(tx, orderId, "confirmed", me);
+      if (!paid && o.status === "confirmed") await applyStatus(tx, orderId, "pending", me);
+    });
+  } catch (e) {
+    if (e instanceof Error && e.message === "NONE") return { ok: false, error: "هذا الطلب بدون تسبيق" };
+    if (e instanceof Error && e.message === "LATE") return { ok: false, error: "الطلب في التوصيل أو مُسلَّم" };
     throw e;
   }
   refresh();

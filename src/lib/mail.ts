@@ -66,9 +66,33 @@ function orderHtml(order: Order, items: OrderItem[], locale: Locale, intro: stri
 <p><strong>${fmt(d.order.number, { number: order.number })}</strong></p>
 <table style="width:100%;border-collapse:collapse;font-size:14px">${rows}</table>
 <p style="text-align:end;font-size:14px">${d.common.shipping}: ${order.shippingCost === 0 ? d.common.free : formatPrice(order.shippingCost, locale)}${order.discount ? `<br>${d.common.discount}: −${formatPrice(order.discount, locale)}` : ""}</p>
-<p style="text-align:end;font-size:18px"><strong>${d.mail.pay}: ${formatPrice(order.total, locale)}</strong></p>
+<p style="text-align:end;font-size:16px">${d.mail.total}: <strong>${formatPrice(order.total, locale)}</strong>${order.deposit ? `<br>${d.order.deposit}: ${formatPrice(order.deposit, locale)}` : ""}</p>
+<p style="text-align:end;font-size:18px"><strong>${d.mail.pay}: ${formatPrice(order.total - order.deposit, locale)}</strong></p>
+${order.deposit ? depositHtml(order, locale) : ""}
 <p style="font-size:13px;color:#555">${esc(order.firstName)} ${esc(order.lastName)}<br>${esc(order.address)} ${esc(order.address2)}<br>${esc(order.postalCode)} ${esc(order.city)} (${esc(order.country)})<br>${esc(order.phone)}</p>
 ${link ? `<p><a href="${link.href}" style="display:inline-block;background:#0b0d12;color:#fff;padding:12px 20px;border-radius:10px;text-decoration:none">${esc(link.label)}</a></p>` : ""}
+</div>`;
+}
+
+/** How to pay the advance: amount, account and the order number as the transfer reference. */
+function depositHtml(order: Order, locale: Locale) {
+  const d = getDictionary(locale);
+  const amount = formatPrice(order.deposit, locale);
+  const b = store.deposit;
+  const rows = [
+    b.holder && [d.order.holder, esc(b.holder)],
+    b.bank && [d.order.bank, esc(b.bank)],
+    b.rib && [d.order.rib, `<span dir="ltr" style="font-family:monospace;font-size:15px">${esc(b.rib)}</span>`],
+    [d.order.reference, `<span dir="ltr">${esc(order.number)}</span>`],
+  ]
+    .filter((r): r is string[] => !!r)
+    .map(([k, v]) => `<tr><td style="padding:4px 0;color:#555">${k}</td><td style="padding:4px 0"><strong>${v}</strong></td></tr>`)
+    .join("");
+  return `<div style="margin:20px 0;padding:16px;border:2px solid #dc1428;border-radius:12px">
+<p style="margin:0 0 8px;font-size:16px"><strong>${esc(fmt(d.order.depositTitle, { amount }))}</strong></p>
+<p style="margin:0 0 10px;font-size:14px">${esc(fmt(d.order.depositText, { amount, number: order.number }))}</p>
+${b.rib ? `<table style="font-size:14px;border-collapse:collapse">${rows}</table>` : `<p style="font-size:14px">${esc(d.order.depositNoBank)}</p>`}
+<p style="margin:10px 0 0;font-size:12px;color:#777">${esc(d.order.depositPolicy)}</p>
 </div>`;
 }
 

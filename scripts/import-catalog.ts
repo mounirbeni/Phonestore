@@ -75,7 +75,7 @@ async function main() {
         condition: p.condition,
         conditionNoteFr: p.noteFr,
         conditionNoteAr: p.noteAr,
-        warrantyMonths: p.condition === "used" ? 12 : 24,
+        warrantyMonths: p.condition === "used" ? 1 : 12,
         optionLabelFr: p.optionLabelFr,
         optionLabelAr: p.optionLabelAr,
         active: true,

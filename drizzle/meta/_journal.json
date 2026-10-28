@@ -50,6 +50,13 @@
       "when": 1793135348545,
       "tag": "0006_security_rate_limits_sessions",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793176260036,
+      "tag": "0007_deposit_newsletter",
+      "breakpoints": true
     }
   ]
 }

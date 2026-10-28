@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ExternalLink, FolderTree, LayoutDashboard, LogOut, Package, ShoppingCart, Ticket, Truck, UserCog, Users } from "lucide-react";
+import { ExternalLink, FolderTree, LayoutDashboard, LogOut, Mail, Package, ShoppingCart, Ticket, Truck, UserCog, Users } from "lucide-react";
 import type { Perm } from "@/lib/auth";
 import { logout } from "@/app/actions/admin";
 import { cn } from "@/lib/utils";
@@ -12,6 +12,7 @@ const ALL: { href: string; label: string; icon: typeof Package; perm: Perm; exac
   { href: "/admin/deliveries", label: "توصيلاتي", icon: Truck, perm: "deliveries" },
   { href: "/admin/orders", label: "الطلبات", icon: ShoppingCart, perm: "orders" },
   { href: "/admin/customers", label: "العملاء", icon: Users, perm: "customers" },
+  { href: "/admin/newsletter", label: "النشرة البريدية", icon: Mail, perm: "customers" },
   { href: "/admin/products", label: "المنتجات", icon: Package, perm: "catalog" },
   { href: "/admin/categories", label: "الفئات", icon: FolderTree, perm: "catalog" },
   { href: "/admin/coupons", label: "أكواد الخصم", icon: Ticket, perm: "coupons" },

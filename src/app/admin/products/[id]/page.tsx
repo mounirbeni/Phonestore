@@ -32,7 +32,7 @@ export default async function EditProduct({ params }: Props) {
   if (id === "new") {
     initial = {
       name: "", slug: "", brand: "", categoryId: cats[0].id, shortFr: "", shortAr: "", descFr: "", descAr: "",
-      images: [], specsText: "", featured: false, isNew: true, active: true, warrantyMonths: 24, condition: "new",
+      images: [], specsText: "", featured: false, isNew: true, active: true, warrantyMonths: 12, condition: "new",
       variants: [{ sku: "", colorFr: "", colorAr: "", colorHex: "#1c1c1e", storage: "", price: "", compareAt: "", stock: "10" }],
     };
   } else {

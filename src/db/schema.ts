@@ -50,7 +50,7 @@ export const products = pgTable(
   /** Finer state for second-hand items ("Comme neuf", "Boîte ouverte"); empty = plain "Occasion". */
   conditionNoteFr: text("condition_note_fr").notNull().default(""),
   conditionNoteAr: text("condition_note_ar").notNull().default(""),
-  warrantyMonths: integer("warranty_months").notNull().default(24),
+  warrantyMonths: integer("warranty_months").notNull().default(12),
     /** "new" (sealed, manufacturer warranty) or "used" (tested second-hand). */
     condition: text("condition").$type<"new" | "used">().notNull().default("new"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -117,6 +117,10 @@ export const orders = pgTable(
     discount: integer("discount").notNull().default(0),
     shippingCost: integer("shipping_cost").notNull().default(0),
     total: integer("total").notNull(),
+    /** Advance paid by bank transfer to confirm the order (0 for orders placed before deposits); the rest is paid on delivery. */
+    deposit: integer("deposit").notNull().default(0),
+    /** Set by the team once the transfer has arrived. */
+    depositPaidAt: timestamp("deposit_paid_at"),
     customerNote: text("customer_note").notNull().default(""),
     adminNote: text("admin_note").notNull().default(""),
     /** Set when the order was placed while signed in. */
@@ -235,6 +239,14 @@ export const orderEvents = pgTable(
   },
   (t) => [index("order_events_order_idx").on(t.orderId)],
 );
+
+/** E-mails that asked for offers and news (footer form). */
+export const newsletterSubscribers = pgTable("newsletter_subscribers", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  locale: text("locale").notNull().default("fr"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
 
 export type Staff = typeof staff.$inferSelect;
 export type Customer = typeof customers.$inferSelect;

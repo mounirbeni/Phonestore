@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, asc, eq, inArray } from "drizzle-orm";
-import { Banknote, Check, CheckCircle2, Package, Truck, XCircle } from "lucide-react";
+import { Check, CheckCircle2, Landmark, Package, Truck, XCircle } from "lucide-react";
 import { db } from "@/db";
 import { categories, orderEvents, orderItems, orders, products } from "@/db/schema";
 import { getCustomerId } from "@/lib/customer-auth";
@@ -64,6 +64,9 @@ export default async function OrderPage({ params, searchParams }: Props) {
   ] as const;
   const stepIndex = order.status === "cancelled" ? -1 : steps.findIndex((s) => s.key === order.status);
   const date = new Intl.DateTimeFormat(locale === "ar" ? "ar-u-nu-latn" : "fr-FR", { dateStyle: "long" }).format(order.createdAt);
+  const awaitingDeposit = order.deposit > 0 && !order.depositPaidAt && order.status === "pending";
+  const bank = store.deposit;
+  const depositAmount = formatPrice(order.deposit, locale);
 
   return (
     <div className="container-x pb-10 pt-8 sm:pt-12">
@@ -78,10 +81,32 @@ export default async function OrderPage({ params, searchParams }: Props) {
           <p className="text-sm text-white/60">{fmt(d.order.placedOn, { date })}</p>
         </div>
 
+        {awaitingDeposit && (
+          <section className="mt-6 rounded-3xl border-2 border-brand bg-surface p-6 sm:p-8">
+            <h2 className="flex items-center gap-3 text-lg font-bold">
+              <Landmark className="h-6 w-6 shrink-0 text-brand" aria-hidden="true" />
+              {fmt(d.order.depositTitle, { amount: depositAmount })}
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-fg-2">{fmt(d.order.depositText, { amount: depositAmount, number: order.number })}</p>
+            {bank.rib ? (
+              <dl className="mt-5 grid gap-3 rounded-2xl bg-mist p-4 text-sm sm:grid-cols-2">
+                {bank.holder && <div><dt className="text-muted">{d.order.holder}</dt><dd className="font-semibold">{bank.holder}</dd></div>}
+                {bank.bank && <div><dt className="text-muted">{d.order.bank}</dt><dd className="font-semibold">{bank.bank}</dd></div>}
+                <div className="sm:col-span-2"><dt className="text-muted">{d.order.rib}</dt><dd className="select-all break-all font-mono text-base font-bold tracking-wide" dir="ltr">{bank.rib}</dd></div>
+                <div><dt className="text-muted">{d.order.reference}</dt><dd className="select-all font-bold" dir="ltr">{order.number}</dd></div>
+                <div><dt className="text-muted">E-mail</dt><dd className="font-semibold" dir="ltr"><a href={`mailto:${store.contact.email}?subject=${encodeURIComponent(order.number)}`} className="hover:underline">{store.contact.email}</a></dd></div>
+              </dl>
+            ) : (
+              <p className="mt-4 rounded-2xl bg-mist p-4 text-sm">{d.order.depositNoBank}</p>
+            )}
+            <p className="mt-4 text-xs text-muted">{d.order.depositPolicy}</p>
+          </section>
+        )}
+
         <section className="mt-6 rounded-3xl border border-line bg-surface p-6 sm:p-8">
           <h2 className="mb-6 flex items-center gap-3 text-lg font-bold">
             {d.order.status}
-            <span className={cn("chip", order.status === "cancelled" ? "bg-hot-50 text-hot" : "bg-brand-50 text-brand")}>{d.order.statuses[order.status]}</span>
+            <span className={cn("chip", order.status === "cancelled" ? "bg-hot-50 text-hot" : "bg-brand-50 text-brand")}>{awaitingDeposit ? d.order.awaitingDeposit : d.order.statuses[order.status]}</span>
           </h2>
           {order.status !== "cancelled" && (
             <ol className="grid grid-cols-4 gap-2">
@@ -122,6 +147,12 @@ export default async function OrderPage({ params, searchParams }: Props) {
             {order.discount > 0 && <div className="flex justify-between text-ok"><dt>{d.common.discount}{order.couponCode ? ` (${order.couponCode})` : ""}</dt><dd className="tabular-nums" dir="ltr">−{formatPrice(order.discount, locale)}</dd></div>}
             <div className="flex justify-between"><dt className="text-muted">{d.common.shipping}</dt><dd className="tabular-nums" dir="ltr">{order.shippingCost === 0 ? d.common.free : formatPrice(order.shippingCost, locale)}</dd></div>
             <div className="flex items-baseline justify-between border-t border-line pt-4 text-lg font-extrabold"><dt>{d.order.toPay}</dt><dd className="tabular-nums" dir="ltr">{formatPrice(order.total, locale)}</dd></div>
+            {order.deposit > 0 && (
+              <>
+                <div className="flex justify-between"><dt className="text-muted">{d.order.deposit}</dt><dd className="tabular-nums" dir="ltr">{depositAmount}</dd></div>
+                <div className="flex justify-between font-semibold"><dt>{d.order.rest}</dt><dd className="tabular-nums" dir="ltr">{formatPrice(order.total - order.deposit, locale)}</dd></div>
+              </>
+            )}
           </dl>
         </section>
 
@@ -138,7 +169,8 @@ export default async function OrderPage({ params, searchParams }: Props) {
           </section>
           <section className="rounded-3xl border border-line bg-surface p-6">
             <h2 className="mb-3 text-base font-bold">{d.order.paymentMethod}</h2>
-            <p className="flex items-center gap-2.5 text-sm text-fg-2"><Banknote className="h-5 w-5 text-brand" aria-hidden="true" />{d.order.codShort}</p>
+            <p className="flex items-center gap-2.5 text-sm text-fg-2"><Landmark className="h-5 w-5 text-brand" aria-hidden="true" />{order.deposit > 0 ? d.order.codShort : d.order.rest}</p>
+            {order.depositPaidAt && <p className="mt-2 text-sm font-medium text-ok">{fmt(d.order.depositPaid, { date: stepDate.format(order.depositPaidAt) })}</p>}
           </section>
         </div>
 
