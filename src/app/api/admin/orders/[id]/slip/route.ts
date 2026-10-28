@@ -61,7 +61,7 @@ ${total(T("المجموع الفرعي"), eur(o.subtotal))}
 ${o.discount ? total(T("خصم"), `−${eur(o.discount)}`) : ""}
 ${total(T("التوصيل"), o.shippingCost ? eur(o.shippingCost) : esc(T("مجاني")))}
 ${total(T("المجموع"), eur(o.total), true)}
-${o.deposit && o.depositPaidAt ? total(T("التسبيق") + " ✓", `−${eur(o.deposit)}`) : ""}
+${o.deposit && o.depositPaidAt ? total(T("التسبيق") + " (" + T("تم الاستلام") + ")", `−${eur(o.deposit)}`) : ""}
 </tbody></table>
 <div class="due"><span>${esc(T("المبلغ المطلوب عند الاستلام"))}</span><span class="n">${eur(due)}</span></div>
 ${o.customerNote ? `<div class="note"><strong>${esc(T("ملاحظة العميل"))} :</strong> ${esc(o.customerNote)}</div>` : ""}

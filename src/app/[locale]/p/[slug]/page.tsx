@@ -9,6 +9,8 @@ import { isLocale, localePath, pick } from "@/lib/i18n";
 import { ProductPurchase } from "@/components/shop/product-purchase";
 import { ProductGrid } from "@/components/shop/product-card";
 import { Section } from "@/components/ui/section";
+import { ProductDescription } from "@/components/shop/product-description";
+import { stripEmoji } from "@/lib/emoji";
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
 
@@ -18,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const data = await getProductDetail(slug);
   if (!data) return {};
   const { product } = data;
-  const description = pick(locale, product.shortFr, product.shortAr);
+  const description = stripEmoji(pick(locale, product.shortFr, product.shortAr));
   return {
     title: product.name,
     description,
@@ -44,7 +46,7 @@ export default async function ProductPage({ params }: Props) {
     "@type": "Product",
     name: product.name,
     brand: { "@type": "Brand", name: product.brand },
-    description: pick(locale, product.shortFr, product.shortAr),
+    description: stripEmoji(pick(locale, product.shortFr, product.shortAr)),
     image: product.images,
     sku: variants[0]?.sku,
     offers: {
@@ -97,7 +99,7 @@ export default async function ProductPage({ params }: Props) {
           {description && (
             <section>
               <h2 className="text-xl font-extrabold tracking-tight">{d.product.description}</h2>
-              <p className="mt-4 whitespace-pre-line leading-relaxed text-fg-2">{description}</p>
+              <ProductDescription text={description} />
             </section>
           )}
           {specs.length > 0 && (
