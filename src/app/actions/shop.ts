@@ -3,7 +3,7 @@
 import { after } from "next/server";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { addresses, coupons, orderEvents, orderItems, orders, products, variants } from "@/db/schema";
+import { addresses, coupons, orderEvents, orderItems, orders, products, variants, variantStock } from "@/db/schema";
 import { getCustomerId } from "@/lib/customer-auth";
 import { getCartVariants, getProductsBySlugs } from "@/db/queries";
 import { store } from "@/config/store";
@@ -15,6 +15,7 @@ import { sendOrderEmails } from "@/lib/mail";
 import { allowAll, clientIp } from "@/lib/rate-limit";
 import type { CartLine } from "@/components/providers";
 import { buildCheckout, payzoneReady, type CardCheckout } from "@/lib/payments/payzone";
+import { activeStores, StockShortError, takeStock, type Allocation } from "@/lib/stock";
 
 /* ---------- cart refresh ---------- */
 
@@ -50,6 +51,22 @@ export async function refreshCart(items: { variantId: number; qty: number }[]) {
     if (qty !== it.qty) changed = true;
   }
   return { lines, changed };
+}
+
+/* ---------- store pickup ---------- */
+
+/** Pickup shops, each flagged with whether it holds every line of the cart. */
+export async function pickupOptions(items: { variantId: number; qty: number }[]) {
+  const wanted = items.filter((i) => Number.isInteger(i.variantId) && i.variantId > 0).slice(0, 30);
+  const shops = (await activeStores()).filter((s) => s.pickup);
+  const rows = wanted.length ? await db.select().from(variantStock).where(inArray(variantStock.variantId, wanted.map((i) => i.variantId))) : [];
+  return shops.map((s) => ({
+    id: s.id,
+    nameFr: s.nameFr,
+    nameAr: s.nameAr,
+    address: s.address,
+    ok: wanted.length > 0 && wanted.every((i) => (rows.find((r) => r.storeId === s.id && r.variantId === i.variantId)?.qty ?? 0) >= i.qty),
+  }));
 }
 
 /* ---------- coupons ---------- */
@@ -107,6 +124,9 @@ export async function placeOrder(input: CheckoutInput): Promise<PlaceOrderResult
   try {
     const created = await db.transaction(async (tx) => {
       const ids = [...qtyById.keys()];
+      // A pickup needs an open pickup shop.
+      const pickupStore = data.fulfilment === "pickup" ? (await activeStores(tx)).find((st) => st.id === data.storeId && st.pickup) : undefined;
+      if (data.fulfilment === "pickup" && !pickupStore) throw new StockError("");
       const locked = await tx.select().from(variants).where(inArray(variants.id, ids)).for("update");
       if (locked.length !== ids.length) throw new StockError("");
       const prods = await tx
@@ -139,7 +159,7 @@ export async function placeOrder(input: CheckoutInput): Promise<PlaceOrderResult
         couponCode = c.code;
       }
 
-      const ship = shippingCost(data.shippingMethod) ?? 0;
+      const ship = pickupStore ? 0 : (shippingCost(data.shippingMethod) ?? 0);
       const total = subtotal - discount + ship;
       const token = randomToken(12);
 
@@ -152,12 +172,14 @@ export async function placeOrder(input: CheckoutInput): Promise<PlaceOrderResult
           lastName: data.lastName,
           email: data.email,
           phone: data.phone,
-          address: data.address,
-          address2: data.address2,
-          city: data.city,
-          postalCode: data.postalCode,
+          address: pickupStore ? "" : data.address,
+          address2: pickupStore ? "" : data.address2,
+          city: pickupStore ? pickupStore.nameFr : data.city,
+          postalCode: pickupStore ? "" : data.postalCode,
           country: data.country,
-          shippingMethod: data.shippingMethod,
+          shippingMethod: pickupStore ? "pickup" : data.shippingMethod,
+          fulfilment: pickupStore ? "pickup" : "delivery",
+          storeId: pickupStore?.id ?? null,
           paymentMethod: "cod",
           couponCode,
           subtotal,
@@ -173,10 +195,21 @@ export async function placeOrder(input: CheckoutInput): Promise<PlaceOrderResult
       const number = `ES-${10000 + order.id}`;
       const [finalOrder] = await tx.update(orders).set({ number }).where(eq(orders.id, order.id)).returning();
 
+      // Units come from the pickup shop, or for a delivery from the main shop first.
+      const taken: Allocation[][] = [];
+      for (const { v, p, qty } of lines) {
+        taken.push(
+          await takeStock(tx, v.id, qty, pickupStore?.id).catch((e) => {
+            throw e instanceof StockShortError ? new StockError(p.name) : e;
+          }),
+        );
+      }
+
       const items = await tx
         .insert(orderItems)
         .values(
-          lines.map(({ v, p, qty }) => ({
+          lines.map(({ v, p, qty }, k) => ({
+            stockFrom: taken[k],
             orderId: order.id,
             variantId: v.id,
             productSlug: p.slug,
@@ -190,14 +223,8 @@ export async function placeOrder(input: CheckoutInput): Promise<PlaceOrderResult
         )
         .returning();
 
-      for (const { v, qty } of lines) {
-        await tx
-          .update(variants)
-          .set({ stock: sql`${variants.stock} - ${qty}` })
-          .where(eq(variants.id, v.id));
-      }
       // A signed-in customer's first delivery address is kept for next time.
-      if (customerId) {
+      if (customerId && !pickupStore) {
         const [saved] = await tx.select({ id: addresses.id }).from(addresses).where(eq(addresses.customerId, customerId)).limit(1);
         if (!saved) {
           await tx.insert(addresses).values({

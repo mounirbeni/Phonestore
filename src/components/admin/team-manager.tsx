@@ -8,19 +8,20 @@ import type { StaffRole } from "@/db/schema";
 import { cn } from "@/lib/utils";
 import { useT } from "@/components/admin/admin-lang";
 
-type Member = { id: number; name: string; email: string; phone: string; role: StaffRole; active: boolean; lastLoginAt: string | null };
+type Member = { id: number; name: string; email: string; phone: string; role: StaffRole; active: boolean; lastLoginAt: string | null; storeId: number | null };
 
 const ROLES: { value: StaffRole; label: string; text: string }[] = [
   { value: "orders", label: "مسؤول الطلبات", text: "الطلبات والعملاء: التأكيد، الحالة، إسناد الموصّل." },
   { value: "catalog", label: "مسؤول المنتجات والمخزون", text: "المنتجات والأسعار والمخزون والفئات." },
   { value: "driver", label: "موصّل", text: "الطلبات المسندة إليه فقط: التسليم أو الرفض." },
   { value: "support", label: "فريق الدعم", text: "رسائل العملاء وشكاواهم: الرد والمتابعة والإغلاق." },
+  { value: "seller", label: "بائع في المتجر", text: "صندوق البيع في متجره: البيع، الفاتورة، الضمان." },
 ];
 const roleLabel = (r: StaffRole) => ROLES.find((x) => x.value === r)?.label ?? r;
 
-const empty = { name: "", email: "", phone: "", role: "orders" as StaffRole, password: "" };
+const empty = { name: "", email: "", phone: "", role: "orders" as StaffRole, password: "", storeId: null as number | null };
 
-export function TeamManager({ members }: { members: Member[] }) {
+export function TeamManager({ members, shops }: { members: Member[]; shops: { id: number; name: string }[] }) {
   const T = useT();
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -29,7 +30,7 @@ export function TeamManager({ members }: { members: Member[] }) {
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   const edit = (m?: Member) => {
-    setForm(m ? { id: m.id, name: m.name, email: m.email, phone: m.phone, role: m.role, password: "" } : empty);
+    setForm(m ? { id: m.id, name: m.name, email: m.email, phone: m.phone, role: m.role, password: "", storeId: m.storeId } : empty);
     setMsg(null);
     setOpen(true);
   };
@@ -69,6 +70,14 @@ export function TeamManager({ members }: { members: Member[] }) {
               {ROLES.map((r) => <option key={r.value} value={r.value}>{T(r.label)}</option>)}
             </select>
           </div>
+          {form.role === "seller" && (
+            <div className="sm:col-span-2"><label className="label">{T("المتجر")}</label>
+              <select className="input" required value={form.storeId ?? ""} onChange={(e) => setForm({ ...form, storeId: e.target.value ? Number(e.target.value) : null })}>
+                <option value="">—</option>
+                {shops.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </div>
+          )}
           <div><label className="label">{T("البريد الإلكتروني (للدخول)")}</label><input className="input" type="email" required dir="ltr" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
           <div><label className="label">{T("الهاتف")}</label><input className="input" type="tel" dir="ltr" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
           <div className="sm:col-span-2">
@@ -95,7 +104,7 @@ export function TeamManager({ members }: { members: Member[] }) {
                 <p className="font-semibold">{m.name} {!m.active && <span className="chip bg-hot-50 text-hot">{T("موقوف")}</span>}</p>
                 <p className="text-xs text-muted" dir="ltr" style={{ textAlign: T.lang === "ar" ? "right" : "left" }}>{m.email}{m.phone ? ` · ${m.phone}` : ""}</p>
               </div>
-              <span className="chip bg-mist text-ink-2">{T(roleLabel(m.role))}</span>
+              <span className="chip bg-mist text-ink-2">{T(roleLabel(m.role))}{m.role === "seller" && m.storeId ? ` · ${shops.find((s) => s.id === m.storeId)?.name ?? ""}` : ""}</span>
               <span className="w-full text-xs text-muted sm:w-auto">{m.lastLoginAt ? T("آخر دخول {date}", { date: new Date(m.lastLoginAt).toLocaleDateString(T.lang === "ar" ? "ar-u-nu-latn" : "fr-FR") }) : T("لم يدخل بعد")}</span>
               <div className="flex items-center gap-1">
                 <button type="button" className="btn btn-ghost btn-sm" disabled={pending} onClick={() => start(async () => { await setMemberActive(m.id, !m.active); router.refresh(); })}>

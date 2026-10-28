@@ -5,6 +5,7 @@ import {
   integer,
   jsonb,
   pgTable,
+  primaryKey,
   serial,
   text,
   timestamp,
@@ -66,6 +67,8 @@ export const variants = pgTable(
       .notNull()
       .references(() => products.id, { onDelete: "cascade" }),
     sku: text("sku").notNull().unique(),
+    /** EAN/UPC printed on the box, read by the till's scanner (optional). */
+    barcode: text("barcode").notNull().default(""),
     colorFr: text("color_fr").notNull().default(""),
     colorAr: text("color_ar").notNull().default(""),
     colorHex: text("color_hex").notNull().default("#1f2937"),
@@ -130,10 +133,19 @@ export const orders = pgTable(
     customerId: integer("customer_id").references((): AnyPgColumn => customers.id, { onDelete: "set null" }),
     /** Team member (role "driver") delivering the order. */
     driverId: integer("driver_id").references((): AnyPgColumn => staff.id, { onDelete: "set null" }),
+    /** "online" (website) or "store" (sold at the till). */
+    channel: text("channel").$type<"online" | "store">().notNull().default("online"),
+    /** "delivery" to the customer's address, or "pickup" at `storeId`. */
+    fulfilment: text("fulfilment").$type<"delivery" | "pickup">().notNull().default("delivery"),
+    /** Shop of a pickup or till sale. */
+    storeId: integer("store_id").references((): AnyPgColumn => stores.id, { onDelete: "set null" }),
+    /** Team member who rang up a till sale. */
+    sellerId: integer("seller_id").references((): AnyPgColumn => staff.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => [
     uniqueIndex("orders_number_idx").on(t.number),
+    index("orders_channel_idx").on(t.channel),
     index("orders_status_idx").on(t.status),
     index("orders_customer_idx").on(t.customerId),
     index("orders_driver_idx").on(t.driverId),
@@ -155,13 +167,15 @@ export const orderItems = pgTable(
     image: text("image"),
     unitPrice: integer("unit_price").notNull(),
     quantity: integer("quantity").notNull(),
+    /** Which shop's stock each unit was taken from, so a cancellation puts it back in the same place. */
+    stockFrom: jsonb("stock_from").$type<{ storeId: number; qty: number }[]>().notNull().default([]),
   },
   (t) => [index("order_items_order_idx").on(t.orderId)],
 );
 
 /* ---------- people ---------- */
 
-export const STAFF_ROLES = ["orders", "catalog", "driver", "support"] as const;
+export const STAFF_ROLES = ["orders", "catalog", "driver", "support", "seller"] as const;
 export type StaffRole = (typeof STAFF_ROLES)[number];
 
 /** Team accounts. The owner signs in with ADMIN_PASSWORD and is not stored here. */
@@ -173,6 +187,8 @@ export const staff = pgTable("staff", {
   role: text("role").$type<StaffRole>().notNull(),
   phone: text("phone").notNull().default(""),
   active: boolean("active").notNull().default(true),
+  /** Shop a seller works in (their till and stock). */
+  storeId: integer("store_id").references((): AnyPgColumn => stores.id, { onDelete: "set null" }),
   /** Bumped when the password changes so older sessions stop working. */
   sessionVersion: integer("session_version").notNull().default(0),
   lastLoginAt: timestamp("last_login_at"),
@@ -250,6 +266,67 @@ export const newsletterSubscribers = pgTable("newsletter_subscribers", {
   locale: text("locale").notNull().default("fr"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+/* ---------- shops, stock and warranty ---------- */
+
+/** Physical shops. `isMain` ships the website's home deliveries first. */
+export const stores = pgTable("stores", {
+  id: serial("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  nameFr: text("name_fr").notNull(),
+  nameAr: text("name_ar").notNull(),
+  address: text("address").notNull().default(""),
+  phone: text("phone").notNull().default(""),
+  isMain: boolean("is_main").notNull().default(false),
+  /** Offered as a pickup point at checkout. */
+  pickup: boolean("pickup").notNull().default(true),
+  active: boolean("active").notNull().default(true),
+  sort: integer("sort").notNull().default(0),
+});
+
+/** Stock of a variant in a shop; `variants.stock` is kept equal to the sum over shops. */
+export const variantStock = pgTable(
+  "variant_stock",
+  {
+    variantId: integer("variant_id")
+      .notNull()
+      .references(() => variants.id, { onDelete: "cascade" }),
+    storeId: integer("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    qty: integer("qty").notNull().default(0),
+  },
+  (t) => [primaryKey({ columns: [t.variantId, t.storeId] })],
+);
+
+/** One sold unit under warranty; `serial` is the IMEI or serial number when there is one. */
+export const warranties = pgTable(
+  "warranties",
+  {
+    id: serial("id").primaryKey(),
+    /** Public code printed on the invoice; the customer's warranty page is /garantie/<code>. */
+    code: text("code").notNull().unique(),
+    orderId: integer("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    orderItemId: integer("order_item_id").references(() => orderItems.id, { onDelete: "set null" }),
+    productName: text("product_name").notNull(),
+    variantLabel: text("variant_label").notNull().default(""),
+    serial: text("serial").notNull().default(""),
+    months: integer("months").notNull(),
+    startsAt: timestamp("starts_at").notNull(),
+    endsAt: timestamp("ends_at").notNull(),
+    customerName: text("customer_name").notNull().default(""),
+    phone: text("phone").notNull().default(""),
+    storeId: integer("store_id").references(() => stores.id, { onDelete: "set null" }),
+    voided: boolean("voided").notNull().default(false),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [index("warranties_serial_idx").on(t.serial), index("warranties_phone_idx").on(t.phone), index("warranties_order_idx").on(t.orderId)],
+);
+
+export type Store = typeof stores.$inferSelect;
+export type Warranty = typeof warranties.$inferSelect;
 
 /* ---------- support ---------- */
 

@@ -20,6 +20,7 @@ export const ROLE_LABELS: Record<Role, string> = {
   catalog: "مسؤول المنتجات والمخزون",
   driver: "موصّل",
   support: "فريق الدعم",
+  seller: "بائع في المتجر",
 };
 
 const PERMS = {
@@ -32,13 +33,15 @@ const PERMS = {
   stats: ["owner"],
   deliveries: ["driver"],
   support: ["owner", "support"],
+  pos: ["owner", "orders", "seller"],
+  warranties: ["owner", "orders", "support", "seller"],
 } as const satisfies Record<string, readonly Role[]>;
 export type Perm = keyof typeof PERMS;
 
 export const can = (role: Role, perm: Perm) => (PERMS[perm] as readonly Role[]).includes(role);
 
 /** Where each role lands after signing in. */
-export const homeFor = (role: Role) => (role === "driver" ? "/admin/deliveries" : role === "support" ? "/admin/support" : "/admin");
+export const homeFor = (role: Role) => (role === "driver" ? "/admin/deliveries" : role === "support" ? "/admin/support" : role === "seller" ? "/admin/pos" : "/admin");
 
 function secret() {
   const s = process.env.AUTH_SECRET;

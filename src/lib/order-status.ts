@@ -1,7 +1,9 @@
 import "server-only";
-import { and, eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { orderEvents, orderItems, orders, variants, type OrderStatus } from "@/db/schema";
+import { orderEvents, orderItems, orders, type OrderStatus } from "@/db/schema";
+import { returnStock, StockShortError, takeStock } from "@/lib/stock";
+import { issueWarranties, voidWarranties } from "@/lib/warranty";
 import type { Member } from "@/lib/auth";
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -15,19 +17,21 @@ export async function applyStatus(tx: Tx, orderId: number, status: OrderStatus, 
   const items = await tx.select().from(orderItems).where(eq(orderItems.orderId, orderId));
   const stocked = items.filter((i) => i.variantId != null);
   if (o.status !== "cancelled" && status === "cancelled") {
-    for (const i of stocked) {
-      await tx.update(variants).set({ stock: sql`${variants.stock} + ${i.quantity}` }).where(eq(variants.id, i.variantId!));
-    }
+    for (const i of stocked) await returnStock(tx, i.variantId!, i.quantity, i.stockFrom);
+    await voidWarranties(tx, orderId, true);
   } else if (o.status === "cancelled" && status !== "cancelled") {
     for (const i of stocked) {
-      const upd = await tx
-        .update(variants)
-        .set({ stock: sql`${variants.stock} - ${i.quantity}` })
-        .where(and(eq(variants.id, i.variantId!), sql`${variants.stock} >= ${i.quantity}`))
-        .returning({ id: variants.id });
-      if (!upd.length) throw new Error("STOCK");
+      // Taken again from the same shop for a pickup or till sale, anywhere for a delivery.
+      const from = await takeStock(tx, i.variantId!, i.quantity, o.fulfilment === "pickup" || o.channel === "store" ? o.storeId : null).catch((e) => {
+        if (e instanceof StockShortError) throw new Error("STOCK");
+        throw e;
+      });
+      await tx.update(orderItems).set({ stockFrom: from }).where(eq(orderItems.id, i.id));
     }
+    await voidWarranties(tx, orderId, false);
   }
+  // The warranty starts the day the customer gets the product.
+  if (status === "delivered") await issueWarranties(tx, orderId, new Date());
   await tx.update(orders).set({ status }).where(eq(orders.id, orderId));
   await tx.insert(orderEvents).values({ orderId, kind: "status", status, note, staffId: by.id, by: by.name });
   return o;

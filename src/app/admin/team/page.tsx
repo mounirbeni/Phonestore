@@ -5,6 +5,7 @@ import { requirePerm } from "@/lib/auth";
 import { TeamManager } from "@/components/admin/team-manager";
 import { getT } from "@/lib/admin-lang";
 import { PageHeader } from "@/components/admin/ui";
+import { activeStores } from "@/lib/stock";
 
 export async function generateMetadata() {
   const T = await getT();
@@ -19,7 +20,8 @@ export default async function TeamPage() {
     <div className="mx-auto max-w-5xl space-y-5">
       <PageHeader title={T("الفريق")} subtitle={T("كل عضو يدخل ببريده وكلمة مروره، ويرى فقط ما يخص دوره.")} />
       <TeamManager
-        members={rows.map((m) => ({ id: m.id, name: m.name, email: m.email, phone: m.phone, role: m.role, active: m.active, lastLoginAt: m.lastLoginAt?.toISOString() ?? null }))}
+        members={rows.map((m) => ({ id: m.id, name: m.name, email: m.email, phone: m.phone, role: m.role, active: m.active, lastLoginAt: m.lastLoginAt?.toISOString() ?? null, storeId: m.storeId }))}
+        shops={(await activeStores()).map((s) => ({ id: s.id, name: T.lang === "fr" ? s.nameFr : s.nameAr }))}
       />
     </div>
   );

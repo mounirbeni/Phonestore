@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { and, eq, notInArray } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import * as s from "../src/db/schema";
 import { slugify } from "../src/lib/utils";
 
@@ -125,6 +126,9 @@ async function main() {
     }
     console.log(`Imported ${products.length} products in ${categories.length} categories`);
   });
+  // Shop stock: variants without any row get their quantity in the main shop.
+  await db.execute(sql`insert into variant_stock (variant_id, store_id, qty) select v.id, s.id, v.stock from variants v cross join stores s where s.is_main and not exists (select 1 from variant_stock x where x.variant_id = v.id) on conflict do nothing`);
+
   await client.end();
 }
 

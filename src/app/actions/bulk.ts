@@ -3,23 +3,26 @@
 import { eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
-import { variants } from "@/db/schema";
+import { variants, variantStock } from "@/db/schema";
+import { activeStores, setStoreQty } from "@/lib/stock";
 import { requirePerm } from "@/lib/auth";
 
-export type VariantChange = { id: number; price: number; compareAt: number | null; stock: number };
+/** Prices in cents; `stocks` = quantity per shop (only the shops that changed). */
+export type VariantChange = { id: number; price: number; compareAt: number | null; stocks: { storeId: number; qty: number }[] };
 
 const valid = (c: VariantChange) =>
   Number.isInteger(c.id) && c.id > 0 &&
   Number.isInteger(c.price) && c.price >= 0 && c.price <= 100_000_000 &&
   (c.compareAt == null || (Number.isInteger(c.compareAt) && c.compareAt >= 0 && c.compareAt <= 100_000_000)) &&
-  Number.isInteger(c.stock) && c.stock >= 0 && c.stock <= 1_000_000;
+  Array.isArray(c.stocks) && c.stocks.every((x) => Number.isInteger(x.storeId) && x.storeId > 0 && Number.isInteger(x.qty) && x.qty >= 0 && x.qty <= 1_000_000);
 
 async function apply(changes: VariantChange[]) {
   await db.transaction(async (tx) => {
     for (const c of changes) {
       // A strike-through price only makes sense above the selling price.
       const compareAt = c.compareAt != null && c.compareAt > c.price ? c.compareAt : null;
-      await tx.update(variants).set({ price: c.price, compareAtPrice: compareAt, stock: c.stock }).where(eq(variants.id, c.id));
+      await tx.update(variants).set({ price: c.price, compareAtPrice: compareAt }).where(eq(variants.id, c.id));
+      for (const x of c.stocks) await setStoreQty(tx, c.id, x.storeId, x.qty);
     }
   });
   revalidatePath("/admin", "layout");
@@ -71,9 +74,14 @@ export async function importVariantsCsv(text: string): Promise<{ ok: boolean; up
   const sep = (lines[0].match(/;/g)?.length ?? 0) >= (lines[0].match(/,/g)?.length ?? 0) ? ";" : ",";
   const head = splitLine(lines[0], sep).map((h) => h.toLowerCase());
   const col = (...names: string[]) => head.findIndex((h) => names.some((n) => h === n || h.startsWith(n)));
-  const iId = col("id"), iSku = col("sku"), iPrice = col("prix", "price", "السعر"), iCompare = col("prix barré", "compare", "قبل"), iStock = col("stock", "المخزون");
+  const iId = col("id"), iSku = col("sku"), iPrice = col("prix (", "prix", "price", "السعر"), iCompare = col("prix barré", "compare", "قبل");
+  // "stock <shop code>" per shop; a plain "stock" column means the main shop.
+  const shops = await activeStores();
+  const stockCols = shops
+    .map((st, k) => ({ storeId: st.id, i: head.findIndex((h) => h === `stock ${st.code}` || (k === 0 && h === "stock")) }))
+    .filter((c) => c.i >= 0);
   if (iId < 0 && iSku < 0) return { ok: false, error: "عمود id أو sku غير موجود" };
-  if (iPrice < 0 && iStock < 0) return { ok: false, error: "عمود السعر أو المخزون غير موجود" };
+  if (iPrice < 0 && !stockCols.length) return { ok: false, error: "عمود السعر أو المخزون غير موجود" };
   const rows = lines.slice(1, 5001).map((l) => splitLine(l, sep));
 
   const ids = rows.map((r) => Number(r[iId])).filter((n) => Number.isInteger(n) && n > 0);
@@ -84,6 +92,8 @@ export async function importVariantsCsv(text: string): Promise<{ ok: boolean; up
   ];
   const byId = new Map(current.map((v) => [v.id, v]));
   const bySku = new Map(current.map((v) => [v.sku, v]));
+  const have = current.length ? await db.select().from(variantStock).where(inArray(variantStock.variantId, current.map((v) => v.id))) : [];
+  const qtyOf = (variantId: number, storeId: number) => have.find((h) => h.variantId === variantId && h.storeId === storeId)?.qty ?? 0;
 
   const changes = new Map<number, VariantChange>();
   let skipped = 0;
@@ -91,17 +101,16 @@ export async function importVariantsCsv(text: string): Promise<{ ok: boolean; up
     const v = byId.get(Number(r[iId])) ?? (iSku >= 0 ? bySku.get(r[iSku]) : undefined);
     const price = iPrice >= 0 ? toCents(r[iPrice]) : undefined;
     const compare = iCompare >= 0 ? toCents(r[iCompare]) : undefined;
-    const stockRaw = iStock >= 0 ? (r[iStock] ?? "").trim() : "";
-    const stock = stockRaw === "" ? undefined : Number(stockRaw);
-    if (!v || Number.isNaN(price) || Number.isNaN(compare) || (stock !== undefined && !Number.isInteger(stock))) { skipped++; continue; }
+    const stocks = stockCols.map((c) => ({ storeId: c.storeId, raw: (r[c.i] ?? "").trim() })).filter((x) => x.raw !== "").map((x) => ({ storeId: x.storeId, qty: Number(x.raw) }));
+    if (!v || Number.isNaN(price) || Number.isNaN(compare) || stocks.some((x) => !Number.isInteger(x.qty))) { skipped++; continue; }
     const next: VariantChange = {
       id: v.id,
       price: price ?? v.price,
       compareAt: iCompare >= 0 ? (compare ?? null) : v.compareAtPrice,
-      stock: stock ?? v.stock,
+      stocks: stocks.filter((x) => x.qty !== qtyOf(v.id, x.storeId)),
     };
     if (!valid(next)) { skipped++; continue; }
-    if (next.price !== v.price || next.stock !== v.stock || (next.compareAt ?? null) !== (v.compareAtPrice ?? null)) changes.set(v.id, next);
+    if (next.price !== v.price || next.stocks.length || (next.compareAt ?? null) !== (v.compareAtPrice ?? null)) changes.set(v.id, next);
   }
   if (changes.size) await apply([...changes.values()]);
   return { ok: true, updated: changes.size, skipped };

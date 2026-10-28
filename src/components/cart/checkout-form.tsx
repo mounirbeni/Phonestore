@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Landmark, Lock, Tag } from "lucide-react";
+import { Check, Landmark, Lock, MapPin, Store, Tag, Truck } from "lucide-react";
 import { useCart, useI18n } from "@/components/providers";
-import { placeOrder, validateCoupon } from "@/app/actions/shop";
+import { pickupOptions, placeOrder, validateCoupon } from "@/app/actions/shop";
 import { useCartSync } from "./cart-view";
 import { ProductVisual } from "@/components/ui/product-visual";
 import { store } from "@/config/store";
@@ -36,6 +36,10 @@ export function CheckoutForm({ prefill = {} }: { prefill?: CheckoutPrefill }) {
   const notice = useCartSync();
   const [pending, start] = useTransition();
   const [method, setMethod] = useState<string>("standard");
+  const [fulfilment, setFulfilment] = useState<"delivery" | "pickup">("delivery");
+  const [shops, setShops] = useState<Awaited<ReturnType<typeof pickupOptions>>>([]);
+  const [shopId, setShopId] = useState<number | null>(null);
+  const pickup = fulfilment === "pickup";
   const [errorFields, setErrorFields] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -61,12 +65,28 @@ export function CheckoutForm({ prefill = {} }: { prefill?: CheckoutPrefill }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cart.subtotal]);
 
+  // Which shops can hand over the whole cart; re-checked when the cart changes.
+  const cartKey = cart.lines.map((l) => `${l.variantId}x${l.qty}`).join(",");
+  useEffect(() => {
+    if (!cart.ready) return;
+    let alive = true;
+    pickupOptions(cart.lines.map((l) => ({ variantId: l.variantId, qty: l.qty }))).then((r) => {
+      if (!alive) return;
+      setShops(r);
+      setShopId((id) => (r.some((s) => s.id === id && s.ok) ? id : (r.find((s) => s.ok)?.id ?? null)));
+    });
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cartKey, cart.ready]);
+
   useEffect(() => {
     if (error) document.getElementById("checkout-error")?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [error]);
 
   const discount = coupon?.discount ?? 0;
-  const ship = shippingCost(method) ?? 0;
+  const ship = pickup ? 0 : (shippingCost(method) ?? 0);
   const total = cart.subtotal - discount + ship;
   const deposit = depositFor(total);
 
@@ -126,6 +146,8 @@ export function CheckoutForm({ prefill = {} }: { prefill?: CheckoutPrefill }) {
         postalCode: get("postalCode"),
         country: get("country"),
         shippingMethod: method,
+        fulfilment,
+        storeId: pickup ? (shopId ?? undefined) : undefined,
         couponCode: coupon?.code,
         note: get("note"),
         website: get("website"),
@@ -140,6 +162,8 @@ export function CheckoutForm({ prefill = {} }: { prefill?: CheckoutPrefill }) {
         setErrorFields(res.fields ?? []);
         setError(d.checkout.invalid);
         document.getElementById(res.fields?.[0] ?? "")?.focus();
+      } else if (res.error === "stock" && pickup && !res.name) {
+        setError(d.checkout.pickupNone);
       } else if (res.error === "stock") {
         setError(res.name ? fmt(d.checkout.outOfStock, { name: res.name }) : d.cart.removedUnavailable);
       } else if (res.error === "rate") {
@@ -182,24 +206,53 @@ export function CheckoutForm({ prefill = {} }: { prefill?: CheckoutPrefill }) {
         </Section>
 
         <Section n={2} title={d.checkout.delivery}>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <label className="label" htmlFor="address">{d.checkout.address}</label>
-              <input {...field("address")} required autoComplete="address-line1" maxLength={160} />
+          <div className="mb-5 grid grid-cols-2 gap-3" role="radiogroup" aria-label={d.checkout.delivery}>
+            {([["delivery", Truck, d.checkout.homeDelivery], ["pickup", Store, d.checkout.pickup]] as const).map(([k, Icon, label]) => (
+              <label key={k} className={cn("flex cursor-pointer items-center gap-3 rounded-2xl border-2 p-3.5 text-sm font-semibold transition", fulfilment === k ? "border-fg bg-mist/60" : "border-line hover:border-fg/40")}>
+                <input type="radio" name="fulfilment" value={k} checked={fulfilment === k} onChange={() => setFulfilment(k)} className="sr-only" />
+                <Icon className="h-5 w-5 shrink-0 text-brand" aria-hidden="true" />
+                <span className="min-w-0">{label}{k === "pickup" && <span className="block text-xs font-normal text-muted">{d.common.free}</span>}</span>
+              </label>
+            ))}
+          </div>
+          {pickup && (
+            <div className="mb-5">
+              <ul className="space-y-3" role="radiogroup" aria-label={d.checkout.pickupStore}>
+                {shops.map((s) => (
+                  <li key={s.id}>
+                    <label className={cn("flex items-start gap-3 rounded-2xl border-2 p-4 transition", !s.ok ? "cursor-not-allowed border-line opacity-60" : shopId === s.id ? "cursor-pointer border-fg bg-mist/60" : "cursor-pointer border-line hover:border-fg/40")}>
+                      <input type="radio" name="storeId" value={s.id} checked={shopId === s.id} disabled={!s.ok} onChange={() => setShopId(s.id)} className="mt-1 h-4.5 w-4.5 accent-ink" />
+                      <span className="min-w-0 flex-1">
+                        <span className="flex items-center gap-1.5 font-semibold"><MapPin className="h-4 w-4 text-brand" aria-hidden="true" />{pick(locale, s.nameFr, s.nameAr)}</span>
+                        {s.address && <span className="mt-0.5 block text-sm text-muted">{s.address}</span>}
+                        {!s.ok && <span className="mt-1 block text-xs font-medium text-hot">{d.checkout.pickupMissing}</span>}
+                      </span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+              {shops.length > 0 && !shops.some((s) => s.ok) && <p className="mt-3 text-sm font-medium text-hot">{d.checkout.pickupNone}</p>}
+              <p className="mt-3 text-sm text-muted">{d.checkout.pickupInfo}</p>
             </div>
-            <div className="sm:col-span-2">
+          )}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className={cn("sm:col-span-2", pickup && "hidden")}>
+              <label className="label" htmlFor="address">{d.checkout.address}</label>
+              <input {...field("address")} required={!pickup} autoComplete="address-line1" maxLength={160} />
+            </div>
+            <div className={cn("sm:col-span-2", pickup && "hidden")}>
               <label className="label" htmlFor="address2">{d.checkout.address2} <span className="font-normal text-muted">({d.common.optional})</span></label>
               <input {...field("address2")} autoComplete="address-line2" maxLength={160} />
             </div>
-            <div>
+            <div className={cn(pickup && "hidden")}>
               <label className="label" htmlFor="postalCode">{d.checkout.postalCode} <span className="font-normal text-muted">({d.common.optional})</span></label>
               <input {...field("postalCode")} autoComplete="postal-code" dir="ltr" inputMode="numeric" maxLength={12} />
             </div>
-            <div>
+            <div className={cn(pickup && "hidden")}>
               <label className="label" htmlFor="city">{d.checkout.city}</label>
-              <input {...field("city")} required autoComplete="address-level2" maxLength={80} />
+              <input {...field("city")} required={!pickup} autoComplete="address-level2" maxLength={80} />
             </div>
-            <div className="sm:col-span-2">
+            <div className={cn("sm:col-span-2", pickup && "hidden")}>
               <label className="label" htmlFor="country">{d.checkout.country}</label>
               <select {...field("country")} defaultValue={store.countries[0].code} autoComplete="country">
                 {store.countries.map((c) => (
@@ -218,7 +271,7 @@ export function CheckoutForm({ prefill = {} }: { prefill?: CheckoutPrefill }) {
           </div>
         </Section>
 
-        <Section n={3} title={d.checkout.shippingMethod}>
+        {!pickup && <Section n={3} title={d.checkout.shippingMethod}>
           <ul className="space-y-3" role="radiogroup">
             {store.shippingMethods.map((m) => {
               const cost = shippingCost(m.id) ?? 0;
@@ -237,9 +290,9 @@ export function CheckoutForm({ prefill = {} }: { prefill?: CheckoutPrefill }) {
               );
             })}
           </ul>
-        </Section>
+        </Section>}
 
-        <Section n={4} title={d.checkout.payment}>
+        <Section n={pickup ? 3 : 4} title={d.checkout.payment}>
           <div className="flex items-start gap-4 rounded-2xl border-2 border-fg bg-mist/60 p-4">
             <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-ink text-white">
               <Landmark className="h-5.5 w-5.5" aria-hidden="true" />

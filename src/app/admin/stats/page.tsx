@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { and, count, desc, eq, gte, lt, ne, sql, sum } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
-import { Ban, Banknote, MapPin, Package, ShoppingCart, Tags, TrendingDown, TrendingUp, UserPlus } from "lucide-react";
+import { Ban, Banknote, MapPin, Package, ShoppingCart, Store, Tags, TrendingDown, TrendingUp, UserPlus } from "lucide-react";
 import { db } from "@/db";
-import { categories, customers, orderItems, orders, products } from "@/db/schema";
+import { categories, customers, orderItems, orders, products, stores } from "@/db/schema";
 import { requirePerm } from "@/lib/auth";
 import { getT } from "@/lib/admin-lang";
 import { eur } from "@/lib/admin-ui";
@@ -100,6 +100,19 @@ export default async function StatsPage({ searchParams }: Props) {
       .limit(10),
   ]);
 
+  // Website delivery vs store pickup vs till sales, per shop.
+  const channels = await db
+    .select({ channel: orders.channel, fulfilment: orders.fulfilment, fr: stores.nameFr, ar: stores.nameAr, n: count(), revenue: sql<number>`sum(${orders.total})::int` })
+    .from(orders)
+    .leftJoin(stores, eq(stores.id, orders.storeId))
+    .where(inPeriod)
+    .groupBy(orders.channel, orders.fulfilment, stores.nameFr, stores.nameAr)
+    .orderBy(desc(sql`sum(${orders.total})`));
+  const channelLabel = (c: (typeof channels)[number]) => {
+    const shop = (T.lang === "fr" ? c.fr : c.ar) ?? "";
+    return c.channel === "store" ? `${T("بيع في المتجر")} · ${shop}` : c.fulfilment === "pickup" ? `${T("استلام من المتجر")} · ${shop}` : T("توصيل");
+  };
+
   const revenue = Number(cur?.revenue ?? 0);
   const n = cur?.n ?? 0;
   const prevRevenue = Number(prev?.revenue ?? 0);
@@ -176,6 +189,9 @@ export default async function StatsPage({ searchParams }: Props) {
           />
         </Panel>
         <div className="space-y-6">
+          <Panel title={T("المبيعات حسب القناة والمتجر")} icon={Store}>
+            <Bars empty={T("لا توجد مبيعات في هذه الفترة")} rows={channels.map((r) => ({ label: channelLabel(r), value: r.revenue, text: eur(r.revenue), sub: T("{n} طلب", { n: r.n }) }))} />
+          </Panel>
           <Panel title={T("المبيعات حسب الفئة")} icon={Tags}>
             <Bars empty={T("لا توجد مبيعات في هذه الفترة")} rows={cats.map((r) => ({ label: T.lang === "fr" ? r.fr : r.ar, value: r.revenue, text: eur(r.revenue) }))} />
           </Panel>

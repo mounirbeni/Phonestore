@@ -24,7 +24,7 @@ export async function OrdersTable({ rows, contact = false }: { rows: Order[]; co
         <tbody className="divide-y divide-line">
           {rows.map((o) => (
             <tr key={o.id} className="transition hover:bg-mist/50">
-              <td className="px-5 py-3 font-semibold"><Link href={`/admin/orders/${o.id}`} className="text-brand hover:underline" dir="ltr">{o.number}</Link></td>
+              <td className="px-5 py-3 font-semibold"><Link href={`/admin/orders/${o.id}`} className="text-brand hover:underline" dir="ltr">{o.number}</Link>{o.channel === "store" ? <span className="chip ms-2 bg-mist text-ink-2">{T("المتجر")}</span> : o.fulfilment === "pickup" ? <span className="chip ms-2 bg-warn-50 text-warn">{T("استلام")}</span> : null}</td>
               <td className="px-3 py-3">
                 <span className="block font-medium">{o.firstName} {o.lastName}</span>
                 <span className="block text-xs text-muted">{o.city}</span>

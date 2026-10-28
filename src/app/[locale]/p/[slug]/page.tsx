@@ -11,6 +11,7 @@ import { ProductGrid } from "@/components/shop/product-card";
 import { Section } from "@/components/ui/section";
 import { ProductDescription } from "@/components/shop/product-description";
 import { stripEmoji } from "@/lib/emoji";
+import { activeStores, stockByStore } from "@/lib/stock";
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
 
@@ -36,7 +37,7 @@ export default async function ProductPage({ params }: Props) {
   if (!data) notFound();
   const { product, category, parent, variants, art } = data;
   const d = getDictionary(locale);
-  const related = await getRelated(product.id, product.categoryId);
+  const [related, shops, perStore] = await Promise.all([getRelated(product.id, product.categoryId), activeStores(), stockByStore(variants.map((v) => v.id))]);
   const description = pick(locale, product.descFr, product.descAr);
   const specs = product.specs;
 
@@ -92,6 +93,10 @@ export default async function ProductPage({ params }: Props) {
           variants={variants.map((v) => ({
             id: v.id, sku: v.sku, colorFr: v.colorFr, colorAr: v.colorAr, colorHex: v.colorHex,
             storage: v.storage, price: v.price, compareAtPrice: v.compareAtPrice, stock: v.stock,
+          }))}
+          shops={shops.filter((s) => s.pickup).map((s) => ({
+            id: s.id, name: pick(locale, s.nameFr, s.nameAr), address: s.address,
+            stock: Object.fromEntries(variants.map((v) => [v.id, perStore.get(v.id)?.get(s.id) ?? 0])),
           }))}
         />
 

@@ -17,6 +17,7 @@ type VariantState = {
   price: string;
   compareAt: string;
   stock: string;
+  barcode?: string;
 };
 
 export type ProductFormInitial = {
@@ -41,7 +42,7 @@ export type ProductFormInitial = {
 
 const blankVariant = (): VariantState => ({ sku: "", colorFr: "", colorAr: "", colorHex: "#1c1c1e", storage: "", price: "", compareAt: "", stock: "0" });
 
-export function ProductForm({ initial, categories }: { initial: ProductFormInitial; categories: { label: string | null; items: { id: number; nameAr: string }[] }[] }) {
+export function ProductForm({ initial, categories, mainStore = "" }: { initial: ProductFormInitial; categories: { label: string | null; items: { id: number; nameAr: string }[] }[]; mainStore?: string }) {
   const T = useT();
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -98,6 +99,7 @@ export function ProductForm({ initial, categories }: { initial: ProductFormIniti
         price,
         compareAt: Number.isFinite(cmp) && cmp > price ? cmp : null,
         stock,
+        barcode: v.barcode ?? "",
       });
     }
     start(async () => {
@@ -294,12 +296,16 @@ export function ProductForm({ initial, categories }: { initial: ProductFormIniti
                   <input className="input !py-2" inputMode="decimal" dir="ltr" value={v.compareAt} onChange={(e) => setVariant(i, { compareAt: e.target.value })} />
                 </div>
                 <div>
-                  <label className="label">{T("المخزون")}</label>
+                  <label className="label">{T("المخزون")} · {mainStore}</label>
                   <input className="input !py-2" inputMode="numeric" dir="ltr" required value={v.stock} onChange={(e) => setVariant(i, { stock: e.target.value })} />
                 </div>
                 <div>
                   <label className="label">SKU</label>
                   <input className="input !py-2" dir="ltr" value={v.sku} onChange={(e) => setVariant(i, { sku: e.target.value })} placeholder={T("تلقائي")} />
+                </div>
+                <div>
+                  <label className="label">{T("الباركود (EAN)")}</label>
+                  <input className="input !py-2" dir="ltr" inputMode="numeric" value={v.barcode ?? ""} onChange={(e) => setVariant(i, { barcode: e.target.value })} placeholder="6941812..." />
                 </div>
               </div>
               {f.variants.length > 1 && (

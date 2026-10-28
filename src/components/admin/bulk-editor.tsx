@@ -8,8 +8,9 @@ import { importVariantsCsv, saveVariantsBulk, type VariantChange } from "@/app/a
 import { useT } from "@/components/admin/admin-lang";
 import { cn } from "@/lib/utils";
 
-type Row = { id: number; sku: string; name: string; variant: string; productId: number; active: boolean; price: number; compareAt: number | null; stock: number };
-type Draft = { price: string; compareAt: string; stock: string };
+type Shop = { id: number; name: string };
+type Row = { id: number; sku: string; name: string; variant: string; productId: number; active: boolean; price: number; compareAt: number | null; qty: Record<number, number> };
+type Draft = { price: string; compareAt: string; qty: Record<number, string> };
 
 const toDh = (cents: number | null) => (cents == null ? "" : (cents / 100).toFixed(2).replace(/\.00$/, ""));
 const cents = (s: string) => {
@@ -17,34 +18,39 @@ const cents = (s: string) => {
   return s.trim() === "" ? null : Number.isFinite(n) && n >= 0 ? Math.round(n * 100) : NaN;
 };
 
-/** Inline table: edit price, strike-through price and stock; only changed rows are sent. */
-export function BulkEditor({ rows }: { rows: Row[] }) {
+/** Inline table: price, strike-through price and stock per shop; only changed rows are sent. */
+export function BulkEditor({ rows, shops }: { rows: Row[]; shops: Shop[] }) {
   const T = useT();
   const router = useRouter();
   const [pending, start] = useTransition();
-  const initial = (r: Row): Draft => ({ price: toDh(r.price), compareAt: toDh(r.compareAt), stock: String(r.stock) });
+  const initial = (r: Row): Draft => ({ price: toDh(r.price), compareAt: toDh(r.compareAt), qty: Object.fromEntries(shops.map((sh) => [sh.id, String(r.qty[sh.id] ?? 0)])) });
   const [drafts, setDrafts] = useState<Record<number, Draft>>(() => Object.fromEntries(rows.map((r) => [r.id, initial(r)])));
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
+  const qtyChanged = (r: Row) => shops.filter((sh) => drafts[r.id].qty[sh.id] !== String(r.qty[sh.id] ?? 0));
   const changed = rows.filter((r) => {
     const d = drafts[r.id], i = initial(r);
-    return d.price !== i.price || d.compareAt !== i.compareAt || d.stock !== i.stock;
+    return d.price !== i.price || d.compareAt !== i.compareAt || qtyChanged(r).length > 0;
   });
   const invalid = changed.filter((r) => {
     const d = drafts[r.id];
-    const p = cents(d.price), c = cents(d.compareAt), s = Number(d.stock);
-    return p == null || Number.isNaN(p) || Number.isNaN(c) || !Number.isInteger(s) || s < 0;
+    const p = cents(d.price), c = cents(d.compareAt);
+    return p == null || Number.isNaN(p) || Number.isNaN(c) || shops.some((sh) => { const s = Number(d.qty[sh.id]); return !Number.isInteger(s) || s < 0; });
   });
 
-  const set = (id: number, k: keyof Draft, v: string) => {
+  const set = (id: number, k: "price" | "compareAt", v: string) => {
     setMsg(null);
     setDrafts((d) => ({ ...d, [id]: { ...d[id], [k]: v } }));
+  };
+  const setQty = (id: number, shop: number, v: string) => {
+    setMsg(null);
+    setDrafts((d) => ({ ...d, [id]: { ...d[id], qty: { ...d[id].qty, [shop]: v } } }));
   };
 
   function save() {
     const payload: VariantChange[] = changed.map((r) => {
       const d = drafts[r.id];
-      return { id: r.id, price: cents(d.price)!, compareAt: cents(d.compareAt), stock: Number(d.stock) };
+      return { id: r.id, price: cents(d.price)!, compareAt: cents(d.compareAt), stocks: qtyChanged(r).map((sh) => ({ storeId: sh.id, qty: Number(d.qty[sh.id]) })) };
     });
     start(async () => {
       const r = await saveVariantsBulk(payload);
@@ -59,14 +65,15 @@ export function BulkEditor({ rows }: { rows: Row[] }) {
   return (
     <div className="space-y-3">
       <div className="overflow-x-auto rounded-2xl border border-line bg-surface">
-        <table className="w-full min-w-[720px] text-sm">
+        <table className="w-full min-w-[760px] text-sm">
           <thead className="text-xs text-muted">
             <tr className="border-b border-line bg-mist/60">
               <th className="px-4 py-3 text-start font-medium">{T("المنتج")}</th>
               <th className="px-2 py-3 text-start font-medium">SKU</th>
-              <th className="w-32 px-2 py-3 text-start font-medium">{T("السعر (DH)")}</th>
-              <th className="w-32 px-2 py-3 text-start font-medium">{T("السعر قبل التخفيض (DH)")}</th>
-              <th className="w-24 px-4 py-3 text-start font-medium">{T("المخزون")}</th>
+              <th className="w-28 px-2 py-3 text-start font-medium">{T("السعر (DH)")}</th>
+              <th className="w-28 px-2 py-3 text-start font-medium">{T("السعر قبل التخفيض (DH)")}</th>
+              {shops.map((sh) => <th key={sh.id} className="w-24 px-2 py-3 text-start font-medium">{T("المخزون")} · {sh.name}</th>)}
+              <th className="w-14 px-4 py-3 text-start font-medium">{T("المجموع")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
@@ -74,7 +81,7 @@ export function BulkEditor({ rows }: { rows: Row[] }) {
               const d = drafts[r.id];
               const dirty = changed.includes(r);
               const bad = invalid.includes(r);
-              const stock = Number(d.stock);
+              const total = shops.reduce((n, sh) => n + (Number(d.qty[sh.id]) || 0), 0);
               return (
                 <tr key={r.id} className={cn("transition", dirty ? "bg-brand/5" : "hover:bg-mist/40")}>
                   <td className="px-4 py-2">
@@ -84,7 +91,15 @@ export function BulkEditor({ rows }: { rows: Row[] }) {
                   <td className="px-2 py-2 font-mono text-xs text-muted" dir="ltr">{r.sku}</td>
                   <td className="px-2 py-2"><input value={d.price} onChange={(e) => set(r.id, "price", e.target.value)} inputMode="decimal" dir="ltr" className={cn("input !py-1.5 text-sm tabular-nums", bad && "!border-hot")} aria-label={`${T("السعر (DH)")} — ${r.name}`} /></td>
                   <td className="px-2 py-2"><input value={d.compareAt} onChange={(e) => set(r.id, "compareAt", e.target.value)} inputMode="decimal" dir="ltr" placeholder="—" className="input !py-1.5 text-sm tabular-nums" aria-label={`${T("السعر قبل التخفيض (DH)")} — ${r.name}`} /></td>
-                  <td className="px-4 py-2"><input value={d.stock} onChange={(e) => set(r.id, "stock", e.target.value)} inputMode="numeric" dir="ltr" className={cn("input !py-1.5 text-sm tabular-nums", stock === 0 && "!text-hot", stock > 0 && stock <= 3 && "!text-warn")} aria-label={`${T("المخزون")} — ${r.name}`} /></td>
+                  {shops.map((sh) => {
+                    const q = Number(d.qty[sh.id]);
+                    return (
+                      <td key={sh.id} className="px-2 py-2">
+                        <input value={d.qty[sh.id]} onChange={(e) => setQty(r.id, sh.id, e.target.value)} inputMode="numeric" dir="ltr" className={cn("input !py-1.5 text-sm tabular-nums", q === 0 && "!text-hot", q > 0 && q <= 3 && "!text-warn")} aria-label={`${T("المخزون")} ${sh.name} — ${r.name}`} />
+                      </td>
+                    );
+                  })}
+                  <td className="px-4 py-2 font-semibold tabular-nums" dir="ltr">{total}</td>
                 </tr>
               );
             })}

@@ -8,6 +8,7 @@ import { getT } from "@/lib/admin-lang";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/admin/ui";
 import { BulkEditor, BulkFileTools } from "@/components/admin/bulk-editor";
+import { activeStores, stockByStore } from "@/lib/stock";
 
 export async function generateMetadata() {
   const T = await getT();
@@ -41,6 +42,7 @@ export default async function BulkPage({ searchParams }: Props) {
       .offset((page - 1) * PER),
     db.select({ n: count() }).from(variants).innerJoin(products, eq(variants.productId, products.id)).where(where),
   ]);
+  const [shops, per] = await Promise.all([activeStores(), stockByStore(rows.map((r) => r.id))]);
   const pages = Math.max(1, Math.ceil((total?.n ?? 0) / PER));
   const href = (o: { page?: number; low?: boolean }) => {
     const p = new URLSearchParams();
@@ -65,7 +67,8 @@ export default async function BulkPage({ searchParams }: Props) {
       </div>
       <BulkEditor
         key={`${q}-${low}-${page}`}
-        rows={rows.map((r) => ({ ...r, variant: [r.color, r.storage].filter(Boolean).join(" · ") }))}
+        shops={shops.map((st) => ({ id: st.id, name: T.lang === "fr" ? st.nameFr : st.nameAr }))}
+        rows={rows.map((r) => ({ ...r, variant: [r.color, r.storage].filter(Boolean).join(" · "), qty: Object.fromEntries(shops.map((st) => [st.id, per.get(r.id)?.get(st.id) ?? 0])) }))}
       />
       {pages > 1 && (
         <nav className="flex items-center justify-center gap-3 text-sm">

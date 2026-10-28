@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { asc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { categories, products, variants } from "@/db/schema";
+import { activeStores, stockByStore } from "@/lib/stock";
 import { ProductForm, type ProductFormInitial } from "@/components/admin/product-form";
 import { getT } from "@/lib/admin-lang";
 import { PageHeader } from "@/components/admin/ui";
@@ -19,6 +20,7 @@ export default async function EditProduct({ params }: Props) {
   const T = await getT();
   await requirePerm("catalog");
   const { id } = await params;
+  const [main] = await activeStores();
   const all = await db.select().from(categories).orderBy(asc(categories.sort), asc(categories.id));
   // Only the most precise categories can hold products; sub-categories are grouped under their family.
   const hasKids = new Set(all.map((c) => c.parentId).filter((x): x is number => x != null));
@@ -45,6 +47,8 @@ export default async function EditProduct({ params }: Props) {
     const [p] = await db.select().from(products).where(eq(products.id, pid)).limit(1);
     if (!p) notFound();
     const vs = await db.select().from(variants).where(eq(variants.productId, pid)).orderBy(asc(variants.sort), asc(variants.id));
+    // The form edits the main shop's stock; the other shops are on the stock page.
+    const perStore = await stockByStore(vs.map((v) => v.id));
     initial = {
       id: p.id, name: p.name, slug: p.slug, brand: p.brand, categoryId: p.categoryId,
       shortFr: p.shortFr, shortAr: p.shortAr, descFr: p.descFr, descAr: p.descAr,
@@ -52,7 +56,7 @@ export default async function EditProduct({ params }: Props) {
       featured: p.featured, isNew: p.isNew, active: p.active, warrantyMonths: p.warrantyMonths, condition: p.condition,
       variants: vs.map((v) => ({
         id: v.id, sku: v.sku, colorFr: v.colorFr, colorAr: v.colorAr, colorHex: v.colorHex, storage: v.storage,
-        price: String(v.price / 100), compareAt: v.compareAtPrice ? String(v.compareAtPrice / 100) : "", stock: String(v.stock),
+        price: String(v.price / 100), compareAt: v.compareAtPrice ? String(v.compareAtPrice / 100) : "", stock: String(main ? (perStore.get(v.id)?.get(main.id) ?? 0) : v.stock), barcode: v.barcode,
       })),
     };
   }
@@ -60,7 +64,7 @@ export default async function EditProduct({ params }: Props) {
   return (
     <div className="mx-auto max-w-4xl space-y-5">
       <PageHeader title={id === "new" ? T("منتج جديد") : T("تعديل المنتج")} />
-      <ProductForm initial={initial} categories={groups} />
+      <ProductForm initial={initial} categories={groups} mainStore={main ? (T.lang === "fr" ? main.nameFr : main.nameAr) : ""} />
     </div>
   );
 }

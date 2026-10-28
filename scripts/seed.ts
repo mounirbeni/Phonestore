@@ -836,6 +836,8 @@ async function main() {
     { code: "ETE20", amountOff: 2000, minSubtotal: 15000 },
   ]);
 
+  // Shop stock: variants without any row get their quantity in the main shop.
+  await db.execute(sql`insert into variant_stock (variant_id, store_id, qty) select v.id, s.id, v.stock from variants v cross join stores s where s.is_main and not exists (select 1 from variant_stock x where x.variant_id = v.id) on conflict do nothing`);
   console.log(`Seeded ${cats.length} categories (${parents.size} families), ${items.length} products, 2 coupons`);
   await client.end();
 }

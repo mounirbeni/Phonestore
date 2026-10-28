@@ -20,6 +20,7 @@ import {
 } from "@/db/schema";
 import { checkPassword, createSession, destroySession, homeFor, requirePerm } from "@/lib/auth";
 import { applyStatus, markDeposit } from "@/lib/order-status";
+import { activeStores, setStoreQty } from "@/lib/stock";
 import { failDelay, verifyPassword } from "@/lib/password";
 import { allowAll, clientIp } from "@/lib/rate-limit";
 import { CATEGORY_ICONS } from "@/lib/category-icons";
@@ -138,6 +139,7 @@ const variantSchema = z.object({
   price: z.number().min(0).max(100000),
   compareAt: z.number().min(0).max(100000).nullable(),
   stock: z.number().int().min(0).max(1000000),
+  barcode: z.string().trim().max(40).default(""),
 });
 
 const productSchema = z.object({
@@ -200,6 +202,7 @@ export async function saveProduct(input: ProductPayload): Promise<{ ok: true; id
 
   try {
     const id = await db.transaction(async (tx) => {
+      const [main] = await activeStores(tx);
       const values = {
         slug,
         name: p.name,
@@ -240,11 +243,14 @@ export async function saveProduct(input: ProductPayload): Promise<{ ok: true; id
           storage: v.storage,
           price: Math.round(v.price * 100),
           compareAtPrice: v.compareAt ? Math.round(v.compareAt * 100) : null,
-          stock: v.stock,
+          barcode: v.barcode,
           sort: i,
         };
-        if (v.id && keep.has(v.id)) await tx.update(variants).set(row).where(eq(variants.id, v.id));
-        else await tx.insert(variants).values(row);
+        let variantId = v.id && keep.has(v.id) ? v.id : null;
+        if (variantId) await tx.update(variants).set(row).where(eq(variants.id, variantId));
+        else [{ id: variantId }] = await tx.insert(variants).values({ ...row, stock: 0 }).returning({ id: variants.id });
+        // The form's stock is the main shop's; the other shops are managed on the stock page.
+        if (main) await setStoreQty(tx, variantId!, main.id, v.stock);
       }
       return productId;
     });

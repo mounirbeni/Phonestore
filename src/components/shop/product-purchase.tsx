@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { BadgeCheck, Banknote, Check, RotateCcw, ShoppingBag, Truck, Zap } from "lucide-react";
+import { BadgeCheck, Banknote, Check, MapPin, RotateCcw, ShoppingBag, Truck, Zap } from "lucide-react";
 import type { ArtKind } from "@/lib/art";
 import { useCart, useI18n } from "@/components/providers";
 import { ProductVisual } from "@/components/ui/product-visual";
@@ -40,9 +40,11 @@ type Props = {
   isNew: boolean;
   condition: "new" | "used";
   conditionNote?: string;
+  /** Pickup shops with their quantity of each variant. */
+  shops?: { id: number; name: string; address: string; stock: Record<number, number> }[];
 };
 
-export function ProductPurchase({ slug, name, brand, images, art, variants, warrantyMonths, optionLabel, isNew, condition, conditionNote }: Props) {
+export function ProductPurchase({ slug, name, brand, images, art, variants, warrantyMonths, optionLabel, isNew, condition, conditionNote, shops = [] }: Props) {
   const { locale, d } = useI18n();
   const cart = useCart();
   const router = useRouter();
@@ -305,7 +307,28 @@ export function ProductPurchase({ slug, name, brand, images, art, variants, warr
           {fmt(d.product.sku, { sku: selected.sku })}
         </p>
 
-        <ul className="mt-8 space-y-3.5 rounded-3xl border border-line bg-surface p-5 text-sm">
+        {shops.length > 0 && (
+          <div className="mt-8 rounded-3xl border border-line bg-surface p-5 text-sm">
+            <p className="flex items-center gap-2 font-bold"><MapPin className="h-5 w-5 text-brand" aria-hidden="true" />{d.product.inStore}</p>
+            <ul className="mt-3 space-y-2.5">
+              {shops.map((s) => {
+                const n = s.stock[selected.id] ?? 0;
+                return (
+                  <li key={s.id} className="flex items-start justify-between gap-3">
+                    <span className="min-w-0">
+                      <span className="block font-semibold">{s.name}</span>
+                      {s.address && <span className="block text-xs text-muted">{s.address}</span>}
+                    </span>
+                    <span className={cn("chip shrink-0", n > 0 ? "bg-ok-50 text-ok" : "bg-mist text-muted")}>{n > 0 ? d.product.storeAvailable : d.product.storeUnavailable}</span>
+                  </li>
+                );
+              })}
+            </ul>
+            {shops.some((s) => (s.stock[selected.id] ?? 0) > 0) && <p className="mt-3 text-xs text-muted">{d.product.pickupHint}</p>}
+          </div>
+        )}
+
+        <ul className="mt-4 space-y-3.5 rounded-3xl border border-line bg-surface p-5 text-sm">
           <li className="flex items-center gap-3"><Banknote className="h-5 w-5 text-brand" aria-hidden="true" />{d.product.deliveryCod}</li>
           <li className="flex items-center gap-3"><Truck className="h-5 w-5 text-brand" aria-hidden="true" />{d.product.deliveryStandard}</li>
           <li className="flex items-center gap-3"><RotateCcw className="h-5 w-5 text-brand" aria-hidden="true" />{d.product.deliveryReturn}</li>

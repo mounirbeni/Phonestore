@@ -5,7 +5,11 @@ import { ORDER_STATUSES, orders, type OrderStatus } from "@/db/schema";
 /** "deposit" is a view, not a status: pending orders whose advance has not arrived yet. */
 export type OrderView = OrderStatus | "deposit";
 
-export type OrderFilter = { view?: OrderView; q?: string; from?: string; to?: string };
+/** Where the order came from: website delivery, website with store pickup, or the shop till. */
+export type OrderChannel = "delivery" | "pickup" | "store";
+export const ORDER_CHANNELS: OrderChannel[] = ["delivery", "pickup", "store"];
+
+export type OrderFilter = { view?: OrderView; q?: string; from?: string; to?: string; channel?: OrderChannel };
 
 const day = (s?: string) => (s && /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : undefined);
 
@@ -17,6 +21,7 @@ export function parseOrderFilter(sp: Record<string, string | undefined>): OrderF
     q: sp.q?.trim().slice(0, 60) || undefined,
     from: day(sp.from),
     to: day(sp.to),
+    channel: ORDER_CHANNELS.includes(sp.channel as OrderChannel) ? (sp.channel as OrderChannel) : undefined,
   };
 }
 
@@ -24,6 +29,8 @@ export function orderWhere(f: OrderFilter, { ignoreView = false } = {}) {
   const conds: (SQL | undefined)[] = [];
   if (!ignoreView && f.view === "deposit") conds.push(eq(orders.status, "pending"), gt(orders.deposit, 0), isNull(orders.depositPaidAt));
   else if (!ignoreView && f.view) conds.push(eq(orders.status, f.view as OrderStatus));
+  if (f.channel === "store") conds.push(eq(orders.channel, "store"));
+  else if (f.channel) conds.push(eq(orders.channel, "online"), eq(orders.fulfilment, f.channel));
   if (f.q) {
     const like = `%${f.q.replace(/[%_\\]/g, "\\$&")}%`;
     conds.push(or(ilike(orders.number, like), ilike(orders.email, like), ilike(orders.firstName, like), ilike(orders.lastName, like), ilike(orders.phone, like), ilike(orders.city, like)));
@@ -44,6 +51,7 @@ export function orderQuery(f: OrderFilter, extra: Record<string, string> = {}) {
   if (f.q) p.set("q", f.q);
   if (f.from) p.set("from", f.from);
   if (f.to) p.set("to", f.to);
+  if (f.channel) p.set("channel", f.channel);
   for (const [k, v] of Object.entries(extra)) p.set(k, v);
   const s = p.toString();
   return s ? `?${s}` : "";

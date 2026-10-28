@@ -16,6 +16,8 @@ import {
   LogOut,
   Mail,
   Package,
+  ScanBarcode,
+  ShieldCheck,
   ShoppingCart,
   Ticket,
   Truck,
@@ -35,6 +37,7 @@ const GROUPS: { label: string; items: Item[] }[] = [
     label: "المبيعات",
     items: [
       { href: "/admin", label: "لوحة التحكم", short: "الرئيسية", icon: LayoutDashboard, perm: "dashboard", exact: true },
+      { href: "/admin/pos", label: "صندوق البيع", short: "الصندوق", icon: ScanBarcode, perm: "pos" },
       { href: "/admin/deliveries", label: "توصيلاتي", icon: Truck, perm: "deliveries" },
       { href: "/admin/orders", label: "الطلبات", icon: ShoppingCart, perm: "orders" },
       { href: "/admin/stats", label: "الإحصائيات", short: "إحصاء", icon: BarChart3, perm: "stats" },
@@ -43,7 +46,10 @@ const GROUPS: { label: string; items: Item[] }[] = [
   },
   {
     label: "الدعم",
-    items: [{ href: "/admin/support", label: "الرسائل والشكاوى", short: "الدعم", icon: Headset, perm: "support" }],
+    items: [
+      { href: "/admin/support", label: "الرسائل والشكاوى", short: "الدعم", icon: Headset, perm: "support" },
+      { href: "/admin/warranties", label: "الضمانات", icon: ShieldCheck, perm: "warranties" },
+    ],
   },
   {
     label: "الكتالوج",

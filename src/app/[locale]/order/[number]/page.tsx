@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, asc, eq, inArray } from "drizzle-orm";
-import { Check, CheckCircle2, Landmark, Package, Truck, XCircle } from "lucide-react";
+import { Check, CheckCircle2, Landmark, MapPin, Package, ShieldCheck, Truck, XCircle } from "lucide-react";
 import { db } from "@/db";
-import { categories, orderEvents, orderItems, orders, products } from "@/db/schema";
+import { categories, orderEvents, orderItems, orders, products, stores, warranties } from "@/db/schema";
 import { getCustomerId } from "@/lib/customer-auth";
 import { store } from "@/config/store";
 import { artKind } from "@/lib/art";
@@ -40,6 +40,8 @@ export default async function OrderPage({ params, searchParams }: Props) {
       </div>
     );
   }
+  const ws = order.status === "delivered" ? await db.select().from(warranties).where(and(eq(warranties.orderId, order.id), eq(warranties.voided, false))).orderBy(asc(warranties.id)) : [];
+  const [pickupStore] = order.fulfilment === "pickup" && order.storeId ? await db.select().from(stores).where(eq(stores.id, order.storeId)).limit(1) : [];
   const [items, events] = await Promise.all([
     db.select().from(orderItems).where(eq(orderItems.orderId, order.id)).orderBy(orderItems.id),
     db.select({ status: orderEvents.status, at: orderEvents.createdAt }).from(orderEvents).where(and(eq(orderEvents.orderId, order.id), eq(orderEvents.kind, "status"))).orderBy(asc(orderEvents.createdAt)),
@@ -167,7 +169,32 @@ export default async function OrderPage({ params, searchParams }: Props) {
           </dl>
         </section>
 
+        {ws.length > 0 && (
+          <section className="mt-6 rounded-3xl border border-line bg-surface p-6">
+            <h2 className="mb-3 flex items-center gap-2 text-base font-bold"><ShieldCheck className="h-5 w-5 text-brand" aria-hidden="true" />{d.warranty.title}</h2>
+            <ul className="divide-y divide-line text-sm">
+              {ws.map((w) => (
+                <li key={w.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5">
+                  <span className="min-w-0 flex-1 font-medium">{w.productName}{w.variantLabel ? <span className="text-muted"> · {w.variantLabel}</span> : null}</span>
+                  <Link href={localePath(locale, `/garantie/${w.code}`)} className="btn btn-outline btn-sm">{d.warranty.check}</Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         <div className="mt-6 grid gap-6 sm:grid-cols-2">
+          {pickupStore ? (
+            <section className="rounded-3xl border border-line bg-surface p-6">
+              <h2 className="mb-3 text-base font-bold">{d.order.pickupAt}</h2>
+              <address className="text-sm not-italic leading-relaxed text-fg-2">
+                <span className="flex items-center gap-1.5 font-semibold text-fg"><MapPin className="h-4 w-4 text-brand" aria-hidden="true" />{pick(locale, pickupStore.nameFr, pickupStore.nameAr)}</span>
+                {pickupStore.address}<br />
+                <span dir="ltr">{pickupStore.phone}</span>
+              </address>
+              <p className="mt-3 text-sm text-muted">{d.checkout.pickupInfo}</p>
+            </section>
+          ) : (
           <section className="rounded-3xl border border-line bg-surface p-6">
             <h2 className="mb-3 text-base font-bold">{d.order.shippingTo}</h2>
             <address className="text-sm not-italic leading-relaxed text-fg-2">
@@ -178,6 +205,7 @@ export default async function OrderPage({ params, searchParams }: Props) {
               <span dir="ltr">{order.phone}</span>
             </address>
           </section>
+          )}
           <section className="rounded-3xl border border-line bg-surface p-6">
             <h2 className="mb-3 text-base font-bold">{d.order.paymentMethod}</h2>
             <p className="flex items-center gap-2.5 text-sm text-fg-2"><Landmark className="h-5 w-5 text-brand" aria-hidden="true" />{order.deposit > 0 ? d.order.codShort : d.order.rest}</p>

@@ -69,7 +69,7 @@ function orderHtml(order: Order, items: OrderItem[], locale: Locale, intro: stri
 <p style="text-align:end;font-size:16px">${d.mail.total}: <strong>${formatPrice(order.total, locale)}</strong>${order.deposit ? `<br>${d.order.deposit}: ${formatPrice(order.deposit, locale)}` : ""}</p>
 <p style="text-align:end;font-size:18px"><strong>${d.mail.pay}: ${formatPrice(order.total - order.deposit, locale)}</strong></p>
 ${order.deposit ? depositHtml(order, locale) : ""}
-<p style="font-size:13px;color:#555">${esc(order.firstName)} ${esc(order.lastName)}<br>${esc(order.address)} ${esc(order.address2)}<br>${esc(order.postalCode)} ${esc(order.city)} (${esc(order.country)})<br>${esc(order.phone)}</p>
+${order.fulfilment === "pickup" ? `<p style="font-size:13px;color:#555"><strong>${d.order.pickupAt}: ${esc(order.city)}</strong><br>${esc(d.checkout.pickupInfo)}<br>${esc(order.firstName)} ${esc(order.lastName)} · ${esc(order.phone)}</p>` : `<p style="font-size:13px;color:#555">${esc(order.firstName)} ${esc(order.lastName)}<br>${esc(order.address)} ${esc(order.address2)}<br>${esc(order.postalCode)} ${esc(order.city)} (${esc(order.country)})<br>${esc(order.phone)}</p>`}
 ${link ? `<p><a href="${link.href}" style="display:inline-block;background:#0b0d12;color:#fff;padding:12px 20px;border-radius:10px;text-decoration:none">${esc(link.label)}</a></p>` : ""}
 </div>`;
 }

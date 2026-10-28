@@ -1,10 +1,12 @@
 import { requirePerm } from "@/lib/auth";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { ArrowRight, FileText, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import { db } from "@/db";
-import { customers, orderEvents, orderItems, orders, staff } from "@/db/schema";
+import { customers, orderEvents, orderItems, orders, products, staff, stores } from "@/db/schema";
+import { warrantiesFor } from "@/lib/warranty";
+import { SerialsEditor } from "@/components/admin/serials-editor";
 import { store } from "@/config/store";
 import { dateTime, eur, statusChip, statusLabel, waLink } from "@/lib/admin-ui";
 import { OrderActions } from "@/components/admin/order-actions";
@@ -36,7 +38,14 @@ export default async function OrderDetail({ params }: Props) {
   const waText = order.locale === "ar"
     ? `مرحبًا ${order.firstName}، بخصوص طلبك ${order.number} لدى ${store.name}: `
     : `Bonjour ${order.firstName}, concernant votre commande ${order.number} chez ${store.name} : `;
-  const shipLabel = order.shippingMethod === "express" ? T("توصيل سريع") : T("توصيل عادي");
+  const [wmap, months] = await Promise.all([
+    warrantiesFor([order.id]),
+    db.select({ slug: products.slug, months: products.warrantyMonths }).from(products).where(inArray(products.slug, items.map((i) => i.productSlug))),
+  ]);
+  const covered = items.filter((i) => (months.find((p) => p.slug === i.productSlug)?.months ?? 12) > 0);
+  const [shop] = order.storeId ? await db.select().from(stores).where(eq(stores.id, order.storeId)).limit(1) : [];
+  const shopName = shop ? (T.lang === "fr" ? shop.nameFr : shop.nameAr) : "";
+  const shipLabel = order.channel === "store" ? T("بيع في المتجر") : order.fulfilment === "pickup" ? T("استلام من المتجر") : order.shippingMethod === "express" ? T("توصيل سريع") : T("توصيل عادي");
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -45,7 +54,8 @@ export default async function OrderDetail({ params }: Props) {
         <h1 className="text-2xl font-extrabold" dir="ltr">{order.number}</h1>
         <span className={cn("chip", statusChip[order.status])}>{T(statusLabel[order.status])}</span>
         <span className="ms-auto text-sm text-muted">{dateTime(order.createdAt, T.lang)}</span>
-        <a href={`/api/admin/orders/${order.id}/slip`} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm"><FileText className="h-4 w-4" aria-hidden="true" />{T("وصل التوصيل")}</a>
+        {order.fulfilment === "delivery" && <a href={`/api/admin/orders/${order.id}/slip`} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm"><FileText className="h-4 w-4" aria-hidden="true" />{T("وصل التوصيل")}</a>}
+        <a href={`/api/admin/orders/${order.id}/invoice`} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm"><FileText className="h-4 w-4" aria-hidden="true" />{T("الفاتورة والضمان")}</a>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
@@ -74,6 +84,11 @@ export default async function OrderDetail({ params }: Props) {
               {order.deposit > 0 && <div className="flex justify-between font-bold"><dt>{T("المبلغ المطلوب عند الاستلام")}</dt><dd dir="ltr">{eur(order.total - order.deposit)}</dd></div>}
             </dl>
           </section>
+          <SerialsEditor
+            orderId={order.id}
+            active={order.status === "delivered"}
+            items={covered.map((i) => ({ id: i.id, name: i.name, label: i.variantLabel, qty: i.quantity, serials: (wmap.get(i.id) ?? []).map((w) => w.serial), codes: (wmap.get(i.id) ?? []).map((w) => w.code) }))}
+          />
           <OrderActions id={order.id} status={order.status} note={order.adminNote} />
           <OrderTimeline events={events} />
         </div>
@@ -93,11 +108,23 @@ export default async function OrderDetail({ params }: Props) {
             </div>
           </section>
           <section className="rounded-2xl border border-line bg-surface p-5 text-sm">
-            <h2 className="mb-3 font-bold">{T("عنوان التوصيل")}</h2>
-            <p className="flex items-start gap-2 leading-relaxed" dir="ltr" style={{ textAlign: T.lang === "ar" ? "right" : "left" }}>
-              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
-              <span>{order.address}{order.address2 ? `, ${order.address2}` : ""}<br />{order.postalCode} {order.city}<br />{country}</span>
-            </p>
+            {shop ? (
+              <>
+                <h2 className="mb-3 font-bold">{order.channel === "store" ? T("بيع في المتجر") : T("استلام من المتجر")}</h2>
+                <p className="flex items-start gap-2 leading-relaxed">
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden="true" />
+                  <span><span className="font-semibold">{shopName}</span><br />{shop.address}</span>
+                </p>
+              </>
+            ) : (
+              <>
+                <h2 className="mb-3 font-bold">{T("عنوان التوصيل")}</h2>
+                <p className="flex items-start gap-2 leading-relaxed" dir="ltr" style={{ textAlign: T.lang === "ar" ? "right" : "left" }}>
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
+                  <span>{order.address}{order.address2 ? `, ${order.address2}` : ""}<br />{order.postalCode} {order.city}<br />{country}</span>
+                </p>
+              </>
+            )}
             {order.customerNote && (
               <div className="mt-4 rounded-xl bg-warn-50 p-3 text-warn"><p className="mb-1 text-xs font-bold">{T("ملاحظة العميل")}</p>{order.customerNote}</div>
             )}

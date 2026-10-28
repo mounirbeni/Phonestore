@@ -14,6 +14,8 @@ const memberSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(120),
   phone: z.string().trim().max(30).default(""),
   role: z.enum(STAFF_ROLES),
+  /** Shop of a seller; ignored for other roles. */
+  storeId: z.number().int().positive().nullable().default(null),
   /** Required for a new member; when editing, empty keeps the current password. */
   password: z.string().max(100).default(""),
 });
@@ -30,7 +32,8 @@ export async function saveMember(input: z.input<typeof memberSchema>): Promise<{
     .where(m.id ? and(eq(staff.email, m.email), ne(staff.id, m.id)) : eq(staff.email, m.email))
     .limit(1);
   if (clash) return { ok: false, error: "هذا البريد الإلكتروني مستخدم لعضو آخر" };
-  const values = { name: m.name, email: m.email, phone: m.phone, role: m.role, ...(m.password ? { passwordHash: await hashPassword(m.password) } : {}) };
+  if (m.role === "seller" && !m.storeId) return { ok: false, error: "اختر متجر البائع" };
+  const values = { name: m.name, email: m.email, phone: m.phone, role: m.role, storeId: m.role === "seller" ? m.storeId : null, ...(m.password ? { passwordHash: await hashPassword(m.password) } : {}) };
   // Any edit by the owner (password, role, e-mail) signs the member out so the change applies at once.
   if (m.id) await db.update(staff).set({ ...values, sessionVersion: sql`${staff.sessionVersion} + 1` }).where(eq(staff.id, m.id));
   else await db.insert(staff).values({ ...values, passwordHash: values.passwordHash! });

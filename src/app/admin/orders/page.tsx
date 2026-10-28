@@ -65,7 +65,7 @@ export default async function OrdersPage({ searchParams }: Props) {
           </Link>
         ))}
       </div>
-      <form className="grid gap-2 rounded-2xl border border-line bg-surface p-3 sm:grid-cols-[1fr_auto_auto_auto]" action="/admin/orders">
+      <form className="grid gap-2 rounded-2xl border border-line bg-surface p-3 sm:grid-cols-[1fr_auto_auto_auto_auto]" action="/admin/orders">
         {f.view && <input type="hidden" name="status" value={f.view} />}
         <label className="relative">
           <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden="true" />
@@ -79,6 +79,12 @@ export default async function OrdersPage({ searchParams }: Props) {
           {T("إلى")}
           <input type="date" name="to" defaultValue={f.to} className="input !py-2 text-sm" dir="ltr" />
         </label>
+        <select name="channel" defaultValue={f.channel ?? ""} className="input !py-2 text-sm" aria-label={T("القناة")}>
+          <option value="">{T("كل القنوات")}</option>
+          <option value="delivery">{T("توصيل")}</option>
+          <option value="pickup">{T("استلام من المتجر")}</option>
+          <option value="store">{T("بيع في المتجر")}</option>
+        </select>
         <button className="btn btn-primary btn-sm" type="submit">{T("بحث")}</button>
       </form>
       <div className="overflow-hidden rounded-2xl border border-line bg-surface">

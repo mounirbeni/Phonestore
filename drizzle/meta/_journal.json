@@ -71,6 +71,13 @@
       "when": 1793199094261,
       "tag": "0009_support",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793206496220,
+      "tag": "0010_stores_pos_warranty",
+      "breakpoints": true
     }
   ]
 }
