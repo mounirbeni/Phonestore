@@ -3,10 +3,15 @@ import { asc, count, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { categories, products } from "@/db/schema";
 import { CategoryManager } from "@/components/admin/category-manager";
+import { getT } from "@/lib/admin-lang";
 
-export const metadata = { title: "الفئات" };
+export async function generateMetadata() {
+  const T = await getT();
+  return { title: T("الفئات") };
+}
 
 export default async function CategoriesPage() {
+  const T = await getT();
   await requirePerm("catalog");
   const rows = await db
     .select({ c: categories, n: count(products.id) })
@@ -16,7 +21,7 @@ export default async function CategoriesPage() {
     .orderBy(asc(categories.sort), asc(categories.id));
   return (
     <div className="mx-auto max-w-5xl space-y-5">
-      <h1 className="text-2xl font-extrabold">الفئات</h1>
+      <h1 className="text-2xl font-extrabold">{T("الفئات")}</h1>
       <CategoryManager
         cats={rows.map(({ c, n }) => ({
           id: c.id, nameFr: c.nameFr, nameAr: c.nameAr, slug: c.slug, icon: c.icon, sort: c.sort, parentId: c.parentId,

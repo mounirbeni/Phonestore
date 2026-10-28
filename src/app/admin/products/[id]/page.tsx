@@ -4,15 +4,18 @@ import { asc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { categories, products, variants } from "@/db/schema";
 import { ProductForm, type ProductFormInitial } from "@/components/admin/product-form";
+import { getT } from "@/lib/admin-lang";
 
 type Props = { params: Promise<{ id: string }> };
 
 export async function generateMetadata({ params }: Props) {
   const { id } = await params;
-  return { title: id === "new" ? "منتج جديد" : "تعديل منتج" };
+  const T = await getT();
+  return { title: id === "new" ? T("منتج جديد") : T("تعديل منتج") };
 }
 
 export default async function EditProduct({ params }: Props) {
+  const T = await getT();
   await requirePerm("catalog");
   const { id } = await params;
   const all = await db.select().from(categories).orderBy(asc(categories.sort), asc(categories.id));
@@ -21,12 +24,12 @@ export default async function EditProduct({ params }: Props) {
   const groups = all
     .filter((c) => c.parentId == null)
     .map((top) => ({
-      label: hasKids.has(top.id) ? top.nameAr : null,
-      items: (hasKids.has(top.id) ? all.filter((c) => c.parentId === top.id) : [top]).map((c) => ({ id: c.id, nameAr: c.nameAr })),
+      label: hasKids.has(top.id) ? (T.lang === "fr" ? top.nameFr : top.nameAr) : null,
+      items: (hasKids.has(top.id) ? all.filter((c) => c.parentId === top.id) : [top]).map((c) => ({ id: c.id, nameAr: T.lang === "fr" ? c.nameFr : c.nameAr })),
     }))
     .filter((g) => g.items.length > 0);
   const cats = groups.flatMap((g) => g.items);
-  if (!cats.length) return <p className="rounded-2xl bg-white p-8 text-center">أنشئ فئة أولًا من صفحة «الفئات».</p>;
+  if (!cats.length) return <p className="rounded-2xl bg-white p-8 text-center">{T("أنشئ فئة أولًا من صفحة «الفئات».")}</p>;
 
   let initial: ProductFormInitial;
   if (id === "new") {
@@ -55,7 +58,7 @@ export default async function EditProduct({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-4xl space-y-5">
-      <h1 className="text-2xl font-extrabold">{id === "new" ? "منتج جديد" : "تعديل المنتج"}</h1>
+      <h1 className="text-2xl font-extrabold">{id === "new" ? T("منتج جديد") : T("تعديل المنتج")}</h1>
       <ProductForm initial={initial} categories={groups} />
     </div>
   );

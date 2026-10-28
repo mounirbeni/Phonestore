@@ -19,5 +19,5 @@ export const statusChip: Record<OrderStatus, string> = {
 
 export const eur = (cents: number) => formatPrice(cents, "fr");
 
-export const dateTime = (d: Date) =>
-  new Intl.DateTimeFormat("ar-u-nu-latn", { dateStyle: "medium", timeStyle: "short" }).format(d);
+export const dateTime = (d: Date, lang: "fr" | "ar" = "ar") =>
+  new Intl.DateTimeFormat(lang === "fr" ? "fr-FR" : "ar-u-nu-latn", { dateStyle: "medium", timeStyle: "short" }).format(d);

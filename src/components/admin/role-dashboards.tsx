@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { orders, products, staff, variants } from "@/db/schema";
 import { cn } from "@/lib/utils";
 import { OrdersTable } from "./orders-table";
+import { getT } from "@/lib/admin-lang";
 
 type Tile = { label: string; value: number; icon: typeof Clock; tone: string; href?: string };
 
@@ -35,6 +36,7 @@ function Tiles({ items }: { items: Tile[] }) {
 
 /** Order manager: what needs confirming, assigning and following up today. */
 export async function OrdersDashboard({ name }: { name: string }) {
+  const T = await getT();
   const [[pending], [confirmed], [onRoute], [unassigned], drivers, recent] = await Promise.all([
     db.select({ n: count() }).from(orders).where(eq(orders.status, "pending")),
     db.select({ n: count() }).from(orders).where(eq(orders.status, "confirmed")),
@@ -51,30 +53,30 @@ export async function OrdersDashboard({ name }: { name: string }) {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold">مرحبًا {name}</h1>
-        <p className="mt-1 text-sm text-muted">الطلبات التي تحتاج تدخّلك</p>
+        <h1 className="text-2xl font-extrabold">{T("مرحبًا {name}", { name })}</h1>
+        <p className="mt-1 text-sm text-muted">{T("الطلبات التي تحتاج تدخّلك")}</p>
       </div>
       <Tiles
         items={[
-          { label: "بانتظار التأكيد", value: pending.n, icon: Clock, tone: "bg-[#fff7e6] text-[#b26a00]", href: "/admin/orders?status=pending" },
-          { label: "مؤكَّدة للتجهيز", value: confirmed.n, icon: CheckCircle2, tone: "bg-brand-50 text-brand", href: "/admin/orders?status=confirmed" },
-          { label: "قيد التوصيل", value: onRoute.n, icon: Truck, tone: "bg-ink text-white", href: "/admin/orders?status=shipped" },
-          { label: "بدون موصّل", value: unassigned.n, icon: UserX, tone: "bg-hot-50 text-hot" },
+          { label: T("بانتظار التأكيد"), value: pending.n, icon: Clock, tone: "bg-[#fff7e6] text-[#b26a00]", href: "/admin/orders?status=pending" },
+          { label: T("مؤكَّدة للتجهيز"), value: confirmed.n, icon: CheckCircle2, tone: "bg-brand-50 text-brand", href: "/admin/orders?status=confirmed" },
+          { label: T("قيد التوصيل"), value: onRoute.n, icon: Truck, tone: "bg-ink text-white", href: "/admin/orders?status=shipped" },
+          { label: T("بدون موصّل"), value: unassigned.n, icon: UserX, tone: "bg-hot-50 text-hot" },
         ]}
       />
       <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
         <section className="rounded-2xl border border-line bg-white">
-          <h2 className="p-5 pb-3 font-bold">الأقدم أولًا: بانتظار التأكيد أو التجهيز</h2>
+          <h2 className="p-5 pb-3 font-bold">{T("الأقدم أولًا: بانتظار التأكيد أو التجهيز")}</h2>
           <OrdersTable rows={recent} />
         </section>
         <section className="rounded-2xl border border-line bg-white p-5">
-          <h2 className="mb-3 font-bold">الموصّلون</h2>
+          <h2 className="mb-3 font-bold">{T("الموصّلون")}</h2>
           {drivers.length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted">لا يوجد موصّلون بعد</p>
+            <p className="py-6 text-center text-sm text-muted">{T("لا يوجد موصّلون بعد")}</p>
           ) : (
             <ul className="divide-y divide-line text-sm">
               {drivers.map((d) => (
-                <li key={d.id} className="flex items-center justify-between py-2.5"><span>{d.name}</span><span className="chip bg-mist text-ink-2">{d.n} طلب</span></li>
+                <li key={d.id} className="flex items-center justify-between py-2.5"><span>{d.name}</span><span className="chip bg-mist text-ink-2">{T("{n} طلب", { n: d.n })}</span></li>
               ))}
             </ul>
           )}
@@ -86,6 +88,7 @@ export async function OrdersDashboard({ name }: { name: string }) {
 
 /** Catalogue manager: stock and listing quality. */
 export async function CatalogDashboard({ name }: { name: string }) {
+  const T = await getT();
   const [[active], [outOfStock], [noImage], [inactive], low] = await Promise.all([
     db.select({ n: count() }).from(products).where(eq(products.active, true)),
     db
@@ -105,28 +108,28 @@ export async function CatalogDashboard({ name }: { name: string }) {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold">مرحبًا {name}</h1>
-        <p className="mt-1 text-sm text-muted">حالة المنتجات والمخزون</p>
+        <h1 className="text-2xl font-extrabold">{T("مرحبًا {name}", { name })}</h1>
+        <p className="mt-1 text-sm text-muted">{T("حالة المنتجات والمخزون")}</p>
       </div>
       <Tiles
         items={[
-          { label: "منتجات معروضة", value: active.n, icon: CheckCircle2, tone: "bg-ok-50 text-ok", href: "/admin/products" },
-          { label: "نافدة بالكامل", value: outOfStock.n, icon: PackageX, tone: "bg-hot-50 text-hot" },
-          { label: "بدون صورة", value: noImage.n, icon: ImageOff, tone: "bg-[#fff7e6] text-[#b26a00]" },
-          { label: "مخفية", value: inactive.n, icon: AlertTriangle, tone: "bg-mist text-ink-2" },
+          { label: T("منتجات معروضة"), value: active.n, icon: CheckCircle2, tone: "bg-ok-50 text-ok", href: "/admin/products" },
+          { label: T("نافدة بالكامل"), value: outOfStock.n, icon: PackageX, tone: "bg-hot-50 text-hot" },
+          { label: T("بدون صورة"), value: noImage.n, icon: ImageOff, tone: "bg-[#fff7e6] text-[#b26a00]" },
+          { label: T("مخفية"), value: inactive.n, icon: AlertTriangle, tone: "bg-mist text-ink-2" },
         ]}
       />
       <section className="rounded-2xl border border-line bg-white p-5">
-        <h2 className="mb-3 font-bold">مخزون منخفض أو نافد (3 قطع أو أقل)</h2>
+        <h2 className="mb-3 font-bold">{T("مخزون منخفض أو نافد (3 قطع أو أقل)")}</h2>
         {low.length === 0 ? (
-          <p className="py-6 text-center text-sm text-muted">المخزون كافٍ</p>
+          <p className="py-6 text-center text-sm text-muted">{T("المخزون كافٍ")}</p>
         ) : (
           <ul className="divide-y divide-line text-sm">
             {low.map((r) => (
               <li key={r.sku}>
                 <Link href={`/admin/products/${r.id}`} className="flex items-center justify-between gap-3 py-2.5 hover:text-brand">
                   <span className="min-w-0 truncate">{r.name} <span className="text-xs text-muted">{r.label}</span></span>
-                  <span className={cn("chip shrink-0", r.stock === 0 ? "bg-hot-50 text-hot" : "bg-[#fff7e6] text-[#b26a00]")}>{r.stock === 0 ? "نفد" : r.stock}</span>
+                  <span className={cn("chip shrink-0", r.stock === 0 ? "bg-hot-50 text-hot" : "bg-[#fff7e6] text-[#b26a00]")}>{r.stock === 0 ? T("نفد") : r.stock}</span>
                 </Link>
               </li>
             ))}

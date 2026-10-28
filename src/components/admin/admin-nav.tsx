@@ -6,6 +6,7 @@ import { ExternalLink, FolderTree, LayoutDashboard, LogOut, Mail, Package, Shopp
 import type { Perm } from "@/lib/auth";
 import { logout } from "@/app/actions/admin";
 import { cn } from "@/lib/utils";
+import { LangSwitch, useT } from "@/components/admin/admin-lang";
 
 const ALL: { href: string; label: string; icon: typeof Package; perm: Perm; exact?: boolean }[] = [
   { href: "/admin", label: "لوحة التحكم", icon: LayoutDashboard, perm: "dashboard", exact: true },
@@ -20,6 +21,7 @@ const ALL: { href: string; label: string; icon: typeof Package; perm: Perm; exac
 ];
 
 export function AdminNav({ storeName, perms, name, roleLabel }: { storeName: string; perms: Perm[]; name: string; roleLabel: string }) {
+  const T = useT();
   const path = usePathname();
   const items = ALL.filter((i) => perms.includes(i.perm));
   return (
@@ -39,7 +41,7 @@ export function AdminNav({ storeName, perms, name, roleLabel }: { storeName: str
                 className={cn("flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition", active ? "bg-ink text-white" : "text-ink-2 hover:bg-mist")}
               >
                 <Icon className="h-4.5 w-4.5" aria-hidden="true" />
-                {label}
+                {T(label)}
               </Link>
             );
           })}
@@ -51,24 +53,25 @@ export function AdminNav({ storeName, perms, name, roleLabel }: { storeName: str
           </div>
           <Link href="/fr" target="_blank" className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-ink-2 hover:bg-mist">
             <ExternalLink className="h-4.5 w-4.5" aria-hidden="true" />
-            عرض المتجر
+            {T("عرض المتجر")}
           </Link>
+          <LangSwitch className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-ink-2 hover:bg-mist" />
           <form action={logout}>
             <button type="submit" className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-hot hover:bg-hot-50">
               <LogOut className="h-4.5 w-4.5" aria-hidden="true" />
-              تسجيل الخروج
+              {T("تسجيل الخروج")}
             </button>
           </form>
         </div>
       </aside>
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex justify-around overflow-x-auto border-t border-line bg-white/95 p-1.5 backdrop-blur scrollbar-none lg:hidden" aria-label="القائمة">
+      <nav className="fixed inset-x-0 bottom-0 z-40 flex justify-around overflow-x-auto border-t border-line bg-white/95 p-1.5 backdrop-blur scrollbar-none lg:hidden" aria-label={T("القائمة")}>
         {items.map(({ href, label, icon: Icon, exact }) => {
           const active = exact ? path === href : path.startsWith(href);
           return (
             <Link key={href} href={href} className={cn("flex min-w-[3.6rem] flex-1 flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 text-[0.65rem] font-medium", active ? "bg-ink text-white" : "text-ink-2")}>
               <Icon className="h-5 w-5" aria-hidden="true" />
-              <span className="truncate">{label}</span>
+              <span className="truncate">{T(label)}</span>
             </Link>
           );
         })}

@@ -7,8 +7,10 @@ import { saveAdminNote, updateOrderStatus } from "@/app/actions/admin";
 import { ORDER_STATUSES, type OrderStatus } from "@/db/schema";
 import { statusLabel } from "@/lib/admin-ui";
 import { cn } from "@/lib/utils";
+import { useT } from "@/components/admin/admin-lang";
 
 export function OrderActions({ id, status, note }: { id: number; status: OrderStatus; note: string }) {
+  const T = useT();
   const router = useRouter();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -17,11 +19,11 @@ export function OrderActions({ id, status, note }: { id: number; status: OrderSt
 
   function change(next: OrderStatus) {
     if (next === status) return;
-    if (next === "cancelled" && !confirm("إلغاء الطلب سيعيد الكميات إلى المخزون. هل أنت متأكد؟")) return;
+    if (next === "cancelled" && !confirm(T("إلغاء الطلب سيعيد الكميات إلى المخزون. هل أنت متأكد؟"))) return;
     setError(null);
     start(async () => {
       const r = await updateOrderStatus(id, next);
-      if (!r.ok) setError(r.error ?? "تعذّر التحديث");
+      if (!r.ok) setError(T(r.error ?? "تعذّر التحديث"));
       else router.refresh();
     });
   }
@@ -29,7 +31,7 @@ export function OrderActions({ id, status, note }: { id: number; status: OrderSt
   return (
     <div className="space-y-6">
       <section className="rounded-2xl border border-line bg-white p-5">
-        <h2 className="mb-3 font-bold">تغيير الحالة</h2>
+        <h2 className="mb-3 font-bold">{T("تغيير الحالة")}</h2>
         <div className="flex flex-wrap gap-2">
           {ORDER_STATUSES.map((s) => (
             <button
@@ -40,7 +42,7 @@ export function OrderActions({ id, status, note }: { id: number; status: OrderSt
               aria-pressed={s === status}
               className={cn("btn btn-sm", s === status ? "btn-primary" : "btn-outline", s === "cancelled" && s !== status && "!text-hot")}
             >
-              {statusLabel[s]}
+              {T(statusLabel[s])}
             </button>
           ))}
         </div>
@@ -48,7 +50,7 @@ export function OrderActions({ id, status, note }: { id: number; status: OrderSt
       </section>
 
       <section className="rounded-2xl border border-line bg-white p-5">
-        <h2 className="mb-3 font-bold">ملاحظة داخلية</h2>
+        <h2 className="mb-3 font-bold">{T("ملاحظة داخلية")}</h2>
         <textarea
           value={text}
           onChange={(e) => {
@@ -58,7 +60,7 @@ export function OrderActions({ id, status, note }: { id: number; status: OrderSt
           rows={3}
           maxLength={2000}
           className="input"
-          placeholder="ملاحظات خاصة بالفريق (لا يراها العميل)"
+          placeholder={T("ملاحظات خاصة بالفريق (لا يراها العميل)")}
         />
         <div className="mt-3 flex items-center gap-3">
           <button
@@ -73,12 +75,12 @@ export function OrderActions({ id, status, note }: { id: number; status: OrderSt
               })
             }
           >
-            حفظ الملاحظة
+            {T("حفظ الملاحظة")}
           </button>
-          {saved && <span className="text-sm text-ok">تم الحفظ</span>}
+          {saved && <span className="text-sm text-ok">{T("تم الحفظ")}</span>}
           <button type="button" onClick={() => window.print()} className="btn btn-outline btn-sm ms-auto">
             <Printer className="h-4 w-4" aria-hidden="true" />
-            طباعة
+            {T("طباعة")}
           </button>
         </div>
       </section>
