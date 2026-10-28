@@ -3,18 +3,19 @@ import { MapPin, MessageCircle, Phone, StickyNote } from "lucide-react";
 import { db } from "@/db";
 import { orderItems, orders } from "@/db/schema";
 import { requirePerm } from "@/lib/auth";
-import { dateTime, eur, statusChip, statusLabel } from "@/lib/admin-ui";
+import { dateTime, eur, statusChip, statusLabel, waLink } from "@/lib/admin-ui";
 import { cn } from "@/lib/utils";
 import { DeliveryActions } from "@/components/admin/delivery-actions";
 import { dueOnDelivery } from "@/lib/pricing";
 import { getT } from "@/lib/admin-lang";
+import { PageHeader } from "@/components/admin/ui";
 
 export async function generateMetadata() {
   const T = await getT();
   return { title: T("توصيلاتي") };
 }
 
-const wa = (phone: string) => `https://wa.me/${phone.replace(/\D/g, "").replace(/^0/, "212")}`;
+
 
 export default async function DeliveriesPage() {
   const T = await getT();
@@ -28,10 +29,7 @@ export default async function DeliveriesPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-5">
-      <div>
-        <h1 className="text-2xl font-extrabold">{T("توصيلاتي")}</h1>
-        <p className="mt-1 text-sm text-muted">{T("مرحبًا {name} — {n} طلب للتوصيل، المبلغ الإجمالي للتحصيل", { name: me.name, n: open.length })} <b className="text-fg" dir="ltr">{eur(toCollect)}</b></p>
-      </div>
+      <PageHeader title={T("توصيلاتي")} subtitle={<>{T("مرحبًا {name} — {n} طلب للتوصيل، المبلغ الإجمالي للتحصيل", { name: me.name, n: open.length })} <b className="text-fg" dir="ltr">{eur(toCollect)}</b></>} />
 
       {open.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-line bg-surface p-10 text-center text-sm text-muted">{T("لا توجد طلبات مسندة إليك حاليًا")}</p>
@@ -49,7 +47,7 @@ export default async function DeliveriesPage() {
               <p className="mt-1 flex items-start gap-2 text-sm text-ink-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted" aria-hidden="true" />{o.address}{o.address2 ? `, ${o.address2}` : ""} — {o.city} {o.postalCode}</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 <a href={`tel:${o.phone}`} className="btn btn-outline btn-sm"><Phone className="h-4 w-4" /><span dir="ltr">{o.phone}</span></a>
-                <a href={wa(o.phone)} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm"><MessageCircle className="h-4 w-4" />{T("واتساب")}</a>
+                <a href={waLink(o.phone)} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm"><MessageCircle className="h-4 w-4" />{T("واتساب")}</a>
                 <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${o.address} ${o.city}`)}`} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm"><MapPin className="h-4 w-4" />{T("الخريطة")}</a>
               </div>
               <ul className="mt-3 space-y-1 rounded-xl bg-mist p-3 text-sm">

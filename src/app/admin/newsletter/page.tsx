@@ -6,6 +6,7 @@ import { requirePerm } from "@/lib/auth";
 import { dateTime } from "@/lib/admin-ui";
 import { RemoveSubscriber } from "@/components/admin/remove-subscriber";
 import { getT } from "@/lib/admin-lang";
+import { PageHeader } from "@/components/admin/ui";
 
 export async function generateMetadata() {
   const T = await getT();
@@ -22,15 +23,11 @@ export default async function NewsletterPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-5">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-extrabold">{T("النشرة البريدية")}</h1>
-          <p className="mt-1 text-sm text-muted">{T("{n} مشترك — من نموذج «ابقَ على اطلاع» أسفل الموقع", { n: total?.n ?? 0 })}</p>
-        </div>
-        {rows.length > 0 && (
-          <a href="/api/admin/newsletter" className="btn btn-outline btn-sm"><Download className="h-4 w-4" aria-hidden="true" />{T("تنزيل CSV")}</a>
-        )}
-      </div>
+      <PageHeader
+        title={T("النشرة البريدية")}
+        subtitle={T("{n} مشترك — من نموذج «ابقَ على اطلاع» أسفل الموقع", { n: total?.n ?? 0 })}
+        actions={rows.length > 0 && <a href="/api/admin/newsletter" className="btn btn-outline btn-sm"><Download className="h-4 w-4" aria-hidden="true" />{T("تنزيل CSV")}</a>}
+      />
       <section className="rounded-2xl border border-line bg-surface">
         {rows.length === 0 ? (
           <p className="px-5 py-12 text-center text-sm text-muted">{T("لا يوجد مشتركون بعد")}</p>

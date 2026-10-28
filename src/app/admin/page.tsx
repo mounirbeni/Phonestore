@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { and, count, desc, eq, gte, lte, ne, sql, sum } from "drizzle-orm";
-import { AlertTriangle, Banknote, Clock, ShoppingCart, TrendingUp } from "lucide-react";
+import { and, count, desc, eq, gt, gte, isNull, lte, ne, sql, sum } from "drizzle-orm";
+import { AlertTriangle, Banknote, BarChart3, CalendarDays, Clock, Landmark, Plus, ShoppingCart, TrendingUp, Truck } from "lucide-react";
 import { db } from "@/db";
 import { orders, products, variants } from "@/db/schema";
 import { eur } from "@/lib/admin-ui";
 import { cn } from "@/lib/utils";
 import { OrdersTable } from "@/components/admin/orders-table";
+import { PageHeader, Panel, StatTile } from "@/components/admin/ui";
 import { CatalogDashboard, OrdersDashboard } from "@/components/admin/role-dashboards";
 import { requirePerm } from "@/lib/auth";
 import { getT } from "@/lib/admin-lang";
@@ -20,7 +21,7 @@ export default async function Dashboard() {
   const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const live = ne(orders.status, "cancelled");
 
-  const [[m30], [today], [pendingRow], daily, lowStock, recent] = await Promise.all([
+  const [[m30], [today], [pendingRow], daily, lowStock, recent, [awaitingRow], [unassignedRow]] = await Promise.all([
     db.select({ revenue: sum(orders.total), n: count() }).from(orders).where(and(live, gte(orders.createdAt, d30))),
     db.select({ revenue: sum(orders.total), n: count() }).from(orders).where(and(live, gte(orders.createdAt, startToday))),
     db.select({ n: count() }).from(orders).where(eq(orders.status, "pending")),
@@ -38,6 +39,8 @@ export default async function Dashboard() {
       .orderBy(variants.stock)
       .limit(8),
     db.select().from(orders).orderBy(desc(orders.createdAt)).limit(8),
+    db.select({ n: count() }).from(orders).where(and(eq(orders.status, "pending"), gt(orders.deposit, 0), isNull(orders.depositPaidAt))),
+    db.select({ n: count() }).from(orders).where(and(eq(orders.status, "confirmed"), isNull(orders.driverId))),
   ]);
 
   const revenue30 = Number(m30?.revenue ?? 0);
@@ -48,51 +51,73 @@ export default async function Dashboard() {
     { label: T("إيرادات 30 يومًا"), value: eur(revenue30), icon: Banknote, tone: "bg-brand-50 text-brand" },
     { label: T("طلبات 30 يومًا"), value: String(orders30), icon: ShoppingCart, tone: "bg-ok-50 text-ok" },
     { label: T("متوسط قيمة الطلب"), value: eur(orders30 ? Math.round(revenue30 / orders30) : 0), icon: TrendingUp, tone: "bg-fg/10 text-fg" },
-    { label: T("بانتظار التأكيد"), value: String(pendingRow?.n ?? 0), icon: Clock, tone: "bg-warn-50 text-warn" },
+    { label: T("مبيعات اليوم"), value: eur(Number(today?.revenue ?? 0)), icon: CalendarDays, tone: "bg-warn-50 text-warn", hint: T("{n} طلب", { n: today?.n ?? 0 }) },
+  ];
+
+  const greet = new Intl.DateTimeFormat(T.lang === "ar" ? "ar-u-nu-latn" : "fr-FR", { weekday: "long", day: "numeric", month: "long" }).format(now);
+  const todo = [
+    { n: awaitingRow?.n ?? 0, label: T("بانتظار التسبيق"), href: "/admin/orders?status=deposit", icon: Landmark },
+    { n: pendingRow?.n ?? 0, label: T("بانتظار التأكيد"), href: "/admin/orders?status=pending", icon: Clock },
+    { n: unassignedRow?.n ?? 0, label: T("بدون موصّل"), href: "/admin/orders?status=confirmed", icon: Truck },
+    { n: lowStock.length, label: T("مخزون منخفض"), href: "/admin/products/bulk?low=1", icon: AlertTriangle },
   ];
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <h1 className="text-2xl font-extrabold">{T("لوحة التحكم")}</h1>
-      <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
-        {stats.map((s) => (
-          <li key={s.label} className="rounded-2xl border border-line bg-surface p-4 sm:p-5">
-            <span className={cn("grid h-10 w-10 place-items-center rounded-xl", s.tone)}><s.icon className="h-5 w-5" aria-hidden="true" /></span>
-            <p className="mt-4 text-xl font-extrabold tabular-nums sm:text-2xl" dir="ltr" style={{ textAlign: T.lang === "ar" ? "right" : "left" }}>{s.value}</p>
-            <p className="mt-0.5 text-xs text-muted sm:text-sm">{s.label}</p>
+      <PageHeader
+        title={T("مرحبًا {name}", { name: T(me.name) })}
+        subtitle={<span className="capitalize">{greet}</span>}
+        actions={
+          <>
+            <Link href="/admin/stats" className="btn btn-outline btn-sm"><BarChart3 className="h-4 w-4" aria-hidden="true" />{T("الإحصائيات")}</Link>
+            <Link href="/admin/products/new" className="btn btn-brand btn-sm"><Plus className="h-4 w-4" aria-hidden="true" />{T("منتج جديد")}</Link>
+          </>
+        }
+      />
+
+      <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {todo.map((t) => (
+          <li key={t.href}>
+            <Link href={t.href} className={cn("flex items-center gap-3 rounded-2xl border p-3.5 transition hover:border-brand", t.n ? "border-brand/40 bg-brand/5" : "border-line bg-surface")}>
+              <span className={cn("grid h-9 w-9 shrink-0 place-items-center rounded-xl", t.n ? "bg-brand text-white" : "bg-mist text-muted")}><t.icon className="h-4.5 w-4.5" aria-hidden="true" /></span>
+              <span className="min-w-0">
+                <span className="block text-lg font-extrabold leading-tight tabular-nums">{t.n}</span>
+                <span className="block truncate text-xs text-muted">{t.label}</span>
+              </span>
+            </Link>
           </li>
         ))}
       </ul>
 
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+        {stats.map((s) => <StatTile key={s.label} {...s} />)}
+      </div>
+
       <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
-        <section className="min-w-0 rounded-2xl border border-line bg-surface p-5">
-          <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-            <h2 className="font-bold">{T("المبيعات اليومية (آخر 14 يومًا)")}</h2>
-            <span className="text-xs text-muted">{T("اليوم: {amount} · {n} طلب", { amount: eur(Number(today?.revenue ?? 0)), n: today?.n ?? 0 })}</span>
-          </div>
+        <Panel title={T("المبيعات اليومية (آخر 14 يومًا)")} icon={TrendingUp} actions={<span className="text-xs text-muted">{T("اليوم: {amount} · {n} طلب", { amount: eur(Number(today?.revenue ?? 0)), n: today?.n ?? 0 })}</span>}>
           {daily.length === 0 ? (
             <p className="py-12 text-center text-sm text-muted">{T("لا توجد مبيعات بعد")}</p>
           ) : (
-            <ul className="mt-6 flex h-48 items-end gap-1 sm:gap-2" dir="ltr">
+            <ul className="flex h-48 items-end gap-1 sm:gap-2" dir="ltr">
               {daily.map((d) => {
                 const v = Number(d.revenue ?? 0);
                 return (
-                  <li key={d.day} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1.5" title={`${d.day}: ${eur(v)}`}>
-                    <div className="w-full max-w-14 rounded-t-lg bg-brand/85 transition hover:bg-brand" style={{ height: `${Math.max(4, (v / maxDay) * 100)}%` }} />
+                  <li key={d.day} className="group relative flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1.5">
+                    <span className="pointer-events-none absolute -top-1 z-10 hidden -translate-y-full whitespace-nowrap rounded-md bg-fg px-2 py-1 text-[0.7rem] font-semibold text-bg group-hover:block">{eur(v)}</span>
+                    <div className="w-full max-w-14 rounded-t-lg bg-brand/80 transition group-hover:bg-brand" style={{ height: `${Math.max(4, (v / maxDay) * 100)}%` }} />
                     <span className="text-[0.6rem] text-muted">{String(d.day).slice(-2)}</span>
                   </li>
                 );
               })}
             </ul>
           )}
-        </section>
+        </Panel>
 
-        <section className="min-w-0 rounded-2xl border border-line bg-surface p-5">
-          <h2 className="flex items-center gap-2 font-bold"><AlertTriangle className="h-4.5 w-4.5 text-warn" aria-hidden="true" />{T("مخزون منخفض")}</h2>
+        <Panel title={T("مخزون منخفض")} icon={AlertTriangle} actions={<Link href="/admin/products/bulk?low=1" className="text-xs font-semibold text-brand hover:underline">{T("تعديل")}</Link>}>
           {lowStock.length === 0 ? (
             <p className="py-10 text-center text-sm text-muted">{T("المخزون كافٍ لجميع المنتجات")}</p>
           ) : (
-            <ul className="mt-3 divide-y divide-line">
+            <ul className="-my-2 divide-y divide-line">
               {lowStock.map((r) => (
                 <li key={r.sku}>
                   <Link href={`/admin/products/${r.id}`} className="flex items-center justify-between gap-3 py-2.5 text-sm hover:text-brand">
@@ -103,16 +128,12 @@ export default async function Dashboard() {
               ))}
             </ul>
           )}
-        </section>
+        </Panel>
       </div>
 
-      <section className="rounded-2xl border border-line bg-surface">
-        <div className="flex items-center justify-between p-5 pb-3">
-          <h2 className="font-bold">{T("آخر الطلبات")}</h2>
-          <Link href="/admin/orders" className="text-sm font-semibold text-brand hover:underline">{T("عرض الكل")}</Link>
-        </div>
-        <OrdersTable rows={recent} />
-      </section>
+      <Panel title={T("آخر الطلبات")} icon={ShoppingCart} flush actions={<Link href="/admin/orders" className="text-sm font-semibold text-brand hover:underline">{T("عرض الكل")}</Link>}>
+        <OrdersTable rows={recent} contact />
+      </Panel>
     </div>
   );
 }

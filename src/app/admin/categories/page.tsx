@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { categories, products } from "@/db/schema";
 import { CategoryManager } from "@/components/admin/category-manager";
 import { getT } from "@/lib/admin-lang";
+import { PageHeader } from "@/components/admin/ui";
 
 export async function generateMetadata() {
   const T = await getT();
@@ -21,7 +22,7 @@ export default async function CategoriesPage() {
     .orderBy(asc(categories.sort), asc(categories.id));
   return (
     <div className="mx-auto max-w-5xl space-y-5">
-      <h1 className="text-2xl font-extrabold">{T("الفئات")}</h1>
+      <PageHeader title={T("الفئات")} />
       <CategoryManager
         cats={rows.map(({ c, n }) => ({
           id: c.id, nameFr: c.nameFr, nameAr: c.nameAr, slug: c.slug, icon: c.icon, sort: c.sort, parentId: c.parentId,

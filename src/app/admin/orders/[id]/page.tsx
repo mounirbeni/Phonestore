@@ -2,11 +2,11 @@ import { requirePerm } from "@/lib/auth";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, asc, desc, eq } from "drizzle-orm";
-import { ArrowRight, Mail, MapPin, Phone } from "lucide-react";
+import { ArrowRight, FileText, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import { db } from "@/db";
 import { customers, orderEvents, orderItems, orders, staff } from "@/db/schema";
 import { store } from "@/config/store";
-import { dateTime, eur, statusChip, statusLabel } from "@/lib/admin-ui";
+import { dateTime, eur, statusChip, statusLabel, waLink } from "@/lib/admin-ui";
 import { OrderActions } from "@/components/admin/order-actions";
 import { DriverAssign } from "@/components/admin/driver-assign";
 import { DepositBox } from "@/components/admin/deposit-box";
@@ -32,6 +32,10 @@ export default async function OrderDetail({ params }: Props) {
     order.customerId ? db.select({ id: customers.id, createdAt: customers.createdAt }).from(customers).where(eq(customers.id, order.customerId)).limit(1) : Promise.resolve([]),
   ]);
   const country = store.countries.find((c) => c.code === order.country)?.fr ?? order.country;
+  // Opening line of a WhatsApp message, in the customer's language.
+  const waText = order.locale === "ar"
+    ? `مرحبًا ${order.firstName}، بخصوص طلبك ${order.number} لدى ${store.name}: `
+    : `Bonjour ${order.firstName}, concernant votre commande ${order.number} chez ${store.name} : `;
   const shipLabel = order.shippingMethod === "express" ? T("توصيل سريع") : T("توصيل عادي");
 
   return (
@@ -41,6 +45,7 @@ export default async function OrderDetail({ params }: Props) {
         <h1 className="text-2xl font-extrabold" dir="ltr">{order.number}</h1>
         <span className={cn("chip", statusChip[order.status])}>{T(statusLabel[order.status])}</span>
         <span className="ms-auto text-sm text-muted">{dateTime(order.createdAt, T.lang)}</span>
+        <a href={`/api/admin/orders/${order.id}/slip`} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm"><FileText className="h-4 w-4" aria-hidden="true" />{T("وصل التوصيل")}</a>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
@@ -82,6 +87,10 @@ export default async function OrderDetail({ params }: Props) {
             <p className="mt-1 text-xs text-muted">{customer ? <Link href={`/admin/customers?q=${encodeURIComponent(order.email)}`} className="text-brand hover:underline">{T("صاحب حساب في المتجر")}</Link> : T("طلب بدون حساب")}</p>
             <p className="mt-3 flex items-center gap-2"><Mail className="h-4 w-4 text-muted" aria-hidden="true" /><a className="hover:underline" href={`mailto:${order.email}`} dir="ltr">{order.email}</a></p>
             <p className="mt-2 flex items-center gap-2"><Phone className="h-4 w-4 text-muted" aria-hidden="true" /><a className="hover:underline" href={`tel:${order.phone}`} dir="ltr">{order.phone}</a></p>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <a href={`tel:${order.phone}`} className="btn btn-outline btn-sm"><Phone className="h-4 w-4" aria-hidden="true" />{T("اتصال")}</a>
+              <a href={`${waLink(order.phone)}?text=${encodeURIComponent(waText)}`} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm"><MessageCircle className="h-4 w-4" aria-hidden="true" />WhatsApp</a>
+            </div>
           </section>
           <section className="rounded-2xl border border-line bg-surface p-5 text-sm">
             <h2 className="mb-3 font-bold">{T("عنوان التوصيل")}</h2>

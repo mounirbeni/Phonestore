@@ -1,7 +1,7 @@
 import { requirePerm } from "@/lib/auth";
 import Link from "next/link";
 import { and, asc, count, desc, eq, ilike, or, sql, type SQL } from "drizzle-orm";
-import { Plus } from "lucide-react";
+import { Plus, Boxes, Search } from "lucide-react";
 import { db } from "@/db";
 import { categories, products } from "@/db/schema";
 import { eur } from "@/lib/admin-ui";
@@ -10,6 +10,7 @@ import { ProductVisual } from "@/components/ui/product-visual";
 import { ProductRowActions } from "@/components/admin/product-row-actions";
 import { cn } from "@/lib/utils";
 import { getT } from "@/lib/admin-lang";
+import { PageHeader } from "@/components/admin/ui";
 
 export async function generateMetadata() {
   const T = await getT();
@@ -56,14 +57,20 @@ export default async function ProductsPage({ searchParams }: Props) {
 
   return (
     <div className="mx-auto max-w-6xl space-y-5">
-      <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-extrabold">{T("المنتجات")} <span className="text-base font-medium text-muted">({total?.n ?? 0})</span></h1>
-        <form action="/admin/products" className="ms-auto flex gap-2">
-          <input name="q" defaultValue={q} placeholder={T("ابحث بالاسم أو العلامة…")} className="input !w-56 !py-2 text-sm" aria-label={T("بحث")} />
-          <button className="btn btn-outline btn-sm" type="submit">{T("بحث")}</button>
-        </form>
-        <Link href="/admin/products/new" className="btn btn-brand btn-sm"><Plus className="h-4 w-4" aria-hidden="true" />{T("منتج جديد")}</Link>
-      </div>
+      <PageHeader
+        title={T("المنتجات")}
+        subtitle={T("{n} منتج", { n: total?.n ?? 0 })}
+        actions={
+          <>
+            <Link href="/admin/products/bulk" className="btn btn-outline btn-sm"><Boxes className="h-4 w-4" aria-hidden="true" />{T("المخزون والأسعار")}</Link>
+            <Link href="/admin/products/new" className="btn btn-brand btn-sm"><Plus className="h-4 w-4" aria-hidden="true" />{T("منتج جديد")}</Link>
+          </>
+        }
+      />
+      <form action="/admin/products" className="relative">
+        <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden="true" />
+        <input name="q" defaultValue={q} placeholder={T("ابحث بالاسم أو العلامة…")} className="input !py-2 ps-9 text-sm" aria-label={T("بحث")} />
+      </form>
 
       <div className="overflow-x-auto rounded-2xl border border-line bg-surface">
         <table className="w-full text-sm">

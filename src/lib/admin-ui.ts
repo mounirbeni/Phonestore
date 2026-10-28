@@ -21,3 +21,6 @@ export const eur = (cents: number) => formatPrice(cents, "fr");
 
 export const dateTime = (d: Date, lang: "fr" | "ar" = "ar") =>
   new Intl.DateTimeFormat(lang === "fr" ? "fr-FR" : "ar-u-nu-latn", { dateStyle: "medium", timeStyle: "short" }).format(d);
+
+/** WhatsApp chat link for a Moroccan number written locally (06…) or internationally. */
+export const waLink = (phone: string) => `https://wa.me/${phone.replace(/\D/g, "").replace(/^0/, "212")}`;

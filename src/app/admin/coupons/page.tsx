@@ -5,6 +5,7 @@ import { coupons } from "@/db/schema";
 import { eur } from "@/lib/admin-ui";
 import { CouponManager } from "@/components/admin/coupon-manager";
 import { getT } from "@/lib/admin-lang";
+import { PageHeader } from "@/components/admin/ui";
 
 export async function generateMetadata() {
   const T = await getT();
@@ -17,7 +18,7 @@ export default async function CouponsPage() {
   const rows = await db.select().from(coupons).orderBy(desc(coupons.createdAt));
   return (
     <div className="mx-auto max-w-5xl space-y-5">
-      <h1 className="text-2xl font-extrabold">{T("أكواد الخصم")}</h1>
+      <PageHeader title={T("أكواد الخصم")} />
       <CouponManager
         coupons={rows.map((c) => ({
           id: c.id,

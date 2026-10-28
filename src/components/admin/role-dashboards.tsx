@@ -6,6 +6,7 @@ import { orders, products, staff, variants } from "@/db/schema";
 import { cn } from "@/lib/utils";
 import { OrdersTable } from "./orders-table";
 import { getT } from "@/lib/admin-lang";
+import { PageHeader } from "./ui";
 
 type Tile = { label: string; value: number; icon: typeof Clock; tone: string; href?: string };
 
@@ -52,10 +53,7 @@ export async function OrdersDashboard({ name }: { name: string }) {
   ]);
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-extrabold">{T("مرحبًا {name}", { name })}</h1>
-        <p className="mt-1 text-sm text-muted">{T("الطلبات التي تحتاج تدخّلك")}</p>
-      </div>
+      <PageHeader title={T("مرحبًا {name}", { name })} subtitle={T("الطلبات التي تحتاج تدخّلك")} />
       <Tiles
         items={[
           { label: T("بانتظار التأكيد"), value: pending.n, icon: Clock, tone: "bg-warn-50 text-warn", href: "/admin/orders?status=pending" },
@@ -107,10 +105,7 @@ export async function CatalogDashboard({ name }: { name: string }) {
   ]);
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-extrabold">{T("مرحبًا {name}", { name })}</h1>
-        <p className="mt-1 text-sm text-muted">{T("حالة المنتجات والمخزون")}</p>
-      </div>
+      <PageHeader title={T("مرحبًا {name}", { name })} subtitle={T("حالة المنتجات والمخزون")} />
       <Tiles
         items={[
           { label: T("منتجات معروضة"), value: active.n, icon: CheckCircle2, tone: "bg-ok-50 text-ok", href: "/admin/products" },

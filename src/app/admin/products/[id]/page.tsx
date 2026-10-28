@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { categories, products, variants } from "@/db/schema";
 import { ProductForm, type ProductFormInitial } from "@/components/admin/product-form";
 import { getT } from "@/lib/admin-lang";
+import { PageHeader } from "@/components/admin/ui";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -58,7 +59,7 @@ export default async function EditProduct({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-4xl space-y-5">
-      <h1 className="text-2xl font-extrabold">{id === "new" ? T("منتج جديد") : T("تعديل المنتج")}</h1>
+      <PageHeader title={id === "new" ? T("منتج جديد") : T("تعديل المنتج")} />
       <ProductForm initial={initial} categories={groups} />
     </div>
   );

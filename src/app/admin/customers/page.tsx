@@ -6,6 +6,7 @@ import { customers, orders } from "@/db/schema";
 import { can, requirePerm } from "@/lib/auth";
 import { dateTime, eur } from "@/lib/admin-ui";
 import { getT } from "@/lib/admin-lang";
+import { PageHeader } from "@/components/admin/ui";
 
 export async function generateMetadata() {
   const T = await getT();
@@ -36,12 +37,9 @@ export default async function CustomersPage({ searchParams }: Props) {
 
   return (
     <div className="mx-auto max-w-6xl space-y-5">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-extrabold">{T("العملاء")}</h1>
-          <p className="mt-1 text-sm text-muted">{T("أصحاب الحسابات في المتجر")} ({rows.length})</p>
-        </div>
-        <form className="relative w-full max-w-xs" action="/admin/customers">
+      <PageHeader title={T("العملاء")} subtitle={<>{T("أصحاب الحسابات في المتجر")} ({rows.length})</>} />
+      <div>
+        <form className="relative w-full" action="/admin/customers">
           <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden="true" />
           <input name="q" defaultValue={q} placeholder={T("اسم، بريد أو هاتف")} className="input !py-2 ps-9" />
         </form>

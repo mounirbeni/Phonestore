@@ -4,6 +4,7 @@ import { staff } from "@/db/schema";
 import { requirePerm } from "@/lib/auth";
 import { TeamManager } from "@/components/admin/team-manager";
 import { getT } from "@/lib/admin-lang";
+import { PageHeader } from "@/components/admin/ui";
 
 export async function generateMetadata() {
   const T = await getT();
@@ -16,10 +17,7 @@ export default async function TeamPage() {
   const rows = await db.select().from(staff).orderBy(asc(staff.role), asc(staff.name));
   return (
     <div className="mx-auto max-w-5xl space-y-5">
-      <div>
-        <h1 className="text-2xl font-extrabold">{T("الفريق")}</h1>
-        <p className="mt-1 text-sm text-muted">{T("كل عضو يدخل ببريده وكلمة مروره، ويرى فقط ما يخص دوره.")}</p>
-      </div>
+      <PageHeader title={T("الفريق")} subtitle={T("كل عضو يدخل ببريده وكلمة مروره، ويرى فقط ما يخص دوره.")} />
       <TeamManager
         members={rows.map((m) => ({ id: m.id, name: m.name, email: m.email, phone: m.phone, role: m.role, active: m.active, lastLoginAt: m.lastLoginAt?.toISOString() ?? null }))}
       />
