@@ -29,7 +29,7 @@ export default async function EditProduct({ params }: Props) {
     }))
     .filter((g) => g.items.length > 0);
   const cats = groups.flatMap((g) => g.items);
-  if (!cats.length) return <p className="rounded-2xl bg-white p-8 text-center">{T("أنشئ فئة أولًا من صفحة «الفئات».")}</p>;
+  if (!cats.length) return <p className="rounded-2xl bg-surface p-8 text-center">{T("أنشئ فئة أولًا من صفحة «الفئات».")}</p>;
 
   let initial: ProductFormInitial;
   if (id === "new") {

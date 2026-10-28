@@ -47,9 +47,9 @@ export default async function CustomersPage({ searchParams }: Props) {
         </form>
       </div>
       {rows.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-line bg-white p-10 text-center text-sm text-muted">{q ? T("لا نتائج") : T("لا يوجد عملاء مسجّلون بعد")}</p>
+        <p className="rounded-2xl border border-dashed border-line bg-surface p-10 text-center text-sm text-muted">{q ? T("لا نتائج") : T("لا يوجد عملاء مسجّلون بعد")}</p>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-line bg-white">
+        <div className="overflow-x-auto rounded-2xl border border-line bg-surface">
           <table className="w-full min-w-[42rem] text-sm">
             <thead className="border-b border-line text-start text-xs text-muted">
               <tr>

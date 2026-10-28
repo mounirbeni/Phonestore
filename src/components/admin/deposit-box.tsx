@@ -26,7 +26,7 @@ export function DepositBox({ orderId, deposit, paidAt, method, reference, due, s
   }
 
   return (
-    <section className="rounded-2xl border border-line bg-white p-5 text-sm">
+    <section className="rounded-2xl border border-line bg-surface p-5 text-sm">
       <h2 className="mb-3 flex items-center gap-2 font-bold"><Landmark className="h-4.5 w-4.5 text-muted" aria-hidden="true" />{T("الدفع")}</h2>
       {deposit > 0 ? (
         <>
@@ -37,7 +37,7 @@ export function DepositBox({ orderId, deposit, paidAt, method, reference, due, s
           {paidAt ? (
             <p className="mt-2 rounded-xl bg-ok/10 px-3 py-2 font-medium text-ok">{T("تم الاستلام")} {method === "card" ? T("بالبطاقة") : T("بالتحويل")} · {new Date(paidAt).toLocaleDateString(T.lang === "ar" ? "ar-u-nu-latn" : "fr-FR")}{reference && <span className="block text-xs font-normal" dir="ltr">{reference}</span>}</p>
           ) : (
-            <p className="mt-2 rounded-xl bg-[#fff7e6] px-3 py-2 font-medium text-[#8a5300]">{T("بانتظار التسبيق — مرجع التحويل هو رقم الطلب")}</p>
+            <p className="mt-2 rounded-xl bg-warn-50 px-3 py-2 font-medium text-warn">{T("بانتظار التسبيق — مرجع التحويل هو رقم الطلب")}</p>
           )}
           <div className="mt-3 flex items-center justify-between border-t border-line pt-3">
             <span>{T("يُحصَّل عند الاستلام")}</span>

@@ -45,12 +45,12 @@ export default async function OrderDetail({ params }: Props) {
 
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
         <div className="space-y-6">
-          <section className="rounded-2xl border border-line bg-white">
+          <section className="rounded-2xl border border-line bg-surface">
             <h2 className="p-5 pb-3 font-bold">{T("المنتجات")}</h2>
             <ul className="divide-y divide-line px-5">
               {items.map((i) => (
                 <li key={i.id} className="flex items-center gap-3 py-3 text-sm">
-                  <span className="h-10 w-10 shrink-0 rounded-lg ring-1 ring-black/10" style={{ background: i.colorHex }} aria-hidden="true" />
+                  <span className="h-10 w-10 shrink-0 rounded-lg ring-1 ring-white/10" style={{ background: i.colorHex }} aria-hidden="true" />
                   <div className="min-w-0 flex-1">
                     <Link href={`/fr/p/${i.productSlug}`} target="_blank" className="font-semibold hover:underline">{i.name}</Link>
                     <p className="text-xs text-muted">{i.variantLabel}</p>
@@ -76,24 +76,24 @@ export default async function OrderDetail({ params }: Props) {
         <div className="space-y-6">
           <DepositBox orderId={order.id} deposit={order.deposit} paidAt={order.depositPaidAt?.toISOString() ?? null} method={order.depositMethod} reference={order.depositRef} due={dueOnDelivery(order)} status={order.status} />
           <DriverAssign orderId={order.id} driverId={order.driverId} drivers={drivers} />
-          <section className="rounded-2xl border border-line bg-white p-5 text-sm">
+          <section className="rounded-2xl border border-line bg-surface p-5 text-sm">
             <h2 className="mb-3 font-bold">{T("العميل")}</h2>
             <p className="font-semibold">{order.firstName} {order.lastName}</p>
             <p className="mt-1 text-xs text-muted">{customer ? <Link href={`/admin/customers?q=${encodeURIComponent(order.email)}`} className="text-brand hover:underline">{T("صاحب حساب في المتجر")}</Link> : T("طلب بدون حساب")}</p>
             <p className="mt-3 flex items-center gap-2"><Mail className="h-4 w-4 text-muted" aria-hidden="true" /><a className="hover:underline" href={`mailto:${order.email}`} dir="ltr">{order.email}</a></p>
             <p className="mt-2 flex items-center gap-2"><Phone className="h-4 w-4 text-muted" aria-hidden="true" /><a className="hover:underline" href={`tel:${order.phone}`} dir="ltr">{order.phone}</a></p>
           </section>
-          <section className="rounded-2xl border border-line bg-white p-5 text-sm">
+          <section className="rounded-2xl border border-line bg-surface p-5 text-sm">
             <h2 className="mb-3 font-bold">{T("عنوان التوصيل")}</h2>
             <p className="flex items-start gap-2 leading-relaxed" dir="ltr" style={{ textAlign: T.lang === "ar" ? "right" : "left" }}>
               <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
               <span>{order.address}{order.address2 ? `, ${order.address2}` : ""}<br />{order.postalCode} {order.city}<br />{country}</span>
             </p>
             {order.customerNote && (
-              <div className="mt-4 rounded-xl bg-[#fff7e6] p-3 text-[#8a5300]"><p className="mb-1 text-xs font-bold">{T("ملاحظة العميل")}</p>{order.customerNote}</div>
+              <div className="mt-4 rounded-xl bg-warn-50 p-3 text-warn"><p className="mb-1 text-xs font-bold">{T("ملاحظة العميل")}</p>{order.customerNote}</div>
             )}
           </section>
-          <section className="rounded-2xl border border-line bg-white p-5 text-sm">
+          <section className="rounded-2xl border border-line bg-surface p-5 text-sm">
             <p className="text-xs text-muted">{T("لغة العميل:")} {order.locale === "ar" ? T("العربية") : T("الفرنسية")}</p>
           </section>
         </div>

@@ -48,7 +48,7 @@ export function TeamManager({ members }: { members: Member[] }) {
     <div className="space-y-5">
       <ul className="grid gap-3 sm:grid-cols-3">
         {ROLES.map((r) => (
-          <li key={r.value} className="rounded-2xl border border-line bg-white p-4 text-sm">
+          <li key={r.value} className="rounded-2xl border border-line bg-surface p-4 text-sm">
             <p className="font-bold">{T(r.label)}</p>
             <p className="mt-1 text-xs leading-relaxed text-muted">{T(r.text)}</p>
           </li>
@@ -60,7 +60,7 @@ export function TeamManager({ members }: { members: Member[] }) {
       </div>
 
       {open && (
-        <form onSubmit={submit} className="grid gap-3 rounded-2xl border border-line bg-white p-5 sm:grid-cols-2">
+        <form onSubmit={submit} className="grid gap-3 rounded-2xl border border-line bg-surface p-5 sm:grid-cols-2">
           <h2 className="font-bold sm:col-span-2">{form.id ? T("تعديل العضو") : T("عضو جديد")}</h2>
           <div><label className="label">{T("الاسم")}</label><input className="input" required minLength={2} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
           <div><label className="label">{T("الدور")}</label>
@@ -84,9 +84,9 @@ export function TeamManager({ members }: { members: Member[] }) {
       {msg?.ok && <p role="status" className="text-sm font-medium text-ok">{msg.text}</p>}
 
       {members.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-line bg-white p-10 text-center text-sm text-muted">{T("لا يوجد أعضاء بعد. أضف أول عضو في فريقك.")}</p>
+        <p className="rounded-2xl border border-dashed border-line bg-surface p-10 text-center text-sm text-muted">{T("لا يوجد أعضاء بعد. أضف أول عضو في فريقك.")}</p>
       ) : (
-        <ul className="divide-y divide-line rounded-2xl border border-line bg-white">
+        <ul className="divide-y divide-line rounded-2xl border border-line bg-surface">
           {members.map((m) => (
             <li key={m.id} className={cn("flex flex-wrap items-center gap-3 p-4", !m.active && "opacity-60")}>
               <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-mist font-bold">{m.name.slice(0, 1)}</span>

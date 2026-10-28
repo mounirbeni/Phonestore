@@ -29,7 +29,7 @@ export function DeliveryActions({ orderId }: { orderId: number }) {
   return (
     <div className="mt-4 space-y-2 border-t border-line pt-4">
       <div className="grid grid-cols-2 gap-2">
-        <button type="button" disabled={pending} onClick={() => act("delivered")} className="btn bg-ok text-white hover:opacity-90"><Check className="h-4.5 w-4.5" />{T("تم التسليم")}</button>
+        <button type="button" disabled={pending} onClick={() => act("delivered")} className="btn bg-ok text-bg font-bold hover:opacity-90"><Check className="h-4.5 w-4.5" />{T("تم التسليم")}</button>
         <button type="button" disabled={pending} onClick={() => act("refused")} className="btn btn-outline !border-hot !text-hot"><X className="h-4.5 w-4.5" />{T("رفض الاستلام")}</button>
       </div>
       <div className="flex gap-2">

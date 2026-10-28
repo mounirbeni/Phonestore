@@ -31,7 +31,7 @@ export default async function NewsletterPage() {
           <a href="/api/admin/newsletter" className="btn btn-outline btn-sm"><Download className="h-4 w-4" aria-hidden="true" />{T("تنزيل CSV")}</a>
         )}
       </div>
-      <section className="rounded-2xl border border-line bg-white">
+      <section className="rounded-2xl border border-line bg-surface">
         {rows.length === 0 ? (
           <p className="px-5 py-12 text-center text-sm text-muted">{T("لا يوجد مشتركون بعد")}</p>
         ) : (

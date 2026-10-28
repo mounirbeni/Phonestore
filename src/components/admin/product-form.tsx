@@ -126,7 +126,7 @@ export function ProductForm({ initial, categories }: { initial: ProductFormIniti
     });
   }
 
-  const card = "space-y-4 rounded-2xl border border-line bg-white p-5 sm:p-6";
+  const card = "space-y-4 rounded-2xl border border-line bg-surface p-5 sm:p-6";
   const h2 = "text-base font-bold";
 
   return (
@@ -277,7 +277,7 @@ export function ProductForm({ initial, categories }: { initial: ProductFormIniti
                 <div>
                   <label className="label">{T("درجة اللون")}</label>
                   <div className="flex items-center gap-2">
-                    <input type="color" value={v.colorHex} onChange={(e) => setVariant(i, { colorHex: e.target.value })} className="h-10 w-12 cursor-pointer rounded-lg border border-line bg-white p-1" aria-label={T("اختر اللون")} />
+                    <input type="color" value={v.colorHex} onChange={(e) => setVariant(i, { colorHex: e.target.value })} className="h-10 w-12 cursor-pointer rounded-lg border border-line bg-surface p-1" aria-label={T("اختر اللون")} />
                     <input className="input !py-2" dir="ltr" value={v.colorHex} onChange={(e) => setVariant(i, { colorHex: e.target.value })} maxLength={7} />
                   </div>
                 </div>
@@ -324,7 +324,7 @@ export function ProductForm({ initial, categories }: { initial: ProductFormIniti
       </section>
 
       {error && <p role="alert" className="rounded-xl bg-hot-50 px-4 py-3 text-sm font-medium text-hot">{error}</p>}
-      <div className="sticky bottom-20 z-10 flex gap-3 rounded-2xl border border-line bg-white/90 p-3 backdrop-blur lg:bottom-4">
+      <div className="sticky bottom-20 z-10 flex gap-3 rounded-2xl border border-line bg-surface/90 p-3 backdrop-blur lg:bottom-4">
         <button type="submit" disabled={pending} className={cn("btn btn-brand", pending && "opacity-70")}>{pending ? T("جارٍ الحفظ…") : T("حفظ المنتج")}</button>
         <button type="button" onClick={() => router.push("/admin/products")} className="btn btn-outline">{T("إلغاء")}</button>
       </div>

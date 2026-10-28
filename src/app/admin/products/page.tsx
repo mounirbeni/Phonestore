@@ -65,7 +65,7 @@ export default async function ProductsPage({ searchParams }: Props) {
         <Link href="/admin/products/new" className="btn btn-brand btn-sm"><Plus className="h-4 w-4" aria-hidden="true" />{T("منتج جديد")}</Link>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-line bg-white">
+      <div className="overflow-x-auto rounded-2xl border border-line bg-surface">
         <table className="w-full text-sm">
           <thead className="text-xs text-muted">
             <tr className="border-b border-line bg-mist/60">
@@ -91,7 +91,7 @@ export default async function ProductsPage({ searchParams }: Props) {
                 </td>
                 <td className="hidden px-3 py-3 md:table-cell">{cat}</td>
                 <td className="px-3 py-3 font-semibold tabular-nums" dir="ltr" style={{ textAlign: T.lang === "ar" ? "right" : "left" }}>{minPrice === maxPrice ? eur(minPrice) : `${eur(minPrice)} – ${eur(maxPrice)}`}</td>
-                <td className="px-3 py-3"><span className={cn("chip", stock === 0 ? "bg-hot-50 text-hot" : stock <= 5 ? "bg-[#fff7e6] text-[#b26a00]" : "bg-ok-50 text-ok")}>{stock === 0 ? T("نفد") : stock}</span></td>
+                <td className="px-3 py-3"><span className={cn("chip", stock === 0 ? "bg-hot-50 text-hot" : stock <= 5 ? "bg-warn-50 text-warn" : "bg-ok-50 text-ok")}>{stock === 0 ? T("نفد") : stock}</span></td>
                 <td className="hidden px-3 py-3 sm:table-cell"><span className={cn("chip", p.active ? "bg-ok-50 text-ok" : "bg-mist text-muted")}>{p.active ? T("منشور") : T("مخفي")}</span></td>
                 <td className="px-3 py-3"><ProductRowActions id={p.id} active={p.active} name={p.name} /></td>
               </tr>

@@ -30,15 +30,15 @@ export default async function DeliveriesPage() {
     <div className="mx-auto max-w-3xl space-y-5">
       <div>
         <h1 className="text-2xl font-extrabold">{T("توصيلاتي")}</h1>
-        <p className="mt-1 text-sm text-muted">{T("مرحبًا {name} — {n} طلب للتوصيل، المبلغ الإجمالي للتحصيل", { name: me.name, n: open.length })} <b className="text-ink" dir="ltr">{eur(toCollect)}</b></p>
+        <p className="mt-1 text-sm text-muted">{T("مرحبًا {name} — {n} طلب للتوصيل، المبلغ الإجمالي للتحصيل", { name: me.name, n: open.length })} <b className="text-fg" dir="ltr">{eur(toCollect)}</b></p>
       </div>
 
       {open.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-line bg-white p-10 text-center text-sm text-muted">{T("لا توجد طلبات مسندة إليك حاليًا")}</p>
+        <p className="rounded-2xl border border-dashed border-line bg-surface p-10 text-center text-sm text-muted">{T("لا توجد طلبات مسندة إليك حاليًا")}</p>
       ) : (
         <ul className="space-y-4">
           {open.map((o) => (
-            <li key={o.id} className="rounded-2xl border border-line bg-white p-4 sm:p-5">
+            <li key={o.id} className="rounded-2xl border border-line bg-surface p-4 sm:p-5">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-extrabold" dir="ltr">{o.number}</span>
                 <span className={cn("chip", statusChip[o.status])}>{T(statusLabel[o.status])}</span>
@@ -57,7 +57,7 @@ export default async function DeliveriesPage() {
                   <li key={i.id} className="flex justify-between gap-3"><span className="min-w-0 truncate">{i.name}{i.variantLabel ? ` · ${i.variantLabel}` : ""}</span><span className="shrink-0">× {i.quantity}</span></li>
                 ))}
               </ul>
-              {o.customerNote && <p className="mt-2 flex items-start gap-2 rounded-xl bg-[#fff7e6] p-3 text-sm text-[#8a5300]"><StickyNote className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />{o.customerNote}</p>}
+              {o.customerNote && <p className="mt-2 flex items-start gap-2 rounded-xl bg-warn-50 p-3 text-sm text-warn"><StickyNote className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />{o.customerNote}</p>}
               <DeliveryActions orderId={o.id} />
             </li>
           ))}
@@ -65,7 +65,7 @@ export default async function DeliveriesPage() {
       )}
 
       {done.length > 0 && (
-        <section className="rounded-2xl border border-line bg-white p-5">
+        <section className="rounded-2xl border border-line bg-surface p-5">
           <h2 className="mb-3 font-bold">{T("آخر الطلبات المنتهية")}</h2>
           <ul className="divide-y divide-line text-sm">
             {done.map((o) => (

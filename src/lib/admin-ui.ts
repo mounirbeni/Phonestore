@@ -10,9 +10,9 @@ export const statusLabel: Record<OrderStatus, string> = {
 };
 
 export const statusChip: Record<OrderStatus, string> = {
-  pending: "bg-[#fff7e6] text-[#b26a00]",
+  pending: "bg-warn-50 text-warn",
   confirmed: "bg-brand-50 text-brand",
-  shipped: "bg-ink text-white",
+  shipped: "bg-fg text-bg",
   delivered: "bg-ok-50 text-ok",
   cancelled: "bg-hot-50 text-hot",
 };

@@ -83,16 +83,16 @@ export function CategoryManager({ cats }: { cats: Cat[] }) {
   const ordered = tops.flatMap((t) => [t, ...cats.filter((c) => c.parentId === t.id)]);
   return (
     <div className="space-y-6">
-      <p className="rounded-xl bg-white p-4 text-sm leading-relaxed text-muted">
+      <p className="rounded-xl bg-surface p-4 text-sm leading-relaxed text-muted">
         {T("التصنيف على مستويين: فئة رئيسية (مثل «الأجهزة المنزلية») ثم فئات فرعية دقيقة (مثل «الثلاجات»).")}{" "}
         {T("تُضاف المنتجات إلى الفئة الفرعية فقط، فلا تظهر في أي فئة غير ما يخصّها. الفئات الفارغة تُخفى تلقائيًا من المتجر.")}
       </p>
-      <ul className="divide-y divide-line rounded-2xl border border-line bg-white">
+      <ul className="divide-y divide-line rounded-2xl border border-line bg-surface">
         {ordered.map((c) => <Row key={c.id} cat={c} families={families} />)}
       </ul>
       <div>
         <h2 className="mb-2 font-bold">{T("فئة جديدة")}</h2>
-        <ul className="rounded-2xl border border-line bg-white">
+        <ul className="rounded-2xl border border-line bg-surface">
           <Row cat={{ nameFr: "", nameAr: "", slug: "", icon: "phone", sort: cats.length, parentId: null }} families={families} />
         </ul>
       </div>

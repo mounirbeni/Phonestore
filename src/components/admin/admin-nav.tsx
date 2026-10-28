@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ExternalLink, FolderTree, LayoutDashboard, LogOut, Mail, Package, ShoppingCart, Ticket, Truck, UserCog, Users } from "lucide-react";
@@ -26,10 +27,9 @@ export function AdminNav({ storeName, perms, name, roleLabel }: { storeName: str
   const items = ALL.filter((i) => perms.includes(i.perm));
   return (
     <>
-      <aside className="hidden w-64 shrink-0 flex-col border-e border-line bg-white lg:flex">
-        <div className="flex h-16 items-center gap-2.5 border-b border-line px-5 text-lg font-extrabold" dir="ltr">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-ink text-sm text-white">E</span>
-          {storeName}
+      <aside className="hidden w-64 shrink-0 flex-col border-e border-line bg-surface lg:flex">
+        <div className="flex h-16 items-center border-b border-line px-5" dir="ltr">
+          <Image src="/logo.png" alt={storeName} width={1600} height={247} sizes="200px" priority className="h-7 w-auto" />
         </div>
         <nav className="flex-1 space-y-1 p-3">
           {items.map(({ href, label, icon: Icon, exact }) => {
@@ -38,7 +38,7 @@ export function AdminNav({ storeName, perms, name, roleLabel }: { storeName: str
               <Link
                 key={href}
                 href={href}
-                className={cn("flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition", active ? "bg-ink text-white" : "text-ink-2 hover:bg-mist")}
+                className={cn("flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition", active ? "bg-brand text-white" : "text-ink-2 hover:bg-mist")}
               >
                 <Icon className="h-4.5 w-4.5" aria-hidden="true" />
                 {T(label)}
@@ -65,11 +65,11 @@ export function AdminNav({ storeName, perms, name, roleLabel }: { storeName: str
         </div>
       </aside>
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex justify-around overflow-x-auto border-t border-line bg-white/95 p-1.5 backdrop-blur scrollbar-none lg:hidden" aria-label={T("القائمة")}>
+      <nav className="fixed inset-x-0 bottom-0 z-40 flex justify-around overflow-x-auto border-t border-line bg-surface/95 p-1.5 backdrop-blur scrollbar-none lg:hidden" aria-label={T("القائمة")}>
         {items.map(({ href, label, icon: Icon, exact }) => {
           const active = exact ? path === href : path.startsWith(href);
           return (
-            <Link key={href} href={href} className={cn("flex min-w-[3.6rem] flex-1 flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 text-[0.65rem] font-medium", active ? "bg-ink text-white" : "text-ink-2")}>
+            <Link key={href} href={href} className={cn("flex min-w-[3.6rem] flex-1 flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 text-[0.65rem] font-medium", active ? "bg-brand text-white" : "text-ink-2")}>
               <Icon className="h-5 w-5" aria-hidden="true" />
               <span className="truncate">{T(label)}</span>
             </Link>

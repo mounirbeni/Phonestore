@@ -35,7 +35,7 @@ export function CouponManager({ coupons }: { coupons: C[] }) {
 
   return (
     <div className="space-y-6">
-      <form onSubmit={create} className="grid items-end gap-3 rounded-2xl border border-line bg-white p-5 sm:grid-cols-[1.2fr_8rem_1fr_1fr_1fr_auto]">
+      <form onSubmit={create} className="grid items-end gap-3 rounded-2xl border border-line bg-surface p-5 sm:grid-cols-[1.2fr_8rem_1fr_1fr_1fr_auto]">
         <div><label className="label">{T("الكود")}</label><input required className="input !py-2 uppercase" dir="ltr" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="WELCOME10" /></div>
         <div>
           <label className="label">{T("النوع")}</label>
@@ -51,7 +51,7 @@ export function CouponManager({ coupons }: { coupons: C[] }) {
         {error && <p role="alert" className="text-sm font-medium text-hot sm:col-span-6">{error}</p>}
       </form>
 
-      <div className="overflow-x-auto rounded-2xl border border-line bg-white">
+      <div className="overflow-x-auto rounded-2xl border border-line bg-surface">
         <table className="w-full text-sm">
           <thead className="text-xs text-muted">
             <tr className="border-b border-line bg-mist/60">

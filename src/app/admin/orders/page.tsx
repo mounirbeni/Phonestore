@@ -63,7 +63,7 @@ export default async function OrdersPage({ searchParams }: Props) {
           <button className="btn btn-outline btn-sm" type="submit">{T("بحث")}</button>
         </form>
       </div>
-      <div className="rounded-2xl border border-line bg-white">
+      <div className="rounded-2xl border border-line bg-surface">
         <OrdersTable rows={rows} />
       </div>
       {pages > 1 && (

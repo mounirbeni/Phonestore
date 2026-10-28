@@ -20,7 +20,7 @@ export function LoginForm() {
         <input id="password" name="password" type="password" required autoComplete="current-password" className="input" dir="ltr" />
       </div>
       {state?.error && <p role="alert" className="rounded-xl bg-hot-50 px-4 py-3 text-sm font-medium text-hot">{T(state.error)}</p>}
-      <button type="submit" disabled={pending} className="btn btn-primary btn-lg w-full">
+      <button type="submit" disabled={pending} className="btn btn-brand btn-lg w-full">
         <Lock className="h-4.5 w-4.5" aria-hidden="true" />
         {pending ? T("جارٍ التحقق…") : T("دخول")}
       </button>

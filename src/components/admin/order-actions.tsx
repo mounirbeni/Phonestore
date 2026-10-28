@@ -30,7 +30,7 @@ export function OrderActions({ id, status, note }: { id: number; status: OrderSt
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-line bg-white p-5">
+      <section className="rounded-2xl border border-line bg-surface p-5">
         <h2 className="mb-3 font-bold">{T("تغيير الحالة")}</h2>
         <div className="flex flex-wrap gap-2">
           {ORDER_STATUSES.map((s) => (
@@ -49,7 +49,7 @@ export function OrderActions({ id, status, note }: { id: number; status: OrderSt
         {error && <p role="alert" className="mt-3 text-sm font-medium text-hot">{error}</p>}
       </section>
 
-      <section className="rounded-2xl border border-line bg-white p-5">
+      <section className="rounded-2xl border border-line bg-surface p-5">
         <h2 className="mb-3 font-bold">{T("ملاحظة داخلية")}</h2>
         <textarea
           value={text}

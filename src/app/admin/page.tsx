@@ -47,8 +47,8 @@ export default async function Dashboard() {
   const stats = [
     { label: T("إيرادات 30 يومًا"), value: eur(revenue30), icon: Banknote, tone: "bg-brand-50 text-brand" },
     { label: T("طلبات 30 يومًا"), value: String(orders30), icon: ShoppingCart, tone: "bg-ok-50 text-ok" },
-    { label: T("متوسط قيمة الطلب"), value: eur(orders30 ? Math.round(revenue30 / orders30) : 0), icon: TrendingUp, tone: "bg-ink text-white" },
-    { label: T("بانتظار التأكيد"), value: String(pendingRow?.n ?? 0), icon: Clock, tone: "bg-[#fff7e6] text-[#b26a00]" },
+    { label: T("متوسط قيمة الطلب"), value: eur(orders30 ? Math.round(revenue30 / orders30) : 0), icon: TrendingUp, tone: "bg-fg/10 text-fg" },
+    { label: T("بانتظار التأكيد"), value: String(pendingRow?.n ?? 0), icon: Clock, tone: "bg-warn-50 text-warn" },
   ];
 
   return (
@@ -56,7 +56,7 @@ export default async function Dashboard() {
       <h1 className="text-2xl font-extrabold">{T("لوحة التحكم")}</h1>
       <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
         {stats.map((s) => (
-          <li key={s.label} className="rounded-2xl border border-line bg-white p-4 sm:p-5">
+          <li key={s.label} className="rounded-2xl border border-line bg-surface p-4 sm:p-5">
             <span className={cn("grid h-10 w-10 place-items-center rounded-xl", s.tone)}><s.icon className="h-5 w-5" aria-hidden="true" /></span>
             <p className="mt-4 text-xl font-extrabold tabular-nums sm:text-2xl" dir="ltr" style={{ textAlign: T.lang === "ar" ? "right" : "left" }}>{s.value}</p>
             <p className="mt-0.5 text-xs text-muted sm:text-sm">{s.label}</p>
@@ -65,7 +65,7 @@ export default async function Dashboard() {
       </ul>
 
       <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
-        <section className="min-w-0 rounded-2xl border border-line bg-white p-5">
+        <section className="min-w-0 rounded-2xl border border-line bg-surface p-5">
           <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
             <h2 className="font-bold">{T("المبيعات اليومية (آخر 14 يومًا)")}</h2>
             <span className="text-xs text-muted">{T("اليوم: {amount} · {n} طلب", { amount: eur(Number(today?.revenue ?? 0)), n: today?.n ?? 0 })}</span>
@@ -87,8 +87,8 @@ export default async function Dashboard() {
           )}
         </section>
 
-        <section className="min-w-0 rounded-2xl border border-line bg-white p-5">
-          <h2 className="flex items-center gap-2 font-bold"><AlertTriangle className="h-4.5 w-4.5 text-[#b26a00]" aria-hidden="true" />{T("مخزون منخفض")}</h2>
+        <section className="min-w-0 rounded-2xl border border-line bg-surface p-5">
+          <h2 className="flex items-center gap-2 font-bold"><AlertTriangle className="h-4.5 w-4.5 text-warn" aria-hidden="true" />{T("مخزون منخفض")}</h2>
           {lowStock.length === 0 ? (
             <p className="py-10 text-center text-sm text-muted">{T("المخزون كافٍ لجميع المنتجات")}</p>
           ) : (
@@ -97,7 +97,7 @@ export default async function Dashboard() {
                 <li key={r.sku}>
                   <Link href={`/admin/products/${r.id}`} className="flex items-center justify-between gap-3 py-2.5 text-sm hover:text-brand">
                     <span className="min-w-0 truncate">{r.name} <span className="text-xs text-muted">{[r.color, r.storage].filter(Boolean).join(" · ")}</span></span>
-                    <span className={cn("chip shrink-0", r.stock === 0 ? "bg-hot-50 text-hot" : "bg-[#fff7e6] text-[#b26a00]")}>{r.stock === 0 ? T("نفد") : r.stock}</span>
+                    <span className={cn("chip shrink-0", r.stock === 0 ? "bg-hot-50 text-hot" : "bg-warn-50 text-warn")}>{r.stock === 0 ? T("نفد") : r.stock}</span>
                   </Link>
                 </li>
               ))}
@@ -106,7 +106,7 @@ export default async function Dashboard() {
         </section>
       </div>
 
-      <section className="rounded-2xl border border-line bg-white">
+      <section className="rounded-2xl border border-line bg-surface">
         <div className="flex items-center justify-between p-5 pb-3">
           <h2 className="font-bold">{T("آخر الطلبات")}</h2>
           <Link href="/admin/orders" className="text-sm font-semibold text-brand hover:underline">{T("عرض الكل")}</Link>

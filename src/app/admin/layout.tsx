@@ -19,8 +19,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const [member, T] = await Promise.all([getMember(), getT()]);
   const perms = member ? (["dashboard", "orders", "customers", "catalog", "coupons", "team", "stats", "deliveries"] as Perm[]).filter((p) => can(member.role, p)) : [];
   return (
-    <html lang={T.lang} dir={T.lang === "ar" ? "rtl" : "ltr"}>
-      <body className="min-h-screen bg-mist antialiased">
+    <html lang={T.lang} dir={T.lang === "ar" ? "rtl" : "ltr"} data-theme="dark">
+      <body className="min-h-screen bg-bg text-fg antialiased">
         <AdminLangProvider lang={T.lang}>
         {member ? (
           <div className="flex min-h-screen">
