@@ -13,11 +13,20 @@ export const store = {
   countries: [{ code: "MA", fr: "Maroc", ar: "المغرب" }],
 
   contact: {
-    email: process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "contact@electrosalam.example",
-    phone: process.env.NEXT_PUBLIC_CONTACT_PHONE ?? "+212 5 00 00 00 00",
+    email: process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "electrosalam12000@gmail.com",
+    phone: process.env.NEXT_PUBLIC_CONTACT_PHONE ?? "+212 520 06 29 20",
     whatsapp: process.env.NEXT_PUBLIC_WHATSAPP ?? "",
-    address: process.env.NEXT_PUBLIC_ADDRESS ?? "Adresse de la société, Casablanca, Maroc",
-    legalName: process.env.NEXT_PUBLIC_LEGAL_NAME ?? "ElectroSalam SAS",
+    /** Shops; `city` is shown as the label, `line` is the postal address. */
+    addresses: [
+      { city: { fr: "Casablanca", ar: "الدار البيضاء" }, line: "All. des Mimosas, Casablanca 20590", locality: "Casablanca", postalCode: "20590" },
+      {
+        city: { fr: "Marrakech", ar: "مراكش" },
+        line: "Résidence Aya, Boulevard Mohammed Abdelkrim El Khattabi, Marrakech 40000",
+        locality: "Marrakech",
+        postalCode: "40000",
+      },
+    ],
+    legalName: process.env.NEXT_PUBLIC_LEGAL_NAME ?? "ElectroSalam",
   },
 } as const;
 
