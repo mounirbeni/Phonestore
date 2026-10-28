@@ -11,6 +11,7 @@ import {
   Menu,
   X,
   FolderTree,
+  Headset,
   LayoutDashboard,
   LogOut,
   Mail,
@@ -39,6 +40,10 @@ const GROUPS: { label: string; items: Item[] }[] = [
       { href: "/admin/stats", label: "الإحصائيات", short: "إحصاء", icon: BarChart3, perm: "stats" },
       { href: "/admin/customers", label: "العملاء", icon: Users, perm: "customers" },
     ],
+  },
+  {
+    label: "الدعم",
+    items: [{ href: "/admin/support", label: "الرسائل والشكاوى", short: "الدعم", icon: Headset, perm: "support" }],
   },
   {
     label: "الكتالوج",

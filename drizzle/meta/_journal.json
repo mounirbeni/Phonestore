@@ -64,6 +64,13 @@
       "when": 1793177525298,
       "tag": "0008_deposit_method",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793199094261,
+      "tag": "0009_support",
+      "breakpoints": true
     }
   ]
 }

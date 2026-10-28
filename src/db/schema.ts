@@ -161,7 +161,7 @@ export const orderItems = pgTable(
 
 /* ---------- people ---------- */
 
-export const STAFF_ROLES = ["orders", "catalog", "driver"] as const;
+export const STAFF_ROLES = ["orders", "catalog", "driver", "support"] as const;
 export type StaffRole = (typeof STAFF_ROLES)[number];
 
 /** Team accounts. The owner signs in with ADMIN_PASSWORD and is not stored here. */
@@ -250,6 +250,60 @@ export const newsletterSubscribers = pgTable("newsletter_subscribers", {
   locale: text("locale").notNull().default("fr"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+/* ---------- support ---------- */
+
+export const TICKET_TYPES = ["question", "order", "complaint", "return", "warranty", "other"] as const;
+export type TicketType = (typeof TICKET_TYPES)[number];
+export const TICKET_STATUSES = ["new", "open", "waiting", "resolved", "closed"] as const;
+export type TicketStatus = (typeof TICKET_STATUSES)[number];
+
+/** A customer request (message, complaint, return…) handled by the support team. */
+export const supportTickets = pgTable(
+  "support_tickets",
+  {
+    id: serial("id").primaryKey(),
+    number: text("number").notNull().default(""),
+    /** Private link for the customer to follow the conversation. */
+    token: text("token").notNull(),
+    type: text("type").$type<TicketType>().notNull().default("question"),
+    status: text("status").$type<TicketStatus>().notNull().default("new"),
+    priority: text("priority").$type<"normal" | "high">().notNull().default("normal"),
+    name: text("name").notNull(),
+    email: text("email").notNull(),
+    phone: text("phone").notNull().default(""),
+    orderNumber: text("order_number").notNull().default(""),
+    subject: text("subject").notNull(),
+    locale: text("locale").notNull().default("fr"),
+    customerId: integer("customer_id").references((): AnyPgColumn => customers.id, { onDelete: "set null" }),
+    assigneeId: integer("assignee_id").references((): AnyPgColumn => staff.id, { onDelete: "set null" }),
+    /** Last message from the customer, to sort the inbox by what needs an answer. */
+    lastCustomerAt: timestamp("last_customer_at").notNull().defaultNow(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("support_tickets_number_idx").on(t.number), index("support_tickets_status_idx").on(t.status)],
+);
+
+/** The conversation of a ticket: customer messages, team replies and internal notes (never shown to the customer). */
+export const ticketMessages = pgTable(
+  "ticket_messages",
+  {
+    id: serial("id").primaryKey(),
+    ticketId: integer("ticket_id")
+      .notNull()
+      .references(() => supportTickets.id, { onDelete: "cascade" }),
+    author: text("author").$type<"customer" | "staff" | "note" | "event">().notNull(),
+    staffId: integer("staff_id").references(() => staff.id, { onDelete: "set null" }),
+    by: text("by").notNull().default(""),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [index("ticket_messages_ticket_idx").on(t.ticketId)],
+);
+
+export type SupportTicket = typeof supportTickets.$inferSelect;
+export type TicketMessage = typeof ticketMessages.$inferSelect;
 
 export type Staff = typeof staff.$inferSelect;
 export type Customer = typeof customers.$inferSelect;

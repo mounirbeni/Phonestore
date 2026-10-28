@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { and, count, desc, eq, gt, gte, isNull, lte, ne, sql, sum } from "drizzle-orm";
-import { AlertTriangle, Banknote, BarChart3, CalendarDays, Clock, Landmark, Plus, ShoppingCart, TrendingUp, Truck } from "lucide-react";
+import { AlertTriangle, Banknote, BarChart3, CalendarDays, Clock, Headset, Landmark, Plus, ShoppingCart, TrendingUp, Truck } from "lucide-react";
 import { db } from "@/db";
-import { orders, products, variants } from "@/db/schema";
+import { orders, products, supportTickets, variants } from "@/db/schema";
 import { eur } from "@/lib/admin-ui";
 import { cn } from "@/lib/utils";
 import { OrdersTable } from "@/components/admin/orders-table";
@@ -21,7 +21,7 @@ export default async function Dashboard() {
   const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const live = ne(orders.status, "cancelled");
 
-  const [[m30], [today], [pendingRow], daily, lowStock, recent, [awaitingRow], [unassignedRow]] = await Promise.all([
+  const [[m30], [today], [pendingRow], daily, lowStock, recent, [awaitingRow], [unassignedRow], [ticketsRow]] = await Promise.all([
     db.select({ revenue: sum(orders.total), n: count() }).from(orders).where(and(live, gte(orders.createdAt, d30))),
     db.select({ revenue: sum(orders.total), n: count() }).from(orders).where(and(live, gte(orders.createdAt, startToday))),
     db.select({ n: count() }).from(orders).where(eq(orders.status, "pending")),
@@ -41,6 +41,7 @@ export default async function Dashboard() {
     db.select().from(orders).orderBy(desc(orders.createdAt)).limit(8),
     db.select({ n: count() }).from(orders).where(and(eq(orders.status, "pending"), gt(orders.deposit, 0), isNull(orders.depositPaidAt))),
     db.select({ n: count() }).from(orders).where(and(eq(orders.status, "confirmed"), isNull(orders.driverId))),
+    db.select({ n: count() }).from(supportTickets).where(eq(supportTickets.status, "new")),
   ]);
 
   const revenue30 = Number(m30?.revenue ?? 0);
@@ -67,6 +68,7 @@ export default async function Dashboard() {
     { n: pendingRow?.n ?? 0, label: T("بانتظار التأكيد"), href: "/admin/orders?status=pending", icon: Clock },
     { n: unassignedRow?.n ?? 0, label: T("بدون موصّل"), href: "/admin/orders?status=confirmed", icon: Truck },
     { n: lowStock.length, label: T("مخزون منخفض"), href: "/admin/products/bulk?low=1", icon: AlertTriangle },
+    { n: ticketsRow?.n ?? 0, label: T("رسائل جديدة"), href: "/admin/support", icon: Headset },
   ];
 
   return (
@@ -82,7 +84,7 @@ export default async function Dashboard() {
         }
       />
 
-      <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {todo.map((t) => (
           <li key={t.href}>
             <Link href={t.href} className={cn("flex items-center gap-3 rounded-2xl border p-3.5 transition hover:border-brand", t.n ? "border-brand/40 bg-brand/5" : "border-line bg-surface")}>

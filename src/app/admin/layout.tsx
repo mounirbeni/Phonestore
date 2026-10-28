@@ -4,7 +4,7 @@ import "@fontsource-variable/noto-sans-arabic";
 import "../globals.css";
 import { and, count, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
-import { orders } from "@/db/schema";
+import { orders, supportTickets } from "@/db/schema";
 import { store } from "@/config/store";
 import { can, getMember, ROLE_LABELS, type Perm } from "@/lib/auth";
 import { AdminNav } from "@/components/admin/admin-nav";
@@ -20,12 +20,16 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const [member, T] = await Promise.all([getMember(), getT()]);
-  const perms = member ? (["dashboard", "orders", "customers", "catalog", "coupons", "team", "stats", "deliveries"] as Perm[]).filter((p) => can(member.role, p)) : [];
+  const perms = member ? (["dashboard", "orders", "customers", "catalog", "coupons", "team", "stats", "deliveries", "support"] as Perm[]).filter((p) => can(member.role, p)) : [];
   // Menu badges: orders still to confirm for the team, open deliveries for a driver.
   const badges: Record<string, number> = {};
   if (member && perms.includes("orders")) {
     const [r] = await db.select({ n: count() }).from(orders).where(eq(orders.status, "pending"));
     badges["/admin/orders"] = r?.n ?? 0;
+  }
+  if (member && perms.includes("support")) {
+    const [r] = await db.select({ n: count() }).from(supportTickets).where(eq(supportTickets.status, "new"));
+    badges["/admin/support"] = r?.n ?? 0;
   }
   if (member?.id && perms.includes("deliveries")) {
     const [r] = await db.select({ n: count() }).from(orders).where(and(eq(orders.driverId, member.id), inArray(orders.status, ["confirmed", "shipped"])));

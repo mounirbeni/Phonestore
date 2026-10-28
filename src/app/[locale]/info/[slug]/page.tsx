@@ -4,6 +4,8 @@ import { Mail, MapPin, Phone } from "lucide-react";
 import { store } from "@/config/store";
 import { getDictionary } from "@/lib/dictionary";
 import { isLocale, localePath, pick } from "@/lib/i18n";
+import { getCustomer } from "@/lib/customer-auth";
+import { SupportForm } from "@/components/support/support-form";
 
 const SLUGS = ["shipping", "returns", "privacy", "terms", "usage", "faq", "about", "contact"] as const;
 type Slug = (typeof SLUGS)[number];
@@ -22,6 +24,7 @@ export default async function InfoPage({ params }: Props) {
   if (!isLocale(locale) || !SLUGS.includes(slug as Slug)) notFound();
   const d = getDictionary(locale);
   const page = d.info[slug as Slug];
+  const customer = slug === "contact" ? await getCustomer() : null;
 
   return (
     <div className="container-x pb-10 pt-8 sm:pt-12">
@@ -65,6 +68,11 @@ export default async function InfoPage({ params }: Props) {
               </li>
             ))}
           </ul>
+        )}
+        {slug === "contact" && (
+          <div className="mt-10">
+            <SupportForm locale={locale} d={d.support} defaults={customer ? { name: `${customer.firstName} ${customer.lastName}`.trim(), email: customer.email, phone: customer.phone } : {}} />
+          </div>
         )}
       </article>
     </div>

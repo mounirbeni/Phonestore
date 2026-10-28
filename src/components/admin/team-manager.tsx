@@ -14,6 +14,7 @@ const ROLES: { value: StaffRole; label: string; text: string }[] = [
   { value: "orders", label: "مسؤول الطلبات", text: "الطلبات والعملاء: التأكيد، الحالة، إسناد الموصّل." },
   { value: "catalog", label: "مسؤول المنتجات والمخزون", text: "المنتجات والأسعار والمخزون والفئات." },
   { value: "driver", label: "موصّل", text: "الطلبات المسندة إليه فقط: التسليم أو الرفض." },
+  { value: "support", label: "فريق الدعم", text: "رسائل العملاء وشكاواهم: الرد والمتابعة والإغلاق." },
 ];
 const roleLabel = (r: StaffRole) => ROLES.find((x) => x.value === r)?.label ?? r;
 
@@ -46,7 +47,7 @@ export function TeamManager({ members }: { members: Member[] }) {
 
   return (
     <div className="space-y-5">
-      <ul className="grid gap-3 sm:grid-cols-3">
+      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {ROLES.map((r) => (
           <li key={r.value} className="rounded-2xl border border-line bg-surface p-4 text-sm">
             <p className="font-bold">{T(r.label)}</p>

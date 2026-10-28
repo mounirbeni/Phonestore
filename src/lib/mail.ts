@@ -116,3 +116,43 @@ export async function sendOrderEmails(order: Order, items: OrderItem[]) {
 }
 
 export { pick };
+
+/* ---------- support ---------- */
+
+type TicketMail = { number: string; token: string; locale: string; name: string; email: string; subject: string };
+
+const ticketLink = (t: TicketMail) => `${store.url}/${t.locale === "ar" ? "ar" : "fr"}/support/${t.number}?t=${t.token}`;
+
+function ticketHtml(t: TicketMail, locale: Locale, intro: string, body: string, withLink: boolean) {
+  const d = getDictionary(locale);
+  return `<div dir="${locale === "ar" ? "rtl" : "ltr"}" style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#0b0d12">
+<h2>${esc(store.name)}</h2><p>${esc(intro)}</p>
+<p><strong>${esc(fmt(d.support.ticket, { number: t.number }))}</strong> — ${esc(t.subject)}</p>
+<div style="white-space:pre-wrap;border-inline-start:3px solid #c8102e;padding:8px 12px;background:#f6f6f6">${esc(body)}</div>
+${withLink ? `<p><a href="${ticketLink(t)}" style="display:inline-block;background:#0b0d12;color:#fff;padding:12px 20px;border-radius:10px;text-decoration:none">${esc(d.support.viewTicket)}</a></p>` : ""}
+</div>`;
+}
+
+/** Acknowledgement to the customer and a heads-up to the team (SUPPORT_NOTIFY_EMAIL, else ORDER_NOTIFY_EMAIL). */
+export async function sendTicketCreated(t: TicketMail, message: string) {
+  const locale = (t.locale === "ar" ? "ar" : "fr") as Locale;
+  const d = getDictionary(locale);
+  try {
+    await send(t.email, fmt(d.support.mailSubject, { number: t.number }), ticketHtml(t, locale, d.support.mailIntro, message, true));
+    const team = process.env.SUPPORT_NOTIFY_EMAIL || process.env.ORDER_NOTIFY_EMAIL;
+    if (team) await send(team, `Nouveau message ${t.number} — ${t.subject}`, ticketHtml(t, "fr", `Nouveau message de ${t.name} (${t.email})`, message, false));
+  } catch (e) {
+    console.error("[mail] ticket failed", e);
+  }
+}
+
+/** Tells the customer the team has answered. */
+export async function sendTicketReply(t: TicketMail, reply: string) {
+  const locale = (t.locale === "ar" ? "ar" : "fr") as Locale;
+  const d = getDictionary(locale);
+  try {
+    await send(t.email, fmt(d.support.replySubject, { number: t.number }), ticketHtml(t, locale, d.support.replyIntro, reply, true));
+  } catch (e) {
+    console.error("[mail] ticket reply failed", e);
+  }
+}
