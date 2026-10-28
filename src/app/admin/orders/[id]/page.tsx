@@ -72,7 +72,7 @@ export default async function OrderDetail({ params }: Props) {
         </div>
 
         <div className="space-y-6">
-          <DepositBox orderId={order.id} deposit={order.deposit} paidAt={order.depositPaidAt?.toISOString() ?? null} due={dueOnDelivery(order)} status={order.status} />
+          <DepositBox orderId={order.id} deposit={order.deposit} paidAt={order.depositPaidAt?.toISOString() ?? null} method={order.depositMethod} reference={order.depositRef} due={dueOnDelivery(order)} status={order.status} />
           <DriverAssign orderId={order.id} driverId={order.driverId} drivers={drivers} />
           <section className="rounded-2xl border border-line bg-white p-5 text-sm">
             <h2 className="mb-3 font-bold">العميل</h2>

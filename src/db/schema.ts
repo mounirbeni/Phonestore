@@ -121,6 +121,9 @@ export const orders = pgTable(
     deposit: integer("deposit").notNull().default(0),
     /** Set by the team once the transfer has arrived. */
     depositPaidAt: timestamp("deposit_paid_at"),
+    /** "transfer" or "card" once paid; `depositRef` is the gateway's transaction id for cards. */
+    depositMethod: text("deposit_method").notNull().default(""),
+    depositRef: text("deposit_ref").notNull().default(""),
     customerNote: text("customer_note").notNull().default(""),
     adminNote: text("admin_note").notNull().default(""),
     /** Set when the order was placed while signed in. */

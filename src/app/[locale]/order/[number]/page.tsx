@@ -13,14 +13,16 @@ import { isLocale, localePath, pick } from "@/lib/i18n";
 import { formatPrice } from "@/lib/money";
 import { cn, fmt } from "@/lib/utils";
 import { ProductVisual } from "@/components/ui/product-visual";
+import { PayByCard } from "@/components/shop/pay-by-card";
+import { payzoneReady } from "@/lib/payments/payzone";
 
-type Props = { params: Promise<{ locale: string; number: string }>; searchParams: Promise<{ t?: string }> };
+type Props = { params: Promise<{ locale: string; number: string }>; searchParams: Promise<{ t?: string; pay?: string }> };
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 export default async function OrderPage({ params, searchParams }: Props) {
   const { locale, number } = await params;
-  const { t } = await searchParams;
+  const { t, pay } = await searchParams;
   if (!isLocale(locale)) notFound();
   const d = getDictionary(locale);
   // The private link (token) works for anyone who has it; the account owner needs no token.
@@ -67,6 +69,7 @@ export default async function OrderPage({ params, searchParams }: Props) {
   const awaitingDeposit = order.deposit > 0 && !order.depositPaidAt && order.status === "pending";
   const bank = store.deposit;
   const depositAmount = formatPrice(order.deposit, locale);
+  const card = awaitingDeposit && payzoneReady();
 
   return (
     <div className="container-x pb-10 pt-8 sm:pt-12">
@@ -87,6 +90,14 @@ export default async function OrderPage({ params, searchParams }: Props) {
               <Landmark className="h-6 w-6 shrink-0 text-brand" aria-hidden="true" />
               {fmt(d.order.depositTitle, { amount: depositAmount })}
             </h2>
+            {pay === "ok" && <p role="status" className="mt-3 rounded-2xl bg-ok-50 px-4 py-3 text-sm font-medium text-ok">{d.order.payOk}</p>}
+            {pay === "fail" && <p role="alert" className="mt-3 rounded-2xl bg-hot-50 px-4 py-3 text-sm font-medium text-hot">{d.order.payFail}</p>}
+            {card && (
+              <div className="mt-5">
+                <PayByCard number={order.number} token={order.token} label={fmt(d.order.payCard, { amount: depositAmount })} busy={d.order.payCardBusy} error={d.order.payCardError} />
+                <p className="mt-5 text-sm font-semibold">{d.order.orTransfer}</p>
+              </div>
+            )}
             <p className="mt-3 text-sm leading-relaxed text-fg-2">{fmt(d.order.depositText, { amount: depositAmount, number: order.number })}</p>
             {bank.rib ? (
               <dl className="mt-5 grid gap-3 rounded-2xl bg-mist p-4 text-sm sm:grid-cols-2">

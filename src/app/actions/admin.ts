@@ -18,7 +18,8 @@ import {
   type OrderStatus,
   type Spec,
 } from "@/db/schema";
-import { checkPassword, createSession, destroySession, homeFor, requirePerm, type Member } from "@/lib/auth";
+import { checkPassword, createSession, destroySession, homeFor, requirePerm } from "@/lib/auth";
+import { applyStatus, markDeposit } from "@/lib/order-status";
 import { failDelay, verifyPassword } from "@/lib/password";
 import { allowAll, clientIp } from "@/lib/rate-limit";
 import { CATEGORY_ICONS } from "@/lib/category-icons";
@@ -60,35 +61,6 @@ export async function logout() {
 
 /* ---------- orders ---------- */
 
-type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
-
-/** Moves an order to a new status, giving stock back on cancel (and taking it again on un-cancel). */
-async function applyStatus(tx: Tx, orderId: number, status: OrderStatus, by: Member, note = "") {
-  const [o] = await tx.select().from(orders).where(eq(orders.id, orderId)).for("update");
-  if (!o || o.status === status) return o ?? null;
-  // An order is confirmed by its advance: it cannot move on to delivery until the transfer has arrived.
-  if (o.deposit > 0 && !o.depositPaidAt && status !== "pending" && status !== "cancelled") throw new Error("DEPOSIT");
-  const items = await tx.select().from(orderItems).where(eq(orderItems.orderId, orderId));
-  const stocked = items.filter((i) => i.variantId != null);
-  if (o.status !== "cancelled" && status === "cancelled") {
-    for (const i of stocked) {
-      await tx.update(variants).set({ stock: sql`${variants.stock} + ${i.quantity}` }).where(eq(variants.id, i.variantId!));
-    }
-  } else if (o.status === "cancelled" && status !== "cancelled") {
-    for (const i of stocked) {
-      const upd = await tx
-        .update(variants)
-        .set({ stock: sql`${variants.stock} - ${i.quantity}` })
-        .where(and(eq(variants.id, i.variantId!), sql`${variants.stock} >= ${i.quantity}`))
-        .returning({ id: variants.id });
-      if (!upd.length) throw new Error("STOCK");
-    }
-  }
-  await tx.update(orders).set({ status }).where(eq(orders.id, orderId));
-  await tx.insert(orderEvents).values({ orderId, kind: "status", status, note, staffId: by.id, by: by.name });
-  return o;
-}
-
 export async function updateOrderStatus(orderId: number, status: OrderStatus): Promise<{ ok: boolean; error?: string }> {
   const me = await requirePerm("orders");
   if (!ORDER_STATUSES.includes(status)) return { ok: false, error: "حالة غير صالحة" };
@@ -106,22 +78,8 @@ export async function updateOrderStatus(orderId: number, status: OrderStatus): P
 /** Records (or undoes) the arrival of the bank-transfer advance; a waiting order is then confirmed. */
 export async function setDepositPaid(orderId: number, paid: boolean): Promise<{ ok: boolean; error?: string }> {
   const me = await requirePerm("orders");
-  try {
-    await db.transaction(async (tx) => {
-      const [o] = await tx.select().from(orders).where(eq(orders.id, orderId)).for("update");
-      if (!o || o.deposit <= 0) throw new Error("NONE");
-      if (!paid && (o.status === "shipped" || o.status === "delivered")) throw new Error("LATE");
-      if (paid === !!o.depositPaidAt) return;
-      await tx.update(orders).set({ depositPaidAt: paid ? new Date() : null }).where(eq(orders.id, orderId));
-      await tx.insert(orderEvents).values({ orderId, kind: "note", note: paid ? "تم استلام التسبيق بالتحويل البنكي" : "أُلغي تسجيل استلام التسبيق", staffId: me.id, by: me.name });
-      if (paid && o.status === "pending") await applyStatus(tx, orderId, "confirmed", me);
-      if (!paid && o.status === "confirmed") await applyStatus(tx, orderId, "pending", me);
-    });
-  } catch (e) {
-    if (e instanceof Error && e.message === "NONE") return { ok: false, error: "هذا الطلب بدون تسبيق" };
-    if (e instanceof Error && e.message === "LATE") return { ok: false, error: "الطلب في التوصيل أو مُسلَّم" };
-    throw e;
-  }
+  const r = await markDeposit(orderId, paid, me, { method: "transfer" });
+  if (!r.ok) return { ok: false, error: r.error === "none" ? "هذا الطلب بدون تسبيق" : "الطلب في التوصيل أو مُسلَّم" };
   refresh();
   return { ok: true };
 }

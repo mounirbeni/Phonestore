@@ -226,6 +226,12 @@ export const fr = {
     rib: "RIB",
     reference: "Motif",
     depositPaid: "Acompte reçu le {date}",
+    payCard: "Payer {amount} par carte bancaire",
+    payCardBusy: "Redirection vers le paiement sécurisé…",
+    payCardError: "Le paiement par carte est indisponible pour le moment. Vous pouvez régler l'acompte par virement.",
+    orTransfer: "Ou par virement bancaire :",
+    payOk: "Paiement reçu, confirmation en cours. Cette page se met à jour dans quelques instants.",
+    payFail: "Le paiement n'a pas abouti. Vous pouvez réessayer ou régler l'acompte par virement.",
     depositPolicy: "L'acompte n'est pas remboursable en cas d'annulation, sauf si le produit n'est plus disponible.",
     notFound: "Commande introuvable.",
     statuses: {

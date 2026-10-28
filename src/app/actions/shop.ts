@@ -14,6 +14,7 @@ import { checkoutSchema, type CheckoutInput } from "@/lib/validation";
 import { sendOrderEmails } from "@/lib/mail";
 import { allowAll, clientIp } from "@/lib/rate-limit";
 import type { CartLine } from "@/components/providers";
+import { buildCheckout, payzoneReady, type CardCheckout } from "@/lib/payments/payzone";
 
 /* ---------- cart refresh ---------- */
 
@@ -246,4 +247,19 @@ export async function lookupOrder(number: string, email: string): Promise<{ ok: 
 
 export async function getWishlistCards(slugs: string[]) {
   return getProductsBySlugs(slugs.filter((s) => typeof s === "string").slice(0, 60));
+}
+
+/* ---------- card payment of the advance ---------- */
+
+/** Builds the Payzone request for an order still waiting for its advance (the private link's token is required). */
+export async function startCardPayment(number: string, token: string): Promise<{ ok: true; checkout: CardCheckout } | { ok: false; error: "unavailable" | "rate" }> {
+  if (!payzoneReady() || typeof number !== "string" || typeof token !== "string" || number.length > 30 || token.length > 64) return { ok: false, error: "unavailable" };
+  if (!(await allowAll([[`card:ip:${await clientIp()}`, 20, 900]]))) return { ok: false, error: "rate" };
+  const [o] = await db.select().from(orders).where(and(eq(orders.number, number), eq(orders.token, token))).limit(1);
+  if (!o || o.status !== "pending" || o.deposit <= 0 || o.depositPaidAt) return { ok: false, error: "unavailable" };
+  const page = `${store.url}/${o.locale === "ar" ? "ar" : "fr"}/order/${o.number}?t=${o.token}`;
+  return {
+    ok: true,
+    checkout: buildCheckout(o, { returnUrl: `${page}&pay=ok`, cancelUrl: `${page}&pay=fail`, notifyUrl: `${store.url}/api/payments/payzone` }),
+  };
 }

@@ -1,5 +1,14 @@
 import type { NextConfig } from "next";
 
+/** The card payment page receives a form post from the order page, so its origin must be an allowed form target. */
+const payOrigin = (() => {
+  try {
+    return process.env.PAYZONE_PAYWALL_URL ? ` ${new URL(process.env.PAYZONE_PAYWALL_URL).origin}` : "";
+  } catch {
+    return "";
+  }
+})();
+
 const config: NextConfig = {
   poweredByHeader: false,
   devIndicators: false,
@@ -18,7 +27,7 @@ const config: NextConfig = {
           // Scripts stay governed by Next.js; these directives block clickjacking, plugin content and form/base hijacking.
           {
             key: "Content-Security-Policy",
-            value: `frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'${process.env.NODE_ENV === "production" ? "; upgrade-insecure-requests" : ""}`,
+            value: `frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'${payOrigin}${process.env.NODE_ENV === "production" ? "; upgrade-insecure-requests" : ""}`,
           },
           { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
         ],

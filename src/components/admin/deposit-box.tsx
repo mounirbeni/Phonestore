@@ -8,7 +8,7 @@ import type { OrderStatus } from "@/db/schema";
 import { eur } from "@/lib/admin-ui";
 
 /** Payment panel of an order: the bank-transfer advance and what is left to collect on delivery. */
-export function DepositBox({ orderId, deposit, paidAt, due, status }: { orderId: number; deposit: number; paidAt: string | null; due: number; status: OrderStatus }) {
+export function DepositBox({ orderId, deposit, paidAt, method, reference, due, status }: { orderId: number; deposit: number; paidAt: string | null; method: string; reference: string; due: number; status: OrderStatus }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -29,13 +29,13 @@ export function DepositBox({ orderId, deposit, paidAt, due, status }: { orderId:
       {deposit > 0 ? (
         <>
           <div className="flex items-center justify-between">
-            <span>تسبيق بالتحويل البنكي</span>
+            <span>التسبيق</span>
             <b dir="ltr">{eur(deposit)}</b>
           </div>
           {paidAt ? (
-            <p className="mt-2 rounded-xl bg-ok/10 px-3 py-2 font-medium text-ok">تم الاستلام · {new Date(paidAt).toLocaleDateString("fr-FR")}</p>
+            <p className="mt-2 rounded-xl bg-ok/10 px-3 py-2 font-medium text-ok">تم الاستلام {method === "card" ? "بالبطاقة" : "بالتحويل"} · {new Date(paidAt).toLocaleDateString("fr-FR")}{reference && <span className="block text-xs font-normal" dir="ltr">{reference}</span>}</p>
           ) : (
-            <p className="mt-2 rounded-xl bg-[#fff7e6] px-3 py-2 font-medium text-[#8a5300]">بانتظار التحويل — مرجع التحويل هو رقم الطلب</p>
+            <p className="mt-2 rounded-xl bg-[#fff7e6] px-3 py-2 font-medium text-[#8a5300]">بانتظار التسبيق — مرجع التحويل هو رقم الطلب</p>
           )}
           <div className="mt-3 flex items-center justify-between border-t border-line pt-3">
             <span>يُحصَّل عند الاستلام</span>
