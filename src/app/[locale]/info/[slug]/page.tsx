@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { store } from "@/config/store";
 import { getDictionary } from "@/lib/dictionary";
-import { isLocale, localePath } from "@/lib/i18n";
+import { isLocale, localePath, pick } from "@/lib/i18n";
 
 const SLUGS = ["shipping", "returns", "privacy", "terms", "about", "contact"] as const;
 type Slug = (typeof SLUGS)[number];
@@ -36,7 +36,7 @@ export default async function InfoPage({ params }: Props) {
           ))}
         </div>
         {slug === "contact" && (
-          <ul className="mt-10 grid gap-4 sm:grid-cols-3">
+          <ul className="mt-10 grid gap-4 sm:grid-cols-2">
             <li className="rounded-3xl border border-line bg-surface p-5">
               <Mail className="h-6 w-6 text-brand" aria-hidden="true" />
               <p className="mt-3 text-sm font-semibold">{d.info.contact.email}</p>
@@ -47,11 +47,21 @@ export default async function InfoPage({ params }: Props) {
               <p className="mt-3 text-sm font-semibold">{d.info.contact.phone}</p>
               <a href={`tel:${store.contact.phone.replace(/\s/g, "")}`} className="mt-1 block text-sm text-fg-2 hover:underline" dir="ltr">{store.contact.phone}</a>
             </li>
-            {store.contact.addresses.map((address) => (
-              <li key={address.city} className="rounded-3xl border border-line bg-surface p-5">
+            {store.contact.addresses.map((a) => (
+              <li key={a.locality} className="rounded-3xl border border-line bg-surface p-5">
                 <MapPin className="h-6 w-6 text-brand" aria-hidden="true" />
-                <p className="mt-3 text-sm font-semibold">{d.info.contact.address} — {address.city}</p>
-                <p className="mt-1 text-sm text-fg-2">{address.value}</p>
+                <p className="mt-3 text-sm font-semibold">
+                  {d.info.contact.address} · {pick(locale, a.city.fr, a.city.ar)}
+                </p>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.line)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-1 block text-sm text-fg-2 hover:underline"
+                  dir="ltr"
+                >
+                  {a.line}
+                </a>
               </li>
             ))}
           </ul>

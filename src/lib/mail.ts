@@ -84,7 +84,7 @@ export async function sendOrderEmails(order: Order, items: OrderItem[]) {
     );
     const owner = process.env.ORDER_NOTIFY_EMAIL;
     if (owner) {
-      await send(owner, `🛒 ${order.number} — ${formatPrice(order.total, "fr")}`, orderHtml(order, items, "fr", `Nouvelle commande de ${order.firstName} ${order.lastName}`));
+      await send(owner, `Nouvelle commande ${order.number} — ${formatPrice(order.total, "fr")}`, orderHtml(order, items, "fr", `Nouvelle commande de ${order.firstName} ${order.lastName}`));
     }
   } catch (e) {
     console.error("[mail] failed", e);

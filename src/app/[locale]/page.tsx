@@ -23,7 +23,20 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
-      { "@type": "Organization", name: store.name, url: store.url, email: store.contact.email, telephone: store.contact.phone },
+      {
+        "@type": "Organization",
+        name: store.name,
+        url: store.url,
+        email: store.contact.email,
+        telephone: store.contact.phone,
+        address: store.contact.addresses.map((a) => ({
+          "@type": "PostalAddress",
+          streetAddress: a.line,
+          addressLocality: a.locality,
+          postalCode: a.postalCode,
+          addressCountry: "MA",
+        })),
+      },
       {
         "@type": "WebSite",
         name: store.name,
