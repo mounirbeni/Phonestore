@@ -45,7 +45,14 @@ export default async function Dashboard() {
 
   const revenue30 = Number(m30?.revenue ?? 0);
   const orders30 = m30?.n ?? 0;
-  const maxDay = Math.max(1, ...daily.map((d) => Number(d.revenue ?? 0)));
+  // All 14 days, including those without sales, so a single sale does not fill the chart.
+  const byDay = new Map(daily.map((d) => [d.day, Number(d.revenue ?? 0)]));
+  const days = Array.from({ length: 14 }, (_, i) => {
+    const d = new Date(startToday.getFullYear(), startToday.getMonth(), startToday.getDate() - 13 + i);
+    const key = `${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    return { key, label: String(d.getDate()), value: byDay.get(key) ?? 0, today: i === 13 };
+  });
+  const maxDay = Math.max(1, ...days.map((d) => d.value));
 
   const stats = [
     { label: T("إيرادات 30 يومًا"), value: eur(revenue30), icon: Banknote, tone: "bg-brand-50 text-brand" },
@@ -94,21 +101,18 @@ export default async function Dashboard() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
-        <Panel title={T("المبيعات اليومية (آخر 14 يومًا)")} icon={TrendingUp} actions={<span className="text-xs text-muted">{T("اليوم: {amount} · {n} طلب", { amount: eur(Number(today?.revenue ?? 0)), n: today?.n ?? 0 })}</span>}>
+        <Panel title={T("المبيعات — 14 يومًا")} icon={TrendingUp} actions={<span className="shrink-0 text-xs text-muted">{T("اليوم:")} <b className="text-fg" dir="ltr">{eur(Number(today?.revenue ?? 0))}</b></span>}>
           {daily.length === 0 ? (
             <p className="py-12 text-center text-sm text-muted">{T("لا توجد مبيعات بعد")}</p>
           ) : (
-            <ul className="flex h-48 items-end gap-1 sm:gap-2" dir="ltr">
-              {daily.map((d) => {
-                const v = Number(d.revenue ?? 0);
-                return (
-                  <li key={d.day} className="group relative flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1.5">
-                    <span className="pointer-events-none absolute -top-1 z-10 hidden -translate-y-full whitespace-nowrap rounded-md bg-fg px-2 py-1 text-[0.7rem] font-semibold text-bg group-hover:block">{eur(v)}</span>
-                    <div className="w-full max-w-14 rounded-t-lg bg-brand/80 transition group-hover:bg-brand" style={{ height: `${Math.max(4, (v / maxDay) * 100)}%` }} />
-                    <span className="text-[0.6rem] text-muted">{String(d.day).slice(-2)}</span>
-                  </li>
-                );
-              })}
+            <ul className="flex h-44 items-end gap-1 sm:h-48 sm:gap-1.5" dir="ltr">
+              {days.map((d) => (
+                <li key={d.key} className="group relative flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1.5">
+                  {d.value > 0 && <span className="pointer-events-none absolute -top-1 z-10 hidden -translate-y-full whitespace-nowrap rounded-md bg-fg px-2 py-1 text-[0.7rem] font-semibold text-bg group-hover:block">{eur(d.value)}</span>}
+                  <div className={cn("w-full max-w-10 rounded-t-md transition", d.value ? "bg-brand/80 group-hover:bg-brand" : "bg-mist")} style={{ height: d.value ? `${Math.max(4, (d.value / maxDay) * 100)}%` : "3px" }} />
+                  <span className={cn("text-[0.6rem] tabular-nums", d.today ? "font-bold text-fg" : "text-muted")}>{d.label}</span>
+                </li>
+              ))}
             </ul>
           )}
         </Panel>

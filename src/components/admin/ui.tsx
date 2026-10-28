@@ -18,15 +18,15 @@ export function Panel({ title, icon: Icon, actions, children, className, flush }
   return (
     <section className={cn("min-w-0 overflow-hidden rounded-2xl border border-line bg-surface", className)}>
       {title && (
-        <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-3.5">
-          <h2 className="flex items-center gap-2 font-bold">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-line px-4 py-3.5 sm:px-5">
+          <h2 className="flex min-w-0 items-center gap-2 font-bold">
             {Icon && <Icon className="h-4.5 w-4.5 text-brand" aria-hidden="true" />}
             {title}
           </h2>
           {actions}
         </div>
       )}
-      <div className={flush ? "" : "p-5"}>{children}</div>
+      <div className={flush ? "" : "p-4 sm:p-5"}>{children}</div>
     </section>
   );
 }

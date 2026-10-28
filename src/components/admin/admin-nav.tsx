@@ -2,11 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   BarChart3,
   Boxes,
   ExternalLink,
+  Menu,
+  X,
   FolderTree,
   LayoutDashboard,
   LogOut,
@@ -23,17 +26,17 @@ import { logout } from "@/app/actions/admin";
 import { cn } from "@/lib/utils";
 import { LangSwitch, useT } from "@/components/admin/admin-lang";
 
-type Item = { href: string; label: string; icon: typeof Package; perm: Perm; exact?: boolean };
+type Item = { href: string; label: string; short?: string; icon: typeof Package; perm: Perm; exact?: boolean };
 
 /** Menu sections; labels are translation keys. */
 const GROUPS: { label: string; items: Item[] }[] = [
   {
     label: "المبيعات",
     items: [
-      { href: "/admin", label: "لوحة التحكم", icon: LayoutDashboard, perm: "dashboard", exact: true },
+      { href: "/admin", label: "لوحة التحكم", short: "الرئيسية", icon: LayoutDashboard, perm: "dashboard", exact: true },
       { href: "/admin/deliveries", label: "توصيلاتي", icon: Truck, perm: "deliveries" },
       { href: "/admin/orders", label: "الطلبات", icon: ShoppingCart, perm: "orders" },
-      { href: "/admin/stats", label: "الإحصائيات", icon: BarChart3, perm: "stats" },
+      { href: "/admin/stats", label: "الإحصائيات", short: "إحصاء", icon: BarChart3, perm: "stats" },
       { href: "/admin/customers", label: "العملاء", icon: Users, perm: "customers" },
     ],
   },
@@ -41,7 +44,7 @@ const GROUPS: { label: string; items: Item[] }[] = [
     label: "الكتالوج",
     items: [
       { href: "/admin/products", label: "المنتجات", icon: Package, perm: "catalog" },
-      { href: "/admin/products/bulk", label: "المخزون والأسعار", icon: Boxes, perm: "catalog" },
+      { href: "/admin/products/bulk", label: "المخزون والأسعار", short: "المخزون", icon: Boxes, perm: "catalog" },
       { href: "/admin/categories", label: "الفئات", icon: FolderTree, perm: "catalog" },
       { href: "/admin/coupons", label: "أكواد الخصم", icon: Ticket, perm: "coupons" },
     ],
@@ -77,6 +80,12 @@ export function AdminNav({ storeName, perms, name, roleLabel, badges = {} }: { s
   const groups = GROUPS.map((g) => ({ ...g, items: g.items.filter((i) => perms.includes(i.perm)) })).filter((g) => g.items.length);
   const items = groups.flatMap((g) => g.items);
   const current = activeHref(path, items);
+  // Phones: four main entries in the bar, everything else in the "More" sheet.
+  const main = items.length <= 5 ? items : items.slice(0, 4);
+  const more = items.length <= 5 ? [] : items.slice(4);
+  const [sheet, setSheet] = useState(false);
+  useEffect(() => setSheet(false), [path]);
+  const moreActive = more.some((i) => i.href === current);
   return (
     <>
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-e border-line bg-surface lg:flex">
@@ -129,17 +138,62 @@ export function AdminNav({ storeName, perms, name, roleLabel, badges = {} }: { s
         </div>
       </aside>
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex justify-around overflow-x-auto border-t border-line bg-surface/95 p-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] backdrop-blur scrollbar-none lg:hidden" aria-label={T("القائمة")}>
-        {items.map(({ href, label, icon: Icon }) => {
+      {sheet && (
+        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label={T("المزيد")}>
+          <button type="button" className="absolute inset-0 bg-black/60 backdrop-blur-sm" aria-label={T("إلغاء")} onClick={() => setSheet(false)} />
+          <div className="absolute inset-x-0 bottom-0 rounded-t-3xl border-t border-line bg-surface p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+            <div className="mb-3 flex items-center gap-3 px-1">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand/15 text-sm font-bold text-brand">{name.trim().charAt(0).toUpperCase()}</span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-bold">{name}</p>
+                <p className="truncate text-xs text-muted">{roleLabel}</p>
+              </div>
+              <button type="button" onClick={() => setSheet(false)} className="grid h-9 w-9 place-items-center rounded-full bg-mist" aria-label={T("إلغاء")}><X className="h-4.5 w-4.5" /></button>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {more.map(({ href, label, icon: Icon }) => (
+                <Link key={href} href={href} className={cn("relative flex flex-col items-center gap-1.5 rounded-2xl border px-2 py-3 text-center text-xs font-medium", href === current ? "border-brand bg-brand text-white" : "border-line bg-mist/50 text-fg")}>
+                  <Icon className="h-5 w-5" aria-hidden="true" />
+                  {T(label)}
+                  {!!badges[href] && <span className="absolute end-2 top-2 h-2 w-2 rounded-full bg-brand" aria-hidden="true" />}
+                </Link>
+              ))}
+            </div>
+            <div className="mt-3 grid grid-cols-3 gap-2 border-t border-line pt-3 text-xs">
+              <Link href="/fr" target="_blank" className="flex flex-col items-center gap-1.5 rounded-2xl px-2 py-2.5 text-center font-medium text-ink-2 hover:bg-mist">
+                <ExternalLink className="h-5 w-5" aria-hidden="true" />
+                {T("عرض المتجر")}
+              </Link>
+              <LangSwitch className="flex flex-col items-center gap-1.5 rounded-2xl px-2 py-2.5 text-center font-medium text-ink-2 hover:bg-mist" />
+              <form action={logout} className="contents">
+                <button type="submit" className="flex flex-col items-center gap-1.5 rounded-2xl px-2 py-2.5 text-center font-medium text-hot hover:bg-hot-50">
+                  <LogOut className="h-5 w-5" aria-hidden="true" />
+                  {T("تسجيل الخروج")}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <nav className="fixed inset-x-0 bottom-0 z-40 grid border-t border-line bg-surface/95 p-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] backdrop-blur lg:hidden" style={{ gridTemplateColumns: `repeat(${main.length + (more.length ? 1 : 0)}, minmax(0, 1fr))` }} aria-label={T("القائمة")}>
+        {main.map(({ href, label, short, icon: Icon }) => {
           const active = href === current;
           return (
-            <Link key={href} href={href} className={cn("relative flex min-w-[3.6rem] flex-1 flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 text-[0.65rem] font-medium", active ? "bg-brand text-white" : "text-ink-2")}>
+            <Link key={href} href={href} aria-current={active ? "page" : undefined} className={cn("relative flex min-w-0 flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 text-[0.68rem] font-medium", active ? "bg-brand text-white" : "text-ink-2")}>
               <Icon className="h-5 w-5" aria-hidden="true" />
-              <span className="max-w-full truncate">{T(label)}</span>
-              {!!badges[href] && <span className="absolute end-1.5 top-1 h-2 w-2 rounded-full bg-brand ring-2 ring-surface" aria-hidden="true" />}
+              <span className="max-w-full truncate">{T(short ?? label)}</span>
+              {!!badges[href] && <span className="absolute end-[22%] top-1 grid h-4 min-w-4 place-items-center rounded-full bg-brand px-1 text-[0.6rem] font-bold text-white ring-2 ring-surface">{badges[href] > 99 ? "99+" : badges[href]}</span>}
             </Link>
           );
         })}
+        {more.length > 0 && (
+          <button type="button" onClick={() => setSheet(true)} className={cn("relative flex min-w-0 flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 text-[0.68rem] font-medium", moreActive ? "bg-brand text-white" : "text-ink-2")}>
+            <Menu className="h-5 w-5" aria-hidden="true" />
+            <span className="max-w-full truncate">{T("المزيد")}</span>
+            {more.some((i) => badges[i.href]) && <span className="absolute end-[22%] top-1 h-2 w-2 rounded-full bg-brand ring-2 ring-surface" aria-hidden="true" />}
+          </button>
+        )}
       </nav>
     </>
   );
